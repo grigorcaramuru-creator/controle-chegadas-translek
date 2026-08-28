@@ -171,9 +171,11 @@ const URL='https://epzwdmqjvlmdugpwrcky.supabase.co';
 const KEY='sb_publishable_4hrEJpIC28RCJ7b04o8tBw_gnhwAoxC';
 const H={apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'};
 const TIMES={
-'SJM-FOR':71,'BRE-ANA':62,'BRE-MRB':44+20/60,'FEC-BRE':40,'SJM-FEC':40,'BRE-CGB':37,
-'BRE-AJU':44,'PMW-BSB':16,'MRB-PMW':13+20/60,'BRE-CGE':12,'BRE-CGR':19,'GRU-CGE':11,
-'CGB-ROO':4,'BSB-BRE':19.5,'GRU-SJM':8.5,'GRU-RBP':6.5,'ROO-CGR':11
+'BRE-AJU':44,'BRE-ANA':62,'BRE-CGR':19,'CGR-BRE':21,'BRE-CGB':37,'BRE-FOR':75+20/60,
+'BRE-MRB':44+20/60,'BRE-SNS':49,'BRE-CGE':12,'CGE-BRE':12,'SNS-FOR':26+20/60,'FOR-SNS':26+20/60,
+'SNS-FEC':10,'FEC-BRE':40,'FOR-BRE':75+20/60,'CGB-ROO':4,'ROO-CGR':11,'CGB-BRE':35+10/60,
+'ANA-MRB':15.5,'MRB-PMW':13+20/60,'PMW-BSB':16,'BSB-BRE':19.5,'GRU-SJM':8.5,'SJM-FEC':40,
+'SJM-FOR':71,'GRU-CGE':11,'GRU-RBP':6.5
 };
 let tripsCache=[];
 
@@ -263,4 +265,4 @@ setInterval(load,30000);
 load();
 </script>
 </body>
-</html>
+  </html>
