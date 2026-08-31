@@ -73,7 +73,15 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
 .tag{background:#0d5bd3;color:#fff;border-radius:8px;padding:5px 8px;font-weight:700}
 .statusBtn{border:0;border-radius:8px;background:#0d63e5;color:#fff;padding:7px 9px;font-weight:700;font-size:10px}
 .empty{padding:30px;text-align:center;color:var(--muted);font-size:12px}
-.historyWrap{max-height:330px;overflow:auto}
+.historyWrap{max-height:420px;overflow:auto}
+.effTools{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-top:12px;position:relative;z-index:1}
+.effTools>div{min-width:190px}.effTools label{color:#d9e7ff;margin:0 0 5px;font-size:10px}
+.effTools select{background:#fff;color:#162033;padding:8px 10px}
+.effRange{font-size:10px;color:#d9e7ff;margin-top:4px}
+.dayGroup td{background:#edf4ff;color:#0b3b8e;font-weight:800;font-size:11px;padding:9px 10px}
+.deleteBtn{border:0;border-radius:8px;background:#e01c2b;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}
+.historyActions{display:flex;gap:6px;align-items:center}
+.routeMini{font-size:10px;color:#d9e7ff;margin-top:3px}
 @media(max-width:1050px){
   main{grid-template-columns:1fr}
 }
@@ -142,7 +150,14 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
     </div>
 
     <div class="mid">
-      <div class="card eff"><div class="et">◎ EFICIÊNCIA DE CHEGADAS</div><div id="efficiency" class="ep">—</div><p id="effText">Registre chegadas para medir a performance.</p></div>
+      <div class="card eff">
+        <div class="et">◎ EFICIÊNCIA DE CHEGADAS • QUINZENAL</div>
+        <div id="efficiency" class="ep">—</div>
+        <p id="effText">Registre chegadas para medir a performance.</p>
+        <div id="effRange" class="effRange">—</div>
+        <div class="effTools"><div><label>Ver eficiência por rota</label><select id="effRoute"><option value="ALL">Todas as rotas</option></select></div></div>
+        <div id="effRouteLabel" class="routeMini">Todas as rotas</div>
+      </div>
       <div class="card next"><h3>◷ Tempo restante para a próxima chegada</h3><div id="nextCountdown" class="countdown">—</div><div class="small">Baseado na viagem do topo da fila</div></div>
     </div>
 
@@ -159,8 +174,8 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
         <div class="tableScroll"><table><thead><tr><th>ORDEM</th><th>PREVISÃO CHEGADA</th><th>MOTORISTA</th><th>TRECHO</th><th>TRANSIT-TIME</th><th>TEMPO RESTANTE</th><th></th></tr></thead><tbody id="queueBody"></tbody></table></div>
       </div>
       <div class="card sectionCard">
-        <div class="sectionHead"><div><h2>▣ Histórico protegido</h2><p>Viagens concluídas não podem ser apagadas</p></div></div>
-        <div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>DATA / HORA</th><th>MOTORISTA</th><th>TRECHO</th><th>CHEGADA REAL</th><th>STATUS</th></tr></thead><tbody id="historyBody"></tbody></table></div></div>
+        <div class="sectionHead"><div><h2>▣ Histórico por dia</h2><p>Viagens concluídas separadas pela data de chegada real</p></div></div>
+        <div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>HORA</th><th>MOTORISTA</th><th>TRECHO</th><th>CHEGADA REAL</th><th>STATUS / AÇÕES</th></tr></thead><tbody id="historyBody"></tbody></table></div></div>
       </div>
     </div>
   </section>
@@ -186,6 +201,14 @@ function fmtTransit(h){let m=Math.round(h*60),hh=Math.floor(m/60),mm=m%60;return
 function formatLocalInput(d){const z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`}
 function fmtDT(v){return new Date(v).toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'})}
 function dayKey(v){let d=new Date(v);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmtTime(v){return new Date(v).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}
+function quinzenalRange(ref=new Date()){
+ const y=ref.getFullYear(),m=ref.getMonth();
+ const start=ref.getDate()<=15?new Date(y,m,1,0,0,0,0):new Date(y,m,16,0,0,0,0);
+ const end=ref.getDate()<=15?new Date(y,m,15,23,59,59,999):new Date(y,m+1,0,23,59,59,999);
+ return {start,end};
+}
 function countdownText(target){
  const diff=new Date(target)-new Date();
  if(diff<=0)return 'CHEGADA VENCIDA';
@@ -229,24 +252,52 @@ async function editArrival(id,planned,current){
  await api('trips?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({real_arrival:real.toISOString(),on_time:real<=new Date(planned),updated_at:new Date().toISOString()})});load();
 }
 
+async function deleteTrip(id){
+ if(!confirm('Excluir esta viagem do histórico? Esta ação não pode ser desfeita.'))return;
+ try{await api('trips?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});await load()}
+ catch(e){console.error(e);alert('Não foi possível excluir a viagem.')}
+}
+
 function setDefaultDates(){
  let b=new Date(),a=new Date();a.setDate(b.getDate()-1);
  dateA.value=dayKey(a);dateB.value=dayKey(b)
 }
-setDefaultDates();dateA.onchange=()=>render();dateB.onchange=()=>render();
+setDefaultDates();dateA.onchange=()=>render();dateB.onchange=()=>render();effRoute.onchange=()=>render();
 
 function render(){
  let active=tripsCache.filter(x=>!x.done).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival));
- let done=tripsCache.filter(x=>x.done).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));
+ let done=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));
  queueBadge.textContent=`#${active.length} NA FILA`;
  queueBody.innerHTML=active.length?active.map((t,i)=>`<tr>
-  <td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${t.driver}</td><td>${t.route}</td><td>${t.transit||'—'}</td>
+  <td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${esc(t.driver)}</td><td>${esc(t.route)}</td><td>${esc(t.transit||'—')}</td>
   <td class="${new Date(t.arrival)<new Date()?'late':''}">${countdownText(t.arrival)}</td>
   <td><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button></td></tr>`).join(''):`<tr><td colspan="7" class="empty">Nenhuma viagem ativa.</td></tr>`;
- historyBody.innerHTML=done.length?done.map(t=>`<tr><td>${fmtDT(t.real_arrival)}</td><td>${t.driver}</td><td>${t.route}</td><td>${fmtDT(t.real_arrival)}</td><td><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button></td></tr>`).join(''):`<tr><td colspan="5" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;
+
+ const grouped=[];let last='';
+ for(const t of done){
+   const key=dayKey(t.real_arrival);
+   if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="5">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}
+   grouped.push(`<tr><td>${fmtTime(t.real_arrival)}</td><td>${esc(t.driver)}</td><td>${esc(t.route)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)
+ }
+ historyBody.innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="5" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;
+
  let on=done.filter(x=>x.on_time).length,late=done.length-on;
  kOn.textContent=on;kLate.textContent=late;kDone.textContent=done.length;kActive.textContent=active.length;
- let eff=done.length?Math.round(on/done.length*100):null;efficiency.textContent=eff===null?'—':eff+'%';effText.textContent=eff===null?'Registre chegadas para medir a performance.':`${on} de ${done.length} chegadas no prazo.`;
+
+ const routes=[...new Set(done.map(x=>x.route).filter(Boolean))].sort();
+ const previousRoute=effRoute.value;
+ effRoute.innerHTML='<option value="ALL">Todas as rotas</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+ if(previousRoute==='ALL'||routes.includes(previousRoute))effRoute.value=previousRoute;else effRoute.value='ALL';
+ const q=quinzenalRange(new Date());
+ const routeSelected=effRoute.value;
+ const qDone=done.filter(x=>{const d=new Date(x.real_arrival);return d>=q.start&&d<=q.end&&(routeSelected==='ALL'||x.route===routeSelected)});
+ const qOn=qDone.filter(x=>x.on_time).length;
+ const qEff=qDone.length?Math.round(qOn/qDone.length*100):null;
+ efficiency.textContent=qEff===null?'—':qEff+'%';
+ effText.textContent=qEff===null?'Sem chegadas concluídas nesta quinzena.':`${qOn} de ${qDone.length} chegadas no prazo nesta quinzena.`;
+ effRange.textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')}`;
+ effRouteLabel.textContent=routeSelected==='ALL'?'Todas as rotas':`Rota: ${routeSelected}`;
+
  nextCountdown.textContent=active.length?countdownText(active[0].arrival):'—';
  function ds(key){let a=done.filter(x=>dayKey(x.real_arrival)===key),o=a.filter(x=>x.on_time).length,l=a.length-o,p=a.length?Math.round(o/a.length*100):null;return{o,l,t:a.length,p}}
  let A=ds(dateA.value),B=ds(dateB.value);
@@ -265,4 +316,4 @@ setInterval(load,30000);
 load();
 </script>
 </body>
-  </html>
+</html>
