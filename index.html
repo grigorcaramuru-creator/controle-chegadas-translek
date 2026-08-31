@@ -82,6 +82,16 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
 .deleteBtn{border:0;border-radius:8px;background:#e01c2b;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}
 .historyActions{display:flex;gap:6px;align-items:center}
 .routeMini{font-size:10px;color:#d9e7ff;margin-top:3px}
+.fiscalSection{padding:0;overflow:hidden}
+.fiscalGrid{display:grid;grid-template-columns:360px 1fr;gap:14px;padding:16px}
+.fiscalForm{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fbfdff}
+.fiscalStats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.fiscalStat{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fff}
+.fiscalStat b{display:block;font-size:22px;color:#0b3b8e}.fiscalStat span{font-size:9px;color:var(--muted)}
+.timerLive{font-weight:800;color:#c91828;font-variant-numeric:tabular-nums}
+.fiscalFilter{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#fbfcfe}
+.fiscalFilter>div{min-width:180px}.fiscalFilter label{margin:0 0 5px}
+.secondaryBtn{border:0;border-radius:8px;background:#6d7787;color:#fff;padding:9px 11px;font-weight:700;font-size:10px}
 @media(max-width:1050px){
   main{grid-template-columns:1fr}
 }
@@ -92,7 +102,7 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
   .row2{grid-template-columns:1fr 1fr}
   .compareTop{display:block} .datepick{margin-top:10px;display:grid;grid-template-columns:1fr 1fr} .datepick input{min-width:0}
   .compareGrid{grid-template-columns:1fr} .delta{padding:10px}
-  .mid,.queueHistory{grid-template-columns:1fr}
+  .mid,.queueHistory,.fiscalGrid{grid-template-columns:1fr}
   .kpis{grid-template-columns:1fr 1fr}
   table{min-width:720px} .tableScroll{overflow:auto}
 }
@@ -178,6 +188,33 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
         <div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>HORA</th><th>MOTORISTA</th><th>TRECHO</th><th>CHEGADA REAL</th><th>STATUS / AÇÕES</th></tr></thead><tbody id="historyBody"></tbody></table></div></div>
       </div>
     </div>
+
+    <div class="card fiscalSection">
+      <div class="sectionHead"><div><h2>⏱ Paradas em posto fiscal</h2><p>Controle o tempo parado por placa e posto fiscal</p></div><span id="fiscalBadge" class="tag">0 NO FISCAL</span></div>
+      <div class="fiscalGrid">
+        <div class="fiscalForm">
+          <div class="sectionTitle"><span>▣</span><h2>Nova parada</h2></div>
+          <label>Placa</label><input id="fiscalPlate" placeholder="ABC-1D23">
+          <label>Posto fiscal</label><input id="fiscalName" placeholder="Nome do posto fiscal">
+          <label>Data e hora de início</label><input id="fiscalStart" type="datetime-local">
+          <button class="primary" onclick="startFiscalStop()">▶ Iniciar cronômetro</button>
+          <div class="small" style="margin-top:8px">O cronômetro continua contando até você finalizar a parada.</div>
+        </div>
+        <div>
+          <div class="fiscalStats">
+            <div class="fiscalStat"><b id="fiscalActiveCount">0</b><span>VEÍCULOS PARADOS AGORA</span></div>
+            <div class="fiscalStat"><b id="fiscalLongest">—</b><span>MAIOR TEMPO NO HISTÓRICO</span></div>
+          </div>
+          <div class="tableScroll"><table><thead><tr><th>PLACA</th><th>POSTO FISCAL</th><th>INÍCIO</th><th>TEMPO PARADO</th><th>AÇÃO</th></tr></thead><tbody id="fiscalActiveBody"></tbody></table></div>
+        </div>
+      </div>
+      <div class="fiscalFilter">
+        <div><label>Filtrar histórico por data</label><input id="fiscalDateFilter" type="date"></div>
+        <button class="secondaryBtn" onclick="clearFiscalFilter()">Limpar filtro</button>
+        <div class="small">Histórico ordenado do maior para o menor tempo parado.</div>
+      </div>
+      <div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>PLACA</th><th>POSTO FISCAL</th><th>INÍCIO</th><th>FINALIZAÇÃO</th><th>TEMPO TOTAL</th></tr></thead><tbody id="fiscalHistoryBody"></tbody></table></div></div>
+    </div>
   </section>
 </main>
 
@@ -193,6 +230,7 @@ const TIMES={
 'SJM-FOR':71,'GRU-CGE':11,'GRU-RBP':6.5,'GRU-FEC':37,'GRU-CGB':37
 };
 let tripsCache=[];
+let fiscalCache=[];
 
 const route=document.getElementById('route');
 Object.keys(TIMES).forEach(x=>{let o=document.createElement('option');o.value=x;o.textContent=x;route.appendChild(o)});
@@ -216,6 +254,7 @@ function countdownText(target){
  return `${String(d).padStart(2,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`;
 }
 departure.value=formatLocalInput(new Date());
+fiscalStart.value=formatLocalInput(new Date());
 
 function updatePreview(){
  let h=TIMES[route.value],dep=new Date(departure.value);
@@ -227,6 +266,41 @@ route.onchange=updatePreview;departure.onchange=updatePreview;updatePreview();
 async function api(path,opt={}){
  let r=await fetch(URL+'/rest/v1/'+path,{...opt,headers:{...H,...(opt.headers||{})}});
  if(!r.ok)throw Error(await r.text());let t=await r.text();return t?JSON.parse(t):null
+}
+
+
+function durationText(start,end=new Date()){
+ const diff=Math.max(0,new Date(end)-new Date(start));
+ let s=Math.floor(diff/1000),d=Math.floor(s/86400);s%=86400;let h=Math.floor(s/3600);s%=3600;let m=Math.floor(s/60);let sec=s%60;
+ return `${d?d+'d ':''}${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`;
+}
+function durationMinutes(start,end){return Math.max(0,Math.round((new Date(end)-new Date(start))/60000))}
+function durationShort(start,end){
+ const mins=durationMinutes(start,end),d=Math.floor(mins/1440),h=Math.floor((mins%1440)/60),m=mins%60;
+ return `${d?d+'d ':''}${h}h ${String(m).padStart(2,'0')}min`;
+}
+async function startFiscalStop(){
+ if(!fiscalPlate.value.trim()||!fiscalName.value.trim()||!fiscalStart.value)return alert('Preencha placa, posto fiscal e data/hora de início.');
+ const start=new Date(fiscalStart.value);if(isNaN(start))return alert('Data/hora de início inválida.');
+ await api('fiscal_stops',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({plate:fiscalPlate.value.trim().toUpperCase(),fiscal_name:fiscalName.value.trim(),started_at:start.toISOString()})});
+ fiscalPlate.value='';fiscalName.value='';fiscalStart.value=formatLocalInput(new Date());await load();
+}
+async function finishFiscalStop(id,currentStart){
+ const now=new Date();let local=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16).replace('T',' ');
+ const raw=prompt('Data/hora final da parada (AAAA-MM-DD HH:MM):',local);if(!raw)return;
+ const end=new Date(raw.replace(' ','T'));if(isNaN(end))return alert('Data/hora inválida.');
+ if(end<new Date(currentStart))return alert('A data/hora final não pode ser anterior ao início.');
+ await api('fiscal_stops?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({ended_at:end.toISOString(),updated_at:new Date().toISOString()})});await load();
+}
+function clearFiscalFilter(){fiscalDateFilter.value='';renderFiscal()}
+function renderFiscal(){
+ const active=fiscalCache.filter(x=>!x.ended_at).sort((a,b)=>new Date(a.started_at)-new Date(b.started_at));
+ let done=fiscalCache.filter(x=>x.ended_at).sort((a,b)=>durationMinutes(b.started_at,b.ended_at)-durationMinutes(a.started_at,a.ended_at));
+ fiscalBadge.textContent=`${active.length} NO FISCAL`;fiscalActiveCount.textContent=active.length;
+ fiscalActiveBody.innerHTML=active.length?active.map(x=>`<tr><td><b>${esc(x.plate)}</b></td><td>${esc(x.fiscal_name)}</td><td>${fmtDT(x.started_at)}</td><td class="timerLive">${durationText(x.started_at)}</td><td><button class="statusBtn" onclick="finishFiscalStop(${x.id},'${x.started_at}')">Finalizar</button></td></tr>`).join(''):`<tr><td colspan="5" class="empty">Nenhum veículo parado no fiscal agora.</td></tr>`;
+ const longest=done[0];fiscalLongest.textContent=longest?durationShort(longest.started_at,longest.ended_at):'—';
+ const filter=fiscalDateFilter.value;if(filter)done=done.filter(x=>dayKey(x.started_at)===filter);
+ fiscalHistoryBody.innerHTML=done.length?done.map(x=>`<tr><td><b>${esc(x.plate)}</b></td><td>${esc(x.fiscal_name)}</td><td>${fmtDT(x.started_at)}</td><td>${fmtDT(x.ended_at)}</td><td><b>${durationShort(x.started_at,x.ended_at)}</b></td></tr>`).join(''):`<tr><td colspan="5" class="empty">Nenhuma parada finalizada${filter?' nesta data':''}.</td></tr>`;
 }
 
 async function saveTrip(){
@@ -262,7 +336,7 @@ function setDefaultDates(){
  let b=new Date(),a=new Date();a.setDate(b.getDate()-1);
  dateA.value=dayKey(a);dateB.value=dayKey(b)
 }
-setDefaultDates();dateA.onchange=()=>render();dateB.onchange=()=>render();effRoute.onchange=()=>render();
+setDefaultDates();dateA.onchange=()=>render();dateB.onchange=()=>render();effRoute.onchange=()=>render();fiscalDateFilter.onchange=()=>renderFiscal();
 
 function render(){
  let active=tripsCache.filter(x=>!x.done).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival));
@@ -304,11 +378,12 @@ function render(){
  labelA.textContent=new Date(dateA.value+'T12:00').toLocaleDateString('pt-BR');labelB.textContent=new Date(dateB.value+'T12:00').toLocaleDateString('pt-BR');
  onA.textContent=A.o;lateA.textContent=A.l;totA.textContent=A.t;onB.textContent=B.o;lateB.textContent=B.l;totB.textContent=B.t;
  if(A.p===null||B.p===null){delta.textContent='—';deltaTxt.textContent='Sem dados nos dois dias'}else{let d=B.p-A.p;delta.textContent=(d>0?'+':'')+d+' p.p.';deltaTxt.textContent=d>0?'Melhora':d<0?'Queda':'Estável'}
+ renderFiscal();
  updated.textContent='Atualizado: '+new Date().toLocaleString('pt-BR',{dateStyle:'short',timeStyle:'short'});
 }
 
 async function load(){
- try{tripsCache=await api('trips?select=*&order=arrival.asc');render()}
+ try{[tripsCache,fiscalCache]=await Promise.all([api('trips?select=*&order=arrival.asc'),api('fiscal_stops?select=*&order=started_at.desc')]);render()}
  catch(e){console.error(e)}
 }
 setInterval(()=>{updatePreview();render()},1000);
