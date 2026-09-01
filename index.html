@@ -208,7 +208,7 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
             <div class="fiscalStat"><b id="fiscalFortnightTotal">—</b><span>TEMPO TOTAL • QUINZENA</span></div>
             <div class="fiscalStat"><b id="fiscalFortnightCount">0</b><span>PARADAS • QUINZENA</span></div>
           </div>
-          <div class="tableScroll"><table><thead><tr><th>PLACA</th><th>POSTO FISCAL</th><th>INÍCIO</th><th>TEMPO PARADO</th><th>AÇÃO</th></tr></thead><tbody id="fiscalActiveBody"></tbody></table></div>
+          <div class="tableScroll"><table><thead><tr><th>PLACA</th><th>POSTO FISCAL</th><th>SENHA</th><th>INÍCIO</th><th>TEMPO PARADO</th><th>AÇÕES</th></tr></thead><tbody id="fiscalActiveBody"></tbody></table></div>
         </div>
       </div>
       <div class="fiscalFilter">
@@ -216,7 +216,7 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
         <button class="secondaryBtn" onclick="clearFiscalFilter()">Limpar filtro</button>
         <div class="small">Histórico ordenado do maior para o menor tempo parado.</div>
       </div>
-      <div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>PLACA</th><th>POSTO FISCAL</th><th>INÍCIO</th><th>FINALIZAÇÃO</th><th>TEMPO TOTAL</th></tr></thead><tbody id="fiscalHistoryBody"></tbody></table></div></div>
+      <div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>PLACA</th><th>POSTO FISCAL</th><th>SENHA</th><th>INÍCIO</th><th>FINALIZAÇÃO</th><th>TEMPO TOTAL</th><th>AÇÃO</th></tr></thead><tbody id="fiscalHistoryBody"></tbody></table></div></div>
     </div>
   </section>
 </main>
@@ -289,8 +289,8 @@ function minutesAsDays(mins){
 async function startFiscalStop(){
  if(!fiscalPlate.value.trim()||!fiscalName.value.trim()||!fiscalStart.value)return alert('Preencha placa, posto fiscal e data/hora de início.');
  const start=new Date(fiscalStart.value);if(isNaN(start))return alert('Data/hora de início inválida.');
- await api('fiscal_stops',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({plate:fiscalPlate.value.trim().toUpperCase(),fiscal_name:fiscalName.value.trim(),started_at:start.toISOString()})});
- fiscalPlate.value='';fiscalName.value='';fiscalStart.value=formatLocalInput(new Date());await load();
+ await api('fiscal_stops',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({plate:fiscalPlate.value.trim().toUpperCase(),fiscal_name:fiscalName.value.trim(),service_password:fiscalPassword.value.trim(),started_at:start.toISOString()})});
+ fiscalPlate.value='';fiscalName.value='';fiscalPassword.value='';fiscalStart.value=formatLocalInput(new Date());await load();
 }
 async function finishFiscalStop(id,currentStart){
  const now=new Date();let local=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16).replace('T',' ');
@@ -299,12 +299,17 @@ async function finishFiscalStop(id,currentStart){
  if(end<new Date(currentStart))return alert('A data/hora final não pode ser anterior ao início.');
  await api('fiscal_stops?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({ended_at:end.toISOString(),updated_at:new Date().toISOString()})});await load();
 }
+async function deleteFiscalStop(id){
+ if(!confirm('Excluir esta parada do posto fiscal? Esta ação não pode ser desfeita.'))return;
+ try{await api('fiscal_stops?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});await load()}
+ catch(e){console.error(e);alert('Não foi possível excluir esta parada do posto fiscal.')}
+}
 function clearFiscalFilter(){fiscalDateFilter.value='';renderFiscal()}
 function renderFiscal(){
  const active=fiscalCache.filter(x=>!x.ended_at).sort((a,b)=>new Date(a.started_at)-new Date(b.started_at));
  let done=fiscalCache.filter(x=>x.ended_at).sort((a,b)=>durationMinutes(b.started_at,b.ended_at)-durationMinutes(a.started_at,a.ended_at));
  fiscalBadge.textContent=`${active.length} NO FISCAL`;fiscalActiveCount.textContent=active.length;
- fiscalActiveBody.innerHTML=active.length?active.map(x=>`<tr><td><b>${esc(x.plate)}</b></td><td>${esc(x.fiscal_name)}</td><td>${fmtDT(x.started_at)}</td><td class="timerLive">${durationText(x.started_at)}</td><td><button class="statusBtn" onclick="finishFiscalStop(${x.id},'${x.started_at}')">Finalizar</button></td></tr>`).join(''):`<tr><td colspan="5" class="empty">Nenhum veículo parado no fiscal agora.</td></tr>`;
+ fiscalActiveBody.innerHTML=active.length?active.map(x=>`<tr><td><b>${esc(x.plate)}</b></td><td>${esc(x.fiscal_name)}</td><td><b>${esc(x.service_password||'—')}</b></td><td>${fmtDT(x.started_at)}</td><td class="timerLive">${durationText(x.started_at)}</td><td><div class="historyActions"><button class="statusBtn" onclick="finishFiscalStop(${x.id},'${x.started_at}')">Finalizar</button><button class="deleteBtn" onclick="deleteFiscalStop(${x.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="6" class="empty">Nenhum veículo parado no fiscal agora.</td></tr>`;
  const longest=done[0];fiscalLongest.textContent=longest?durationShort(longest.started_at,longest.ended_at):'—';
  const fq=quinzenalRange(new Date());
  const fiscalFortnight=done.filter(x=>{const d=new Date(x.started_at);return d>=fq.start&&d<=fq.end});
@@ -312,7 +317,7 @@ function renderFiscal(){
  fiscalFortnightTotal.textContent=fiscalFortnightMinutes?minutesAsDays(fiscalFortnightMinutes):'0d 00h 00min';
  fiscalFortnightCount.textContent=fiscalFortnight.length;
  const filter=fiscalDateFilter.value;if(filter)done=done.filter(x=>dayKey(x.started_at)===filter);
- fiscalHistoryBody.innerHTML=done.length?done.map(x=>`<tr><td><b>${esc(x.plate)}</b></td><td>${esc(x.fiscal_name)}</td><td>${fmtDT(x.started_at)}</td><td>${fmtDT(x.ended_at)}</td><td><b>${durationShort(x.started_at,x.ended_at)}</b></td></tr>`).join(''):`<tr><td colspan="5" class="empty">Nenhuma parada finalizada${filter?' nesta data':''}.</td></tr>`;
+ fiscalHistoryBody.innerHTML=done.length?done.map(x=>`<tr><td><b>${esc(x.plate)}</b></td><td>${esc(x.fiscal_name)}</td><td><b>${esc(x.service_password||'—')}</b></td><td>${fmtDT(x.started_at)}</td><td>${fmtDT(x.ended_at)}</td><td><b>${durationShort(x.started_at,x.ended_at)}</b></td><td><button class="deleteBtn" onclick="deleteFiscalStop(${x.id})">Excluir</button></td></tr>`).join(''):`<tr><td colspan="7" class="empty">Nenhuma parada finalizada${filter?' nesta data':''}.</td></tr>`;
 }
 
 async function saveTrip(){
@@ -415,4 +420,4 @@ setInterval(load,30000);
 load();
 </script>
 </body>
-  </html>
+</html>
