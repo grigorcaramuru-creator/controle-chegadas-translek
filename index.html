@@ -197,6 +197,7 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
           <div class="sectionTitle"><span>▣</span><h2>Nova parada</h2></div>
           <label>Placa</label><input id="fiscalPlate" placeholder="ABC-1D23">
           <label>Posto fiscal</label><input id="fiscalName" placeholder="Nome do posto fiscal">
+          <label>Senha de atendimento</label><input id="fiscalPassword" placeholder="Digite a senha de atendimento do motorista">
           <label>Data e hora de início</label><input id="fiscalStart" type="datetime-local">
           <button class="primary" onclick="startFiscalStop()">▶ Iniciar cronômetro</button>
           <div class="small" style="margin-top:8px">O cronômetro continua contando até você finalizar a parada.</div>
@@ -287,10 +288,21 @@ function minutesAsDays(mins){
  return `${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}min`;
 }
 async function startFiscalStop(){
- if(!fiscalPlate.value.trim()||!fiscalName.value.trim()||!fiscalStart.value)return alert('Preencha placa, posto fiscal e data/hora de início.');
+ if(!fiscalPlate.value.trim()||!fiscalName.value.trim()||!fiscalPassword.value.trim()||!fiscalStart.value)return alert('Preencha placa, posto fiscal, senha de atendimento e data/hora de início.');
  const start=new Date(fiscalStart.value);if(isNaN(start))return alert('Data/hora de início inválida.');
- await api('fiscal_stops',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({plate:fiscalPlate.value.trim().toUpperCase(),fiscal_name:fiscalName.value.trim(),service_password:fiscalPassword.value.trim(),started_at:start.toISOString()})});
- fiscalPlate.value='';fiscalName.value='';fiscalPassword.value='';fiscalStart.value=formatLocalInput(new Date());await load();
+ try{
+  await api('fiscal_stops',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({
+   plate:fiscalPlate.value.trim().toUpperCase(),
+   fiscal_name:fiscalName.value.trim(),
+   service_password:fiscalPassword.value.trim(),
+   started_at:start.toISOString()
+  })});
+  fiscalPlate.value='';fiscalName.value='';fiscalPassword.value='';fiscalStart.value=formatLocalInput(new Date());
+  await load();
+ }catch(e){
+  console.error(e);
+  alert('Não foi possível iniciar o cronômetro do posto fiscal.');
+ }
 }
 async function finishFiscalStop(id,currentStart){
  const now=new Date();let local=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16).replace('T',' ');
