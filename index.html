@@ -182,10 +182,12 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
     <div class="queueHistory">
       <div class="card sectionCard">
         <div class="sectionHead"><div><h2>▣ Fila de chegadas</h2><p>Ordenada automaticamente pela previsão de chegada</p></div><span id="queueBadge" class="tag">#0 NA FILA</span></div>
+        <div style="margin:10px 0 12px"><label>Buscar motorista</label><input id="queueNameFilter" placeholder="Digite o nome do motorista"></div>
         <div class="tableScroll"><table><thead><tr><th>ORDEM</th><th>PREVISÃO CHEGADA</th><th>MOTORISTA</th><th>PLACA</th><th>TRECHO</th><th>TRANSIT-TIME</th><th>TEMPO RESTANTE</th><th>AÇÕES</th></tr></thead><tbody id="queueBody"></tbody></table></div>
       </div>
       <div class="card sectionCard">
         <div class="sectionHead"><div><h2>▣ Histórico por dia</h2><p>Viagens concluídas separadas pela data de chegada real</p></div></div>
+        <div style="margin:10px 0 12px"><label>Buscar motorista no histórico</label><input id="historyNameFilter" placeholder="Digite o nome do motorista"></div>
         <div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>MOTORISTA</th><th>PLACA</th><th>TRECHO</th><th>PREVISÃO CHEGADA</th><th>CHEGADA REAL</th><th>STATUS / AÇÕES</th></tr></thead><tbody id="historyBody"></tbody></table></div></div>
       </div>
     </div>
@@ -372,10 +374,13 @@ function setDefaultDates(){
  dateA.value=dayKey(a);dateB.value=dayKey(b)
 }
 setDefaultDates();dateA.onchange=()=>render();dateB.onchange=()=>render();effRoute.onchange=()=>render();fiscalDateFilter.onchange=()=>renderFiscal();
+queueNameFilter.oninput=()=>render();historyNameFilter.oninput=()=>render();
 
 function render(){
- let active=tripsCache.filter(x=>!x.done).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival));
- let done=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));
+ const queueTerm=(document.getElementById('queueNameFilter')?.value||'').trim().toLowerCase();
+ const historyTerm=(document.getElementById('historyNameFilter')?.value||'').trim().toLowerCase();
+ let active=tripsCache.filter(x=>!x.done && (!queueTerm || (x.driver||'').toLowerCase().includes(queueTerm))).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival));
+ let done=tripsCache.filter(x=>x.done&&x.real_arrival && (!historyTerm || (x.driver||'').toLowerCase().includes(historyTerm))).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));
  queueBadge.textContent=`#${active.length} NA FILA`;
  queueBody.innerHTML=active.length?active.map((t,i)=>`<tr>
   <td><span class="tag">${i+1}</span></td>
