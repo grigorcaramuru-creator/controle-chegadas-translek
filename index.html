@@ -182,7 +182,7 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
     <div class="queueHistory">
       <div class="card sectionCard">
         <div class="sectionHead"><div><h2>▣ Fila de chegadas</h2><p>Ordenada automaticamente pela previsão de chegada</p></div><span id="queueBadge" class="tag">#0 NA FILA</span></div>
-        <div class="tableScroll"><table><thead><tr><th>ORDEM</th><th>PREVISÃO CHEGADA</th><th>MOTORISTA</th><th>TRECHO</th><th>TRANSIT-TIME</th><th>TEMPO RESTANTE</th><th></th></tr></thead><tbody id="queueBody"></tbody></table></div>
+        <div class="tableScroll"><table><thead><tr><th>ORDEM</th><th>PREVISÃO CHEGADA</th><th>MOTORISTA</th><th>PLACA</th><th>TRECHO</th><th>TRANSIT-TIME</th><th>TEMPO RESTANTE</th><th>AÇÕES</th></tr></thead><tbody id="queueBody"></tbody></table></div>
       </div>
       <div class="card sectionCard">
         <div class="sectionHead"><div><h2>▣ Histórico por dia</h2><p>Viagens concluídas separadas pela data de chegada real</p></div></div>
@@ -344,6 +344,12 @@ async function deleteTrip(id){
  catch(e){console.error(e);alert('Não foi possível excluir a viagem.')}
 }
 
+async function deleteActiveTrip(id){
+ if(!confirm('Excluir esta viagem da fila de chegadas? Esta ação não pode ser desfeita.'))return;
+ try{await api('trips?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});await load()}
+ catch(e){console.error(e);alert('Não foi possível excluir a viagem da fila.')}
+}
+
 function setDefaultDates(){
  let b=new Date(),a=new Date();a.setDate(b.getDate()-1);
  dateA.value=dayKey(a);dateB.value=dayKey(b)
@@ -355,9 +361,15 @@ function render(){
  let done=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));
  queueBadge.textContent=`#${active.length} NA FILA`;
  queueBody.innerHTML=active.length?active.map((t,i)=>`<tr>
-  <td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${esc(t.driver)}</td><td>${esc(t.route)}</td><td>${esc(t.transit||'—')}</td>
+  <td><span class="tag">${i+1}</span></td>
+  <td>${fmtDT(t.arrival)}</td>
+  <td>${esc(t.driver)}</td>
+  <td><b>${esc(t.plate||'—')}</b></td>
+  <td>${esc(t.route)}</td>
+  <td>${esc(t.transit||'—')}</td>
   <td class="${new Date(t.arrival)<new Date()?'late':''}">${countdownText(t.arrival)}</td>
-  <td><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button></td></tr>`).join(''):`<tr><td colspan="7" class="empty">Nenhuma viagem ativa.</td></tr>`;
+  <td><div class="historyActions"><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button><button class="deleteBtn" onclick="deleteActiveTrip(${t.id})">Excluir</button></div></td>
+ </tr>`).join(''):`<tr><td colspan="8" class="empty">Nenhuma viagem ativa.</td></tr>`;
 
  const grouped=[];let last='';
  for(const t of done){
@@ -403,4 +415,4 @@ setInterval(load,30000);
 load();
 </script>
 </body>
-</html>
+  </html>
