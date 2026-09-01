@@ -85,7 +85,7 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
 .fiscalSection{padding:0;overflow:hidden}
 .fiscalGrid{display:grid;grid-template-columns:360px 1fr;gap:14px;padding:16px}
 .fiscalForm{border:1px solid var(--line);border-radius:12px;padding:14px;background:#fbfdff}
-.fiscalStats{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.fiscalStats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
 .fiscalStat{border:1px solid var(--line);border-radius:10px;padding:12px;background:#fff}
 .fiscalStat b{display:block;font-size:22px;color:#0b3b8e}.fiscalStat span{font-size:9px;color:var(--muted)}
 .timerLive{font-weight:800;color:#c91828;font-variant-numeric:tabular-nums}
@@ -103,6 +103,7 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
   .compareTop{display:block} .datepick{margin-top:10px;display:grid;grid-template-columns:1fr 1fr} .datepick input{min-width:0}
   .compareGrid{grid-template-columns:1fr} .delta{padding:10px}
   .mid,.queueHistory,.fiscalGrid{grid-template-columns:1fr}
+  .fiscalStats{grid-template-columns:1fr 1fr}
   .kpis{grid-template-columns:1fr 1fr}
   table{min-width:720px} .tableScroll{overflow:auto}
 }
@@ -185,7 +186,7 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
       </div>
       <div class="card sectionCard">
         <div class="sectionHead"><div><h2>▣ Histórico por dia</h2><p>Viagens concluídas separadas pela data de chegada real</p></div></div>
-        <div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>HORA</th><th>MOTORISTA</th><th>TRECHO</th><th>CHEGADA REAL</th><th>STATUS / AÇÕES</th></tr></thead><tbody id="historyBody"></tbody></table></div></div>
+        <div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>MOTORISTA</th><th>PLACA</th><th>TRECHO</th><th>PREVISÃO CHEGADA</th><th>CHEGADA REAL</th><th>STATUS / AÇÕES</th></tr></thead><tbody id="historyBody"></tbody></table></div></div>
       </div>
     </div>
 
@@ -204,6 +205,8 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
           <div class="fiscalStats">
             <div class="fiscalStat"><b id="fiscalActiveCount">0</b><span>VEÍCULOS PARADOS AGORA</span></div>
             <div class="fiscalStat"><b id="fiscalLongest">—</b><span>MAIOR TEMPO NO HISTÓRICO</span></div>
+            <div class="fiscalStat"><b id="fiscalFortnightTotal">—</b><span>TEMPO TOTAL • QUINZENA</span></div>
+            <div class="fiscalStat"><b id="fiscalFortnightCount">0</b><span>PARADAS • QUINZENA</span></div>
           </div>
           <div class="tableScroll"><table><thead><tr><th>PLACA</th><th>POSTO FISCAL</th><th>INÍCIO</th><th>TEMPO PARADO</th><th>AÇÃO</th></tr></thead><tbody id="fiscalActiveBody"></tbody></table></div>
         </div>
@@ -279,6 +282,10 @@ function durationShort(start,end){
  const mins=durationMinutes(start,end),d=Math.floor(mins/1440),h=Math.floor((mins%1440)/60),m=mins%60;
  return `${d?d+'d ':''}${h}h ${String(m).padStart(2,'0')}min`;
 }
+function minutesAsDays(mins){
+ const d=Math.floor(mins/1440),h=Math.floor((mins%1440)/60),m=mins%60;
+ return `${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}min`;
+}
 async function startFiscalStop(){
  if(!fiscalPlate.value.trim()||!fiscalName.value.trim()||!fiscalStart.value)return alert('Preencha placa, posto fiscal e data/hora de início.');
  const start=new Date(fiscalStart.value);if(isNaN(start))return alert('Data/hora de início inválida.');
@@ -299,6 +306,11 @@ function renderFiscal(){
  fiscalBadge.textContent=`${active.length} NO FISCAL`;fiscalActiveCount.textContent=active.length;
  fiscalActiveBody.innerHTML=active.length?active.map(x=>`<tr><td><b>${esc(x.plate)}</b></td><td>${esc(x.fiscal_name)}</td><td>${fmtDT(x.started_at)}</td><td class="timerLive">${durationText(x.started_at)}</td><td><button class="statusBtn" onclick="finishFiscalStop(${x.id},'${x.started_at}')">Finalizar</button></td></tr>`).join(''):`<tr><td colspan="5" class="empty">Nenhum veículo parado no fiscal agora.</td></tr>`;
  const longest=done[0];fiscalLongest.textContent=longest?durationShort(longest.started_at,longest.ended_at):'—';
+ const fq=quinzenalRange(new Date());
+ const fiscalFortnight=done.filter(x=>{const d=new Date(x.started_at);return d>=fq.start&&d<=fq.end});
+ const fiscalFortnightMinutes=fiscalFortnight.reduce((sum,x)=>sum+durationMinutes(x.started_at,x.ended_at),0);
+ fiscalFortnightTotal.textContent=fiscalFortnightMinutes?minutesAsDays(fiscalFortnightMinutes):'0d 00h 00min';
+ fiscalFortnightCount.textContent=fiscalFortnight.length;
  const filter=fiscalDateFilter.value;if(filter)done=done.filter(x=>dayKey(x.started_at)===filter);
  fiscalHistoryBody.innerHTML=done.length?done.map(x=>`<tr><td><b>${esc(x.plate)}</b></td><td>${esc(x.fiscal_name)}</td><td>${fmtDT(x.started_at)}</td><td>${fmtDT(x.ended_at)}</td><td><b>${durationShort(x.started_at,x.ended_at)}</b></td></tr>`).join(''):`<tr><td colspan="5" class="empty">Nenhuma parada finalizada${filter?' nesta data':''}.</td></tr>`;
 }
@@ -350,10 +362,10 @@ function render(){
  const grouped=[];let last='';
  for(const t of done){
    const key=dayKey(t.real_arrival);
-   if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="5">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}
-   grouped.push(`<tr><td>${fmtTime(t.real_arrival)}</td><td>${esc(t.driver)}</td><td>${esc(t.route)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)
+   if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="6">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}
+   grouped.push(`<tr><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${fmtDT(t.arrival)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)
  }
- historyBody.innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="5" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;
+ historyBody.innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="6" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;
 
  let on=done.filter(x=>x.on_time).length,late=done.length-on;
  kOn.textContent=on;kLate.textContent=late;kDone.textContent=done.length;kActive.textContent=active.length;
