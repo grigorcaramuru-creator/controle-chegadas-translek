@@ -133,7 +133,7 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
     <div class="title"><h1>Controle de Chegadas</h1><p>Transit-Time • SLA • Performance</p></div>
   </div>
   <div class="headright">
-    <div id="updated">Atualizado: —</div>
+    <div id="updated">Atualizado: — • PERF-V4</div>
     <div class="online"><span class="dot"></span>Online</div>
     <div class="share">↗ Compartilhar</div>
   </div>
@@ -221,7 +221,7 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
           <div class="performanceBody">
             <label>Buscar motorista</label><input id="driverPerfFilter" placeholder="Digite o nome do motorista">
             <div id="driverPerfName" class="performanceName">Digite um motorista</div>
-            <div id="driverPerfHint" class="performanceHint">O resultado considera somente viagens concluídas na quinzena selecionada.</div>
+            <div id="driverPerfHint" class="performanceHint">O resultado considera as viagens concluídas no período selecionado.</div>
             <div class="performanceKpis">
               <div class="performanceMini"><b id="driverTrips">0</b><span>VIAGENS</span></div>
               <div class="performanceMini"><b id="driverOnTime">0</b><span>NO PRAZO</span></div>
@@ -336,46 +336,104 @@ function refreshFortnightOptions(done){
  if(!sel)return;
  const current=fortnightKey(new Date());
  const keys=[...new Set([current,...done.filter(x=>x.real_arrival).map(x=>fortnightKey(x.real_arrival))])].sort().reverse();
- const previous=sel.value||current;
- sel.innerHTML=keys.map(k=>`<option value="${k}">${fortnightLabel(k)}</option>`).join('');
- sel.value=keys.includes(previous)?previous:current;
+ const previous=sel.value||'ALL';
+ sel.innerHTML='<option value="ALL">Todo o histórico</option>'+keys.map(k=>`<option value="${k}">${fortnightLabel(k)}</option>`).join('');
+ sel.value=(previous==='ALL'||keys.includes(previous))?previous:'ALL';
 }
 function renderPerformance(allDone){
- const sel=document.getElementById('performanceFortnight');if(!sel)return;
- refreshFortnightOptions(allDone);
- const key=sel.value||fortnightKey(new Date()),q=fortnightFromKey(key);
- const period=allDone.filter(x=>{const d=new Date(x.real_arrival);return d>=q.start&&d<=q.end});
- performanceBadge.textContent=`${q.half}ª QUINZENA`;
- performanceRange.textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')} • viagens concluídas entram automaticamente`;
+ const sel=document.getElementById('performanceFortnight');
+ const badge=document.getElementById('performanceBadge');
+ const range=document.getElementById('performanceRange');
+ const driverFilter=document.getElementById('driverPerfFilter');
+ const driverNameEl=document.getElementById('driverPerfName');
+ const driverHintEl=document.getElementById('driverPerfHint');
+ const driverTripsEl=document.getElementById('driverTrips');
+ const driverOnTimeEl=document.getElementById('driverOnTime');
+ const driverLateEl=document.getElementById('driverLate');
+ const driverEfficiencyEl=document.getElementById('driverEfficiency');
+ const driverRouteBodyEl=document.getElementById('driverRouteBody');
+ const companyFilter=document.getElementById('companyPerfFilter');
+ const companyCountEl=document.getElementById('companyCount');
+ const companyTripsEl=document.getElementById('companyTrips');
+ const companyOnTimeEl=document.getElementById('companyOnTime');
+ const companyEfficiencyEl=document.getElementById('companyEfficiency');
+ const companyPerfBodyEl=document.getElementById('companyPerfBody');
+ if(!sel||!badge||!range||!driverFilter||!driverNameEl||!driverHintEl||!driverTripsEl||!driverOnTimeEl||!driverLateEl||!driverEfficiencyEl||!driverRouteBodyEl||!companyFilter||!companyCountEl||!companyTripsEl||!companyOnTimeEl||!companyEfficiencyEl||!companyPerfBodyEl)return;
 
- const term=(driverPerfFilter.value||'').trim().toLowerCase();
- const driverMatches=period.filter(t=>!term||tripMeta(t).driverName.toLowerCase().includes(term));
- const names=[...new Set(driverMatches.map(t=>tripMeta(t).driverName))];
- let driverRows=[];
- if(term&&names.length){
-   const exact=names.find(n=>n.toLowerCase()===term);
-   const chosen=exact||names[0];
-   const selected=driverMatches.filter(t=>tripMeta(t).driverName===chosen);
-   const on=selected.filter(t=>t.on_time).length,late=selected.length-on,eff=selected.length?Math.round(on/selected.length*100):null;
-   driverPerfName.textContent=chosen;driverPerfHint.textContent=`${selected.length} viagem(ns) concluída(s) na quinzena selecionada.`;
-   driverTrips.textContent=selected.length;driverOnTime.textContent=on;driverLate.textContent=late;driverEfficiency.textContent=eff===null?'—':eff+'%';
-   const byRoute={};selected.forEach(t=>{const r=t.route||'Sem rota';(byRoute[r]??=[]).push(t)});
-   driverRows=Object.entries(byRoute).sort((a,b)=>b[1].length-a[1].length).map(([r,arr])=>{const ro=arr.filter(x=>x.on_time).length,rl=arr.length-ro,re=Math.round(ro/arr.length*100);return `<tr><td><b>${esc(r)}</b></td><td>${arr.length}</td><td>${ro}</td><td>${rl}</td><td class="${re>=90?'effGood':'effBad'}">${re}%</td></tr>`});
+ const completed=(Array.isArray(allDone)?allDone:[]).filter(t=>t&&t.real_arrival);
+ refreshFortnightOptions(completed);
+ const key=sel.value||'ALL';
+ let period=[];
+ if(key==='ALL'){
+   period=completed.slice();
+   badge.textContent='TODO HISTÓRICO';
+   range.textContent=`Todo o histórico • ${period.length} viagem(ns) concluída(s) contabilizada(s)`;
  }else{
-   driverPerfName.textContent=term?'Motorista não encontrado':'Digite um motorista';
-   driverPerfHint.textContent=term?'Nenhuma viagem concluída para esse motorista nesta quinzena.':'O resultado considera somente viagens concluídas na quinzena selecionada.';
-   driverTrips.textContent='0';driverOnTime.textContent='0';driverLate.textContent='0';driverEfficiency.textContent='—';
+   const q=fortnightFromKey(key);
+   period=completed.filter(x=>{const d=new Date(x.real_arrival);return !isNaN(d)&&d>=q.start&&d<=q.end});
+   badge.textContent=`${q.half}ª QUINZENA`;
+   range.textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')} • ${period.length} viagem(ns)`;
  }
- driverRouteBody.innerHTML=driverRows.length?driverRows.join(''):`<tr><td colspan="5" class="performanceEmpty">${term?'Nenhuma rota encontrada para o motorista nesta quinzena.':'Digite o nome do motorista para ver as rotas.'}</td></tr>`;
 
- const companyTerm=(companyPerfFilter.value||'').trim().toLowerCase();
- const byCompany={};period.forEach(t=>{const c=tripMeta(t).company;if(!companyTerm||c.toLowerCase().includes(companyTerm))(byCompany[c]??=[]).push(t)});
- const companyEntries=Object.entries(byCompany).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0]));
+ // EMPRESAS: sempre mostra os dados do período, mesmo sem digitar nada.
+ const companyTerm=(companyFilter.value||'').trim().toLocaleLowerCase('pt-BR');
+ const byCompany={};
+ period.forEach(t=>{
+   const meta=tripMeta(t);
+   const c=(meta.company||'Sem empresa').trim()||'Sem empresa';
+   if(companyTerm&&!c.toLocaleLowerCase('pt-BR').includes(companyTerm))return;
+   if(!byCompany[c])byCompany[c]=[];
+   byCompany[c].push(t);
+ });
+ const companyEntries=Object.entries(byCompany).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0],'pt-BR'));
  const companyTotalTrips=companyEntries.reduce((s,[,a])=>s+a.length,0);
- const companyTotalOn=companyEntries.reduce((s,[,a])=>s+a.filter(x=>x.on_time).length,0);
+ const companyTotalOn=companyEntries.reduce((s,[,a])=>s+a.filter(x=>x.on_time===true).length,0);
  const companyEff=companyTotalTrips?Math.round(companyTotalOn/companyTotalTrips*100):null;
- companyCount.textContent=companyEntries.length;companyTrips.textContent=companyTotalTrips;companyOnTime.textContent=companyTotalOn;companyEfficiency.textContent=companyEff===null?'—':companyEff+'%';
- companyPerfBody.innerHTML=companyEntries.length?companyEntries.map(([c,arr])=>{const o=arr.filter(x=>x.on_time).length,l=arr.length-o,e=Math.round(o/arr.length*100);return `<tr><td><b>${esc(c)}</b></td><td>${arr.length}</td><td>${o}</td><td>${l}</td><td class="${e>=90?'effGood':'effBad'}">${e}%</td></tr>`}).join(''):`<tr><td colspan="5" class="performanceEmpty">Nenhuma empresa encontrada nesta quinzena.</td></tr>`;
+ companyCountEl.textContent=companyEntries.length;
+ companyTripsEl.textContent=companyTotalTrips;
+ companyOnTimeEl.textContent=companyTotalOn;
+ companyEfficiencyEl.textContent=companyEff===null?'—':companyEff+'%';
+ companyPerfBodyEl.innerHTML=companyEntries.length?companyEntries.map(([c,arr])=>{
+   const o=arr.filter(x=>x.on_time===true).length,l=arr.length-o,e=Math.round(o/arr.length*100);
+   return `<tr><td><b>${esc(c)}</b></td><td>${arr.length}</td><td>${o}</td><td>${l}</td><td class="${e>=90?'effGood':'effBad'}">${e}%</td></tr>`;
+ }).join(''):`<tr><td colspan="5" class="performanceEmpty">Nenhuma empresa encontrada no período selecionado.</td></tr>`;
+
+ // MOTORISTA: pesquisa pelo nome e agrupa todas as viagens/rotas desse motorista.
+ const term=(driverFilter.value||'').trim().toLocaleLowerCase('pt-BR');
+ let driverRows=[];
+ if(term){
+   const matches=period.filter(t=>tripMeta(t).driverName.toLocaleLowerCase('pt-BR').includes(term));
+   const names=[...new Set(matches.map(t=>tripMeta(t).driverName))];
+   if(names.length){
+     const exact=names.find(n=>n.toLocaleLowerCase('pt-BR')===term);
+     const chosen=exact||names[0];
+     const selected=period.filter(t=>tripMeta(t).driverName===chosen);
+     const on=selected.filter(t=>t.on_time===true).length;
+     const late=selected.length-on;
+     const eff=selected.length?Math.round(on/selected.length*100):null;
+     driverNameEl.textContent=chosen;
+     driverHintEl.textContent=`${selected.length} viagem(ns) concluída(s) no período selecionado.`;
+     driverTripsEl.textContent=selected.length;
+     driverOnTimeEl.textContent=on;
+     driverLateEl.textContent=late;
+     driverEfficiencyEl.textContent=eff===null?'—':eff+'%';
+     const byRoute={};
+     selected.forEach(t=>{const r=t.route||'Sem rota';if(!byRoute[r])byRoute[r]=[];byRoute[r].push(t)});
+     driverRows=Object.entries(byRoute).sort((a,b)=>b[1].length-a[1].length).map(([r,arr])=>{
+       const ro=arr.filter(x=>x.on_time===true).length,rl=arr.length-ro,re=Math.round(ro/arr.length*100);
+       return `<tr><td><b>${esc(r)}</b></td><td>${arr.length}</td><td>${ro}</td><td>${rl}</td><td class="${re>=90?'effGood':'effBad'}">${re}%</td></tr>`;
+     });
+   }else{
+     driverNameEl.textContent='Motorista não encontrado';
+     driverHintEl.textContent='Nenhuma viagem concluída para esse motorista no período selecionado.';
+     driverTripsEl.textContent='0';driverOnTimeEl.textContent='0';driverLateEl.textContent='0';driverEfficiencyEl.textContent='—';
+   }
+ }else{
+   driverNameEl.textContent='Digite um motorista';
+   driverHintEl.textContent=`${period.length} viagem(ns) concluída(s) disponíveis no período selecionado.`;
+   driverTripsEl.textContent='0';driverOnTimeEl.textContent='0';driverLateEl.textContent='0';driverEfficiencyEl.textContent='—';
+ }
+ driverRouteBodyEl.innerHTML=driverRows.length?driverRows.join(''):`<tr><td colspan="5" class="performanceEmpty">${term?'Nenhuma rota encontrada para o motorista no período selecionado.':'Digite o nome do motorista para ver as rotas.'}</td></tr>`;
 }
 function countdownText(target){
  const diff=new Date(target)-new Date();
@@ -499,13 +557,16 @@ function setDefaultDates(){
 }
 setDefaultDates();dateA.onchange=()=>render();dateB.onchange=()=>render();effRoute.onchange=()=>render();fiscalDateFilter.onchange=()=>renderFiscal();
 queueNameFilter.oninput=()=>render();historyNameFilter.oninput=()=>render();
-performanceFortnight.onchange=()=>render();driverPerfFilter.oninput=()=>render();companyPerfFilter.oninput=()=>render();
+document.getElementById('performanceFortnight').addEventListener('change',render);document.getElementById('driverPerfFilter').addEventListener('input',render);document.getElementById('companyPerfFilter').addEventListener('input',render);
 
 function render(){
  const queueTerm=(document.getElementById('queueNameFilter')?.value||'').trim().toLowerCase();
  const historyTerm=(document.getElementById('historyNameFilter')?.value||'').trim().toLowerCase();
+ const allDone=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));
+ // Performance roda primeiro e isolada dos demais componentes do painel.
+ try{renderPerformance(allDone)}catch(e){console.error('Performance:',e);const pr=document.getElementById('performanceRange');if(pr)pr.textContent='Erro no painel de performance: '+e.message}
  let active=tripsCache.filter(x=>!x.done && (!queueTerm || (x.driver||'').toLowerCase().includes(queueTerm))).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival));
- let done=tripsCache.filter(x=>x.done&&x.real_arrival && (!historyTerm || (x.driver||'').toLowerCase().includes(historyTerm))).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));
+ let done=allDone.filter(x=>!historyTerm || (x.driver||'').toLowerCase().includes(historyTerm));
  queueBadge.textContent=`#${active.length} NA FILA`;
  queueBody.innerHTML=active.length?active.map((t,i)=>`<tr>
   <td><span class="tag">${i+1}</span></td>
@@ -562,4 +623,4 @@ setInterval(load,30000);
 load();
 </script>
 </body>
-</html>
+  </html>
