@@ -92,6 +92,23 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
 .fiscalFilter{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 16px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);background:#fbfcfe}
 .fiscalFilter>div{min-width:180px}.fiscalFilter label{margin:0 0 5px}
 .secondaryBtn{border:0;border-radius:8px;background:#6d7787;color:#fff;padding:9px 11px;font-weight:700;font-size:10px}
+
+.performanceSection{padding:0;overflow:hidden}
+.performanceToolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:14px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}
+.performanceToolbar>div{min-width:220px}.performanceToolbar label{margin:0 0 5px}
+.performanceGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px}
+.performancePanel{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden}
+.performancePanelHead{padding:14px;border-bottom:1px solid var(--line);background:#fbfdff}
+.performancePanelHead p{margin:4px 0 0;font-size:10px;color:var(--muted)}
+.performanceBody{padding:14px}
+.performanceKpis{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:12px 0}
+.performanceMini{border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;text-align:center}
+.performanceMini b{display:block;font-size:20px;color:#0b3b8e}.performanceMini span{display:block;font-size:9px;color:var(--muted);margin-top:4px}
+.performanceName{font-size:18px;font-weight:900;color:#0b3b8e;margin-top:6px}
+.performanceHint{font-size:10px;color:var(--muted);margin-top:5px}
+.performanceTableWrap{max-height:300px;overflow:auto;border:1px solid var(--line);border-radius:10px}
+.performanceEmpty{padding:28px 12px;text-align:center;color:var(--muted);font-size:11px}
+.effGood{color:var(--green);font-weight:900}.effBad{color:var(--red);font-weight:900}
 @media(max-width:1050px){
   main{grid-template-columns:1fr}
 }
@@ -102,8 +119,8 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
   .row2{grid-template-columns:1fr 1fr}
   .compareTop{display:block} .datepick{margin-top:10px;display:grid;grid-template-columns:1fr 1fr} .datepick input{min-width:0}
   .compareGrid{grid-template-columns:1fr} .delta{padding:10px}
-  .mid,.queueHistory,.fiscalGrid{grid-template-columns:1fr}
-  .fiscalStats{grid-template-columns:1fr 1fr}
+  .mid,.queueHistory,.fiscalGrid,.performanceGrid{grid-template-columns:1fr}
+  .fiscalStats,.performanceKpis{grid-template-columns:1fr 1fr}
   .kpis{grid-template-columns:1fr 1fr}
   table{min-width:720px} .tableScroll{overflow:auto}
 }
@@ -192,6 +209,44 @@ th{font-size:9px;color:#445067;background:#fbfcfe}
       </div>
     </div>
 
+    <div class="card performanceSection">
+      <div class="sectionHead"><div><h2>◎ Performance por motorista e empresa</h2><p>Indicadores calculados automaticamente pelas viagens concluídas.</p></div><span id="performanceBadge" class="tag">QUINZENA</span></div>
+      <div class="performanceToolbar">
+        <div><label>Filtrar por quinzena</label><select id="performanceFortnight"></select></div>
+        <div class="small" id="performanceRange">As viagens finalizadas entram automaticamente neste painel.</div>
+      </div>
+      <div class="performanceGrid">
+        <div class="performancePanel">
+          <div class="performancePanelHead"><h2>Motorista</h2><p>Digite o nome para ver a eficiência geral e o desempenho em cada rota.</p></div>
+          <div class="performanceBody">
+            <label>Buscar motorista</label><input id="driverPerfFilter" placeholder="Digite o nome do motorista">
+            <div id="driverPerfName" class="performanceName">Digite um motorista</div>
+            <div id="driverPerfHint" class="performanceHint">O resultado considera somente viagens concluídas na quinzena selecionada.</div>
+            <div class="performanceKpis">
+              <div class="performanceMini"><b id="driverTrips">0</b><span>VIAGENS</span></div>
+              <div class="performanceMini"><b id="driverOnTime">0</b><span>NO PRAZO</span></div>
+              <div class="performanceMini"><b id="driverLate">0</b><span>ATRASADAS</span></div>
+              <div class="performanceMini"><b id="driverEfficiency">—</b><span>EFICIÊNCIA</span></div>
+            </div>
+            <div class="performanceTableWrap"><table><thead><tr><th>ROTA</th><th>VIAGENS</th><th>NO PRAZO</th><th>ATRASADAS</th><th>EFICIÊNCIA</th></tr></thead><tbody id="driverRouteBody"></tbody></table></div>
+          </div>
+        </div>
+        <div class="performancePanel">
+          <div class="performancePanelHead"><h2>Empresa</h2><p>Veja quantas viagens cada empresa realizou e sua performance na quinzena.</p></div>
+          <div class="performanceBody">
+            <label>Buscar empresa</label><input id="companyPerfFilter" placeholder="Digite o nome da empresa">
+            <div class="performanceKpis">
+              <div class="performanceMini"><b id="companyCount">0</b><span>EMPRESAS</span></div>
+              <div class="performanceMini"><b id="companyTrips">0</b><span>VIAGENS</span></div>
+              <div class="performanceMini"><b id="companyOnTime">0</b><span>NO PRAZO</span></div>
+              <div class="performanceMini"><b id="companyEfficiency">—</b><span>EFICIÊNCIA GERAL</span></div>
+            </div>
+            <div class="performanceTableWrap"><table><thead><tr><th>EMPRESA</th><th>VIAGENS</th><th>NO PRAZO</th><th>ATRASADAS</th><th>PERFORMANCE</th></tr></thead><tbody id="companyPerfBody"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="card fiscalSection">
       <div class="sectionHead"><div><h2>⏱ Paradas em posto fiscal</h2><p>Controle o tempo parado por placa e posto fiscal</p></div><span id="fiscalBadge" class="tag">0 NO FISCAL</span></div>
       <div class="fiscalGrid">
@@ -252,6 +307,75 @@ function quinzenalRange(ref=new Date()){
  const start=ref.getDate()<=15?new Date(y,m,1,0,0,0,0):new Date(y,m,16,0,0,0,0);
  const end=ref.getDate()<=15?new Date(y,m,15,23,59,59,999):new Date(y,m+1,0,23,59,59,999);
  return {start,end};
+}
+
+function tripMeta(t){
+ const parts=String(t.driver||'').split(' • ').map(x=>x.trim()).filter(Boolean);
+ const driverName=parts[0]||'Sem motorista';
+ let company='Sem empresa';
+ for(let i=1;i<parts.length;i++){if(!/^ID\s/i.test(parts[i])){company=parts[i];break}}
+ return {driverName,company};
+}
+function fortnightKey(v){
+ const d=new Date(v),half=d.getDate()<=15?1:2;
+ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${half}`;
+}
+function fortnightFromKey(key){
+ const [y,m,h]=String(key).split('-').map(Number);
+ const start=h===1?new Date(y,m-1,1,0,0,0,0):new Date(y,m-1,16,0,0,0,0);
+ const end=h===1?new Date(y,m-1,15,23,59,59,999):new Date(y,m,0,23,59,59,999);
+ return {start,end,half:h};
+}
+function fortnightLabel(key){
+ const q=fortnightFromKey(key);
+ const month=q.start.toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+ return `${q.half}ª quinzena • ${month.charAt(0).toUpperCase()+month.slice(1)}`;
+}
+function refreshFortnightOptions(done){
+ const sel=document.getElementById('performanceFortnight');
+ if(!sel)return;
+ const current=fortnightKey(new Date());
+ const keys=[...new Set([current,...done.filter(x=>x.real_arrival).map(x=>fortnightKey(x.real_arrival))])].sort().reverse();
+ const previous=sel.value||current;
+ sel.innerHTML=keys.map(k=>`<option value="${k}">${fortnightLabel(k)}</option>`).join('');
+ sel.value=keys.includes(previous)?previous:current;
+}
+function renderPerformance(allDone){
+ const sel=document.getElementById('performanceFortnight');if(!sel)return;
+ refreshFortnightOptions(allDone);
+ const key=sel.value||fortnightKey(new Date()),q=fortnightFromKey(key);
+ const period=allDone.filter(x=>{const d=new Date(x.real_arrival);return d>=q.start&&d<=q.end});
+ performanceBadge.textContent=`${q.half}ª QUINZENA`;
+ performanceRange.textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')} • viagens concluídas entram automaticamente`;
+
+ const term=(driverPerfFilter.value||'').trim().toLowerCase();
+ const driverMatches=period.filter(t=>!term||tripMeta(t).driverName.toLowerCase().includes(term));
+ const names=[...new Set(driverMatches.map(t=>tripMeta(t).driverName))];
+ let driverRows=[];
+ if(term&&names.length){
+   const exact=names.find(n=>n.toLowerCase()===term);
+   const chosen=exact||names[0];
+   const selected=driverMatches.filter(t=>tripMeta(t).driverName===chosen);
+   const on=selected.filter(t=>t.on_time).length,late=selected.length-on,eff=selected.length?Math.round(on/selected.length*100):null;
+   driverPerfName.textContent=chosen;driverPerfHint.textContent=`${selected.length} viagem(ns) concluída(s) na quinzena selecionada.`;
+   driverTrips.textContent=selected.length;driverOnTime.textContent=on;driverLate.textContent=late;driverEfficiency.textContent=eff===null?'—':eff+'%';
+   const byRoute={};selected.forEach(t=>{const r=t.route||'Sem rota';(byRoute[r]??=[]).push(t)});
+   driverRows=Object.entries(byRoute).sort((a,b)=>b[1].length-a[1].length).map(([r,arr])=>{const ro=arr.filter(x=>x.on_time).length,rl=arr.length-ro,re=Math.round(ro/arr.length*100);return `<tr><td><b>${esc(r)}</b></td><td>${arr.length}</td><td>${ro}</td><td>${rl}</td><td class="${re>=90?'effGood':'effBad'}">${re}%</td></tr>`});
+ }else{
+   driverPerfName.textContent=term?'Motorista não encontrado':'Digite um motorista';
+   driverPerfHint.textContent=term?'Nenhuma viagem concluída para esse motorista nesta quinzena.':'O resultado considera somente viagens concluídas na quinzena selecionada.';
+   driverTrips.textContent='0';driverOnTime.textContent='0';driverLate.textContent='0';driverEfficiency.textContent='—';
+ }
+ driverRouteBody.innerHTML=driverRows.length?driverRows.join(''):`<tr><td colspan="5" class="performanceEmpty">${term?'Nenhuma rota encontrada para o motorista nesta quinzena.':'Digite o nome do motorista para ver as rotas.'}</td></tr>`;
+
+ const companyTerm=(companyPerfFilter.value||'').trim().toLowerCase();
+ const byCompany={};period.forEach(t=>{const c=tripMeta(t).company;if(!companyTerm||c.toLowerCase().includes(companyTerm))(byCompany[c]??=[]).push(t)});
+ const companyEntries=Object.entries(byCompany).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0]));
+ const companyTotalTrips=companyEntries.reduce((s,[,a])=>s+a.length,0);
+ const companyTotalOn=companyEntries.reduce((s,[,a])=>s+a.filter(x=>x.on_time).length,0);
+ const companyEff=companyTotalTrips?Math.round(companyTotalOn/companyTotalTrips*100):null;
+ companyCount.textContent=companyEntries.length;companyTrips.textContent=companyTotalTrips;companyOnTime.textContent=companyTotalOn;companyEfficiency.textContent=companyEff===null?'—':companyEff+'%';
+ companyPerfBody.innerHTML=companyEntries.length?companyEntries.map(([c,arr])=>{const o=arr.filter(x=>x.on_time).length,l=arr.length-o,e=Math.round(o/arr.length*100);return `<tr><td><b>${esc(c)}</b></td><td>${arr.length}</td><td>${o}</td><td>${l}</td><td class="${e>=90?'effGood':'effBad'}">${e}%</td></tr>`}).join(''):`<tr><td colspan="5" class="performanceEmpty">Nenhuma empresa encontrada nesta quinzena.</td></tr>`;
 }
 function countdownText(target){
  const diff=new Date(target)-new Date();
@@ -375,6 +499,7 @@ function setDefaultDates(){
 }
 setDefaultDates();dateA.onchange=()=>render();dateB.onchange=()=>render();effRoute.onchange=()=>render();fiscalDateFilter.onchange=()=>renderFiscal();
 queueNameFilter.oninput=()=>render();historyNameFilter.oninput=()=>render();
+performanceFortnight.onchange=()=>render();driverPerfFilter.oninput=()=>render();companyPerfFilter.oninput=()=>render();
 
 function render(){
  const queueTerm=(document.getElementById('queueNameFilter')?.value||'').trim().toLowerCase();
@@ -437,4 +562,4 @@ setInterval(load,30000);
 load();
 </script>
 </body>
-</html>
+  </html>
