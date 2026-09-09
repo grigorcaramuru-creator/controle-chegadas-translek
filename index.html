@@ -373,10 +373,10 @@ function setGauge(id,val,mode='good'){
 }
 function renderExecutive(){
  let base=periodDone($('execPeriod').value);
- let companies=[...new Set(base.map(t=>tripMeta(t).company).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+ let companyOptions=[...new Set(base.map(t=>tripMeta(t).company).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
  let sel=$('execCompany').value||'ALL';
- $('execCompany').innerHTML='<option value="ALL">Geral • Todas as empresas</option>'+companies.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
- $('execCompany').value=(sel==='ALL'||companies.includes(sel))?sel:'ALL';
+ $('execCompany').innerHTML='<option value="ALL">Geral • Todas as empresas</option>'+companyOptions.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+ $('execCompany').value=(sel==='ALL'||companyOptions.includes(sel))?sel:'ALL';
  let company=$('execCompany').value;
  let done=company==='ALL'?base:base.filter(t=>tripMeta(t).company===company);
  let late=done.filter(t=>t.on_time===false),on=done.length-late.length,sla=done.length?Math.round(on/done.length*100):0,just=late.filter(t=>t.delay_reason&&t.delay_justification),pending=late.length-just.length;
@@ -426,4 +426,4 @@ async function load(){try{[tripsCache,fiscalCache]=await Promise.all([api('trips
 setInterval(()=>{updatePreview();render()},1000);setInterval(load,30000);load();
 </script>
 </body>
-                                                                                                                                                     </html>
+                                                                                                                                                                                       </html>
