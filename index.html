@@ -223,7 +223,10 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
   <div class="execPage"><div class="execShell">
     <div class="execTop">
       <div><h2>📊 Painel Executivo da Operação</h2><p>Indicadores consolidados, rankings e pontos críticos atualizados pelas viagens concluídas.</p></div>
-      <div class="execFilters"><select id="execPeriod"><option value="current">Quinzena atual</option><option value="all">Todo histórico</option></select></div>
+      <div class="execFilters">
+        <select id="execCompany"><option value="ALL">Geral • Todas as empresas</option></select>
+        <select id="execPeriod"><option value="current">Quinzena atual</option><option value="all">Todo histórico</option></select>
+      </div>
     </div>
 
     <div class="gaugeGrid">
@@ -369,7 +372,14 @@ function setGauge(id,val,mode='good'){
  el.style.setProperty('--p',safe);el.style.setProperty('--g',color)
 }
 function renderExecutive(){
- let done=periodDone($('execPeriod').value),late=done.filter(t=>t.on_time===false),on=done.length-late.length,sla=done.length?Math.round(on/done.length*100):0,just=late.filter(t=>t.delay_reason&&t.delay_justification),pending=late.length-just.length;
+ let base=periodDone($('execPeriod').value);
+ let companies=[...new Set(base.map(t=>tripMeta(t).company).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+ let sel=$('execCompany').value||'ALL';
+ $('execCompany').innerHTML='<option value="ALL">Geral • Todas as empresas</option>'+companies.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+ $('execCompany').value=(sel==='ALL'||companies.includes(sel))?sel:'ALL';
+ let company=$('execCompany').value;
+ let done=company==='ALL'?base:base.filter(t=>tripMeta(t).company===company);
+ let late=done.filter(t=>t.on_time===false),on=done.length-late.length,sla=done.length?Math.round(on/done.length*100):0,just=late.filter(t=>t.delay_reason&&t.delay_justification),pending=late.length-just.length;
  let external=late.filter(t=>t.delay_reason&&t.delay_justification&&EXTERNAL_REASONS.has(t.delay_reason)),ctrlDen=Math.max(0,done.length-external.length),ctrl=ctrlDen?Math.round(on/ctrlDen*100):0,justRate=late.length?Math.round(just.length/late.length*100):100,pendRate=late.length?Math.round(pending/late.length*100):0;
  $('gSlaVal').textContent=done.length?sla+'%':'—';$('gCtrlVal').textContent=done.length?ctrl+'%':'—';$('gJustVal').textContent=late.length?justRate+'%':'100%';$('gPendVal').textContent=pending;
  $('gSlaSub').textContent=`${on} no prazo de ${done.length} concluídas`;setGauge('gSla',sla);setGauge('gCtrl',ctrl);setGauge('gJust',justRate);setGauge('gPend',pendRate,'bad');
@@ -410,10 +420,10 @@ function render(){
 }
 
 document.querySelectorAll('.tabBtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.view).classList.add('active');render()}));
-['dateA','dateB','effRoute','fiscalDateFilter','performanceFortnight','driverPerfFilter','companyPerfFilter','queueNameFilter','historyNameFilter','delayPeriod','delayDriverFilter','delayCompanyFilter','delayRouteFilter','delayReasonFilter','execPeriod'].forEach(id=>{let el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',render)});
+['dateA','dateB','effRoute','fiscalDateFilter','performanceFortnight','driverPerfFilter','companyPerfFilter','queueNameFilter','historyNameFilter','delayPeriod','delayDriverFilter','delayCompanyFilter','delayRouteFilter','delayReasonFilter','execPeriod','execCompany'].forEach(id=>{let el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',render)});
 
 async function load(){try{[tripsCache,fiscalCache]=await Promise.all([api('trips?select=*&order=arrival.asc'),api('fiscal_stops?select=*&order=started_at.desc')]);render()}catch(e){console.error(e);alert('Erro ao carregar dados: '+e.message)}}
 setInterval(()=>{updatePreview();render()},1000);setInterval(load,30000);load();
 </script>
 </body>
-        </html>
+                                                                                                                                                     </html>
