@@ -92,11 +92,17 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 </style>
 </head>
 <body>
+
 <header>
   <div class="brand">
-    <div class="logo">TRANS<span class="lek">LEK</span></div><div class="vline"></div>
-    <div class="title"><h1>Controle de Chegadas</h1><p>Transit-Time • SLA • Performance</p></div>
+    <div class="logo">TRANS<span class="lek">LEK</span></div>
+    <div class="vline"></div>
+    <div class="title">
+      <h1>Controle de Chegadas</h1>
+      <p>Transit-Time • SLA • Performance</p>
+    </div>
   </div>
+
   <div class="headright">
     <div id="updated">Atualizado: — • PERF-V6</div>
     <div class="online"><span class="dot"></span>Online</div>
@@ -113,317 +119,2945 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 <div id="operationView" class="view active">
 <main>
 <div class="operationGrid">
-  <section class="card pad">
-    <div class="sectionTitle"><span>▣</span><h2>Nova viagem</h2></div>
-    <label>Motorista</label><input id="driver" placeholder="Nome do motorista">
-    <label>Empresa</label><select id="company">
-      <option value="">Selecione a empresa</option><option>WDS</option><option>TUBARÃO</option><option>TJA</option><option>TRANSRATO</option><option>DUKA</option><option>EMERSON</option><option>TÂNIA</option><option>MARCOS</option><option>GIOVANE</option><option>ADILSON</option><option>EDIVAN</option><option>LUCAS</option><option>RICARDO</option><option>TRANSLEK</option><option>OSMAR</option><option>ALEX</option><option>ALEXIA</option><option>ACACIO</option><option>TRANSBURAN</option><option>WILLIAM</option>
-    </select>
-    <label>ID / Viagem</label><input id="tripid" placeholder="ID da viagem">
-    <div class="row2"><div><label>Placa</label><input id="plate" placeholder="ABC-1D23"></div><div><label>Trecho / siglas</label><select id="route"></select></div></div>
-    <label>Previsão de saída</label><input id="departure" type="datetime-local">
-    <div class="info"><b id="routeHint">Digite o trecho</b><span>O Transit-Time e a chegada prevista serão calculados automaticamente.</span></div>
-    <label>Previsão de chegada</label><input id="arrivalPreview" readonly>
-    <div class="countdownBox"><div class="label">◷ Tempo restante para chegada (previsto)</div><div id="formCountdown" class="countdown">—</div><div class="small">Atualizado em tempo real</div></div>
-    <button class="primary" onclick="saveTrip()">⊕ Adicionar à fila</button>
-    <div class="small" style="margin-top:8px">A fila considera a previsão de chegada para ordenar automaticamente.</div>
-  </section>
 
-  <section class="right">
-    <div class="card compare">
-      <div class="compareTop">
-        <div><div class="sectionTitle" style="margin-bottom:0"><span>↗</span><h2>Comparação diária</h2></div><p>Compare a eficiência entre dois dias pelas chegadas reais registradas.</p></div>
-        <div class="datepick"><div><label>Dia anterior</label><input id="dateA" type="date"></div><div><label>Dia atual</label><input id="dateB" type="date"></div></div>
+<section class="card pad">
+  <div class="sectionTitle"><span>▣</span><h2>Nova viagem</h2></div>
+
+  <label>Motorista</label>
+  <input id="driver" placeholder="Nome do motorista">
+
+  <label>Empresa</label>
+  <select id="company">
+    <option value="">Selecione a empresa</option>
+    <option>WDS</option>
+    <option>TUBARÃO</option>
+    <option>TJA</option>
+    <option>TRANSRATO</option>
+    <option>DUKA</option>
+    <option>EMERSON</option>
+    <option>TÂNIA</option>
+    <option>MARCOS</option>
+    <option>GIOVANE</option>
+    <option>ADILSON</option>
+    <option>EDIVAN</option>
+    <option>LUCAS</option>
+    <option>RICARDO</option>
+    <option>TRANSLEK</option>
+    <option>OSMAR</option>
+    <option>ALEX</option>
+    <option>ALEXIA</option>
+    <option>ACACIO</option>
+    <option>TRANSBURAN</option>
+    <option>WILLIAM</option>
+  </select>
+
+  <label>ID / Viagem</label>
+  <input id="tripid" placeholder="ID da viagem">
+
+  <div class="row2">
+    <div>
+      <label>Placa</label>
+      <input id="plate" placeholder="ABC-1D23">
+    </div>
+    <div>
+      <label>Trecho / siglas</label>
+      <select id="route"></select>
+    </div>
+  </div>
+
+  <label>Previsão de saída</label>
+  <input id="departure" type="datetime-local">
+
+  <div class="info">
+    <b id="routeHint">Digite o trecho</b>
+    <span>O Transit-Time e a chegada prevista serão calculados automaticamente.</span>
+  </div>
+
+  <label>Previsão de chegada</label>
+  <input id="arrivalPreview" readonly>
+
+  <div class="countdownBox">
+    <div class="label">◷ Tempo restante para chegada (previsto)</div>
+    <div id="formCountdown" class="countdown">—</div>
+    <div class="small">Atualizado em tempo real</div>
+  </div>
+
+  <button class="primary" onclick="saveTrip()">⊕ Adicionar à fila</button>
+  <div class="small" style="margin-top:8px">A fila considera a previsão de chegada para ordenar automaticamente.</div>
+</section>
+
+<section class="right">
+
+<div class="card compare">
+  <div class="compareTop">
+    <div>
+      <div class="sectionTitle" style="margin-bottom:0">
+        <span>↗</span>
+        <h2>Comparação diária</h2>
       </div>
-      <div class="compareGrid">
-        <div class="daybox"><h3 id="labelA">—</h3><div class="metric3"><div class="metric g"><b id="onA">0</b><span>NO PRAZO</span></div><div class="metric o"><b id="lateA">0</b><span>ATRASADAS</span></div><div class="metric b"><b id="totA">0</b><span>TOTAL</span></div></div></div>
-        <div class="delta"><span>VARIAÇÃO</span><b id="delta">—</b><span id="deltaTxt">Sem dados nos dois dias</span></div>
-        <div class="daybox"><h3 id="labelB">—</h3><div class="metric3"><div class="metric g"><b id="onB">0</b><span>NO PRAZO</span></div><div class="metric o"><b id="lateB">0</b><span>ATRASADAS</span></div><div class="metric b"><b id="totB">0</b><span>TOTAL</span></div></div></div>
+      <p>Compare a eficiência entre dois dias pelas chegadas reais registradas.</p>
+    </div>
+
+    <div class="datepick">
+      <div>
+        <label>Dia anterior</label>
+        <input id="dateA" type="date">
+      </div>
+      <div>
+        <label>Dia atual</label>
+        <input id="dateB" type="date">
+      </div>
+    </div>
+  </div>
+
+  <div class="compareGrid">
+
+    <div class="daybox">
+      <h3 id="labelA">—</h3>
+      <div class="metric3">
+        <div class="metric g"><b id="onA">0</b><span>NO PRAZO</span></div>
+        <div class="metric o"><b id="lateA">0</b><span>ATRASADAS</span></div>
+        <div class="metric b"><b id="totA">0</b><span>TOTAL</span></div>
       </div>
     </div>
 
-    <div class="mid">
-      <div class="card eff"><div class="et">◎ EFICIÊNCIA DE CHEGADAS • QUINZENAL</div><div id="efficiency" class="ep">—</div><p id="effText">Registre chegadas para medir a performance.</p><div id="effRange" class="effRange">—</div><div class="effTools"><div><label>Ver eficiência por rota</label><select id="effRoute"><option value="ALL">Todas as rotas</option></select></div></div><div id="effRouteLabel" class="routeMini">Todas as rotas</div></div>
-      <div class="card next"><h3>◷ Tempo restante para a próxima chegada</h3><div id="nextCountdown" class="countdown">—</div><div class="small">Baseado na viagem do topo da fila</div></div>
+    <div class="delta">
+      <span>VARIAÇÃO</span>
+      <b id="delta">—</b>
+      <span id="deltaTxt">Sem dados nos dois dias</span>
     </div>
 
-    <div class="kpis">
-      <div class="card kpi"><div><b id="kOn" style="color:var(--green)">0</b><br><span>NO PRAZO</span></div><div class="icon" style="color:var(--green)">✓</div></div>
-      <div class="card kpi"><div><b id="kLate" style="color:var(--orange)">0</b><br><span>ATRASADAS</span></div><div class="icon" style="color:var(--orange)">△</div></div>
-      <div class="card kpi"><div><b id="kDone" style="color:var(--blue)">0</b><br><span>CONCLUÍDAS</span></div><div class="icon" style="color:var(--blue)">⚑</div></div>
-      <div class="card kpi"><div><b id="kActive" style="color:var(--purple)">0</b><br><span>ATIVAS</span></div><div class="icon" style="color:var(--purple)">▣</div></div>
-    </div>
-
-    <div class="queueHistory">
-      <div class="card sectionCard">
-        <div class="sectionHead"><div><h2>▣ Fila de chegadas</h2><p>Ordenada automaticamente pela previsão de chegada</p></div><span id="queueBadge" class="tag">#0 NA FILA</span></div>
-        <div style="margin:10px 16px 12px"><label>Buscar motorista</label><input id="queueNameFilter" placeholder="Digite o nome do motorista"></div>
-        <div class="tableScroll"><table><thead><tr><th>ORDEM</th><th>PREVISÃO CHEGADA</th><th>MOTORISTA</th><th>PLACA</th><th>TRECHO</th><th>TRANSIT-TIME</th><th>TEMPO RESTANTE</th><th>AÇÕES</th></tr></thead><tbody id="queueBody"></tbody></table></div>
-      </div>
-      <div class="card sectionCard">
-        <div class="sectionHead"><div><h2>▣ Histórico por dia</h2><p>Viagens concluídas separadas pela data de chegada real</p></div></div>
-        <div style="margin:10px 16px 12px"><label>Buscar motorista no histórico</label><input id="historyNameFilter" placeholder="Digite o nome do motorista"></div>
-        <div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>MOTORISTA</th><th>PLACA</th><th>TRECHO</th><th>PREVISÃO CHEGADA</th><th>CHEGADA REAL</th><th>STATUS / AÇÕES</th></tr></thead><tbody id="historyBody"></tbody></table></div></div>
+    <div class="daybox">
+      <h3 id="labelB">—</h3>
+      <div class="metric3">
+        <div class="metric g"><b id="onB">0</b><span>NO PRAZO</span></div>
+        <div class="metric o"><b id="lateB">0</b><span>ATRASADAS</span></div>
+        <div class="metric b"><b id="totB">0</b><span>TOTAL</span></div>
       </div>
     </div>
 
-    <div class="card performanceSection">
-      <div class="sectionHead"><div><h2>◎ Performance por motorista e empresa</h2><p>Indicadores calculados automaticamente pelas viagens concluídas.</p></div><span id="performanceBadge" class="tag">QUINZENA</span></div>
-      <div class="performanceToolbar"><div><label>Filtrar por quinzena</label><select id="performanceFortnight"></select></div><div class="small" id="performanceRange">As viagens finalizadas entram automaticamente neste painel.</div></div>
-      <div class="performanceGrid">
-        <div class="performancePanel"><div class="performancePanelHead"><h2>Motorista</h2><p>Digite o nome para ver a eficiência geral e o desempenho em cada rota.</p></div><div class="performanceBody">
-          <label>Buscar motorista</label><input id="driverPerfFilter" placeholder="Digite o nome do motorista"><div id="driverPerfName" class="performanceName">Digite um motorista</div><div id="driverPerfHint" class="performanceHint"></div>
-          <div class="performanceKpis"><div class="performanceMini"><b id="driverTrips">0</b><span>VIAGENS</span></div><div class="performanceMini"><b id="driverOnTime">0</b><span>NO PRAZO</span></div><div class="performanceMini"><b id="driverLate">0</b><span>ATRASADAS</span></div><div class="performanceMini"><b id="driverEfficiency">—</b><span>EFICIÊNCIA</span></div></div>
-          <div class="performanceTableWrap"><table><thead><tr><th>ROTA</th><th>VIAGENS</th><th>NO PRAZO</th><th>ATRASADAS</th><th>EFICIÊNCIA</th></tr></thead><tbody id="driverRouteBody"></tbody></table></div>
-        </div></div>
-        <div class="performancePanel"><div class="performancePanelHead"><h2>Empresa</h2><p>Veja quantas viagens cada empresa realizou e sua performance na quinzena.</p></div><div class="performanceBody">
-          <label>Buscar empresa</label><input id="companyPerfFilter" placeholder="Digite o nome da empresa"><div class="performanceKpis"><div class="performanceMini"><b id="companyCount">0</b><span>EMPRESAS</span></div><div class="performanceMini"><b id="companyTrips">0</b><span>VIAGENS</span></div><div class="performanceMini"><b id="companyOnTime">0</b><span>NO PRAZO</span></div><div class="performanceMini"><b id="companyEfficiency">—</b><span>EFICIÊNCIA GERAL</span></div></div>
-          <div class="performanceTableWrap"><table><thead><tr><th>EMPRESA</th><th>VIAGENS</th><th>NO PRAZO</th><th>ATRASADAS</th><th>PERFORMANCE</th></tr></thead><tbody id="companyPerfBody"></tbody></table></div>
-        </div></div>
+  </div>
+</div>
+
+<div class="mid">
+
+  <div class="card eff">
+    <div class="et">◎ EFICIÊNCIA DE CHEGADAS • QUINZENAL</div>
+    <div id="efficiency" class="ep">—</div>
+    <p id="effText">Registre chegadas para medir a performance.</p>
+    <div id="effRange" class="effRange">—</div>
+
+    <div class="effTools">
+      <div>
+        <label>Ver eficiência por rota</label>
+        <select id="effRoute">
+          <option value="ALL">Todas as rotas</option>
+        </select>
       </div>
     </div>
 
-    <div class="card fiscalSection">
-      <div class="sectionHead"><div><h2>⏱ Paradas em posto fiscal</h2><p>Controle o tempo parado por placa e posto fiscal</p></div><span id="fiscalBadge" class="tag">0 NO FISCAL</span></div>
-      <div class="fiscalGrid">
-        <div class="fiscalForm"><div class="sectionTitle"><span>▣</span><h2>Nova parada</h2></div><label>Placa</label><input id="fiscalPlate" placeholder="ABC-1D23"><label>Posto fiscal</label><input id="fiscalName" placeholder="Nome do posto fiscal"><label>Senha de atendimento</label><input id="fiscalPassword" placeholder="Digite a senha de atendimento do motorista"><label>Data e hora de início</label><input id="fiscalStart" type="datetime-local"><button class="primary" onclick="startFiscalStop()">▶ Iniciar cronômetro</button></div>
-        <div><div class="fiscalStats"><div class="fiscalStat"><b id="fiscalActiveCount">0</b><span>VEÍCULOS PARADOS AGORA</span></div><div class="fiscalStat"><b id="fiscalLongest">—</b><span>MAIOR TEMPO NO HISTÓRICO</span></div><div class="fiscalStat"><b id="fiscalFortnightTotal">—</b><span>TEMPO TOTAL • QUINZENA</span></div><div class="fiscalStat"><b id="fiscalFortnightCount">0</b><span>PARADAS • QUINZENA</span></div></div><div class="tableScroll"><table><thead><tr><th>PLACA</th><th>POSTO FISCAL</th><th>SENHA</th><th>INÍCIO</th><th>TEMPO PARADO</th><th>AÇÕES</th></tr></thead><tbody id="fiscalActiveBody"></tbody></table></div></div>
-      </div>
-      <div class="fiscalFilter"><div><label>Filtrar histórico por data</label><input id="fiscalDateFilter" type="date"></div><button class="secondaryBtn" onclick="clearFiscalFilter()">Limpar filtro</button><div class="small">Histórico ordenado do maior para o menor tempo parado.</div></div>
-      <div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>PLACA</th><th>POSTO FISCAL</th><th>SENHA</th><th>INÍCIO</th><th>FINALIZAÇÃO</th><th>TEMPO TOTAL</th><th>AÇÃO</th></tr></thead><tbody id="fiscalHistoryBody"></tbody></table></div></div>
+    <div id="effRouteLabel" class="routeMini">Todas as rotas</div>
+  </div>
+
+  <div class="card next">
+    <h3>◷ Tempo restante para a próxima chegada</h3>
+    <div id="nextCountdown" class="countdown">—</div>
+    <div class="small">Baseado na viagem do topo da fila</div>
+  </div>
+
+</div>
+
+<div class="kpis">
+
+  <div class="card kpi">
+    <div>
+      <b id="kOn" style="color:var(--green)">0</b><br>
+      <span>NO PRAZO</span>
     </div>
-  </section>
+    <div class="icon" style="color:var(--green)">✓</div>
+  </div>
+
+  <div class="card kpi">
+    <div>
+      <b id="kLate" style="color:var(--orange)">0</b><br>
+      <span>ATRASADAS</span>
+    </div>
+    <div class="icon" style="color:var(--orange)">△</div>
+  </div>
+
+  <div class="card kpi">
+    <div>
+      <b id="kDone" style="color:var(--blue)">0</b><br>
+      <span>CONCLUÍDAS</span>
+    </div>
+    <div class="icon" style="color:var(--blue)">⚑</div>
+  </div>
+
+  <div class="card kpi">
+    <div>
+      <b id="kActive" style="color:var(--purple)">0</b><br>
+      <span>ATIVAS</span>
+    </div>
+    <div class="icon" style="color:var(--purple)">▣</div>
+  </div>
+
+</div>
+
+<div class="queueHistory">
+
+<div class="card sectionCard">
+  <div class="sectionHead">
+    <div>
+      <h2>▣ Fila de chegadas</h2>
+      <p>Ordenada automaticamente pela previsão de chegada</p>
+    </div>
+    <span id="queueBadge" class="tag">#0 NA FILA</span>
+  </div>
+
+  <div style="margin:10px 16px 12px">
+    <label>Buscar motorista</label>
+    <input id="queueNameFilter" placeholder="Digite o nome do motorista">
+  </div>
+
+  <div class="tableScroll">
+    <table>
+      <thead>
+      <tr>
+        <th>ORDEM</th>
+        <th>PREVISÃO CHEGADA</th>
+        <th>MOTORISTA</th>
+        <th>PLACA</th>
+        <th>TRECHO</th>
+        <th>TRANSIT-TIME</th>
+        <th>TEMPO RESTANTE</th>
+        <th>AÇÕES</th>
+      </tr>
+      </thead>
+      <tbody id="queueBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="card sectionCard">
+  <div class="sectionHead">
+    <div>
+      <h2>▣ Histórico por dia</h2>
+      <p>Viagens concluídas separadas pela data de chegada real</p>
+    </div>
+  </div>
+
+  <div style="margin:10px 16px 12px">
+    <label>Buscar motorista no histórico</label>
+    <input id="historyNameFilter" placeholder="Digite o nome do motorista">
+  </div>
+
+  <div class="historyWrap">
+    <div class="tableScroll">
+      <table>
+        <thead>
+        <tr>
+          <th>MOTORISTA</th>
+          <th>PLACA</th>
+          <th>TRECHO</th>
+          <th>PREVISÃO CHEGADA</th>
+          <th>CHEGADA REAL</th>
+          <th>STATUS / AÇÕES</th>
+        </tr>
+        </thead>
+        <tbody id="historyBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="card performanceSection">
+
+  <div class="sectionHead">
+    <div>
+      <h2>◎ Performance por motorista e empresa</h2>
+      <p>Indicadores calculados automaticamente pelas viagens concluídas.</p>
+    </div>
+    <span id="performanceBadge" class="tag">QUINZENA</span>
+  </div>
+
+  <div class="performanceToolbar">
+    <div>
+      <label>Filtrar por quinzena</label>
+      <select id="performanceFortnight"></select>
+    </div>
+    <div class="small" id="performanceRange">As viagens finalizadas entram automaticamente neste painel.</div>
+  </div>
+
+  <div class="performanceGrid">
+
+    <div class="performancePanel">
+      <div class="performancePanelHead">
+        <h2>Motorista</h2>
+        <p>Digite o nome para ver a eficiência geral e o desempenho em cada rota.</p>
+      </div>
+
+      <div class="performanceBody">
+
+        <label>Buscar motorista</label>
+        <input id="driverPerfFilter" placeholder="Digite o nome do motorista">
+
+        <div id="driverPerfName" class="performanceName">Digite um motorista</div>
+        <div id="driverPerfHint" class="performanceHint"></div>
+
+        <div class="performanceKpis">
+          <div class="performanceMini"><b id="driverTrips">0</b><span>VIAGENS</span></div>
+          <div class="performanceMini"><b id="driverOnTime">0</b><span>NO PRAZO</span></div>
+          <div class="performanceMini"><b id="driverLate">0</b><span>ATRASADAS</span></div>
+          <div class="performanceMini"><b id="driverEfficiency">—</b><span>EFICIÊNCIA</span></div>
+        </div>
+
+        <div class="performanceTableWrap">
+          <table>
+            <thead>
+            <tr>
+              <th>ROTA</th>
+              <th>VIAGENS</th>
+              <th>NO PRAZO</th>
+              <th>ATRASADAS</th>
+              <th>EFICIÊNCIA</th>
+            </tr>
+            </thead>
+            <tbody id="driverRouteBody"></tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="performancePanel">
+      <div class="performancePanelHead">
+        <h2>Empresa</h2>
+        <p>Veja quantas viagens cada empresa realizou e sua performance na quinzena.</p>
+      </div>
+
+      <div class="performanceBody">
+
+        <label>Buscar empresa</label>
+        <input id="companyPerfFilter" placeholder="Digite o nome da empresa">
+
+        <div class="performanceKpis">
+          <div class="performanceMini"><b id="companyCount">0</b><span>EMPRESAS</span></div>
+          <div class="performanceMini"><b id="companyTrips">0</b><span>VIAGENS</span></div>
+          <div class="performanceMini"><b id="companyOnTime">0</b><span>NO PRAZO</span></div>
+          <div class="performanceMini"><b id="companyEfficiency">—</b><span>EFICIÊNCIA GERAL</span></div>
+        </div>
+
+        <div class="performanceTableWrap">
+          <table>
+            <thead>
+            <tr>
+              <th>EMPRESA</th>
+              <th>VIAGENS</th>
+              <th>NO PRAZO</th>
+              <th>ATRASADAS</th>
+              <th>PERFORMANCE</th>
+            </tr>
+            </thead>
+            <tbody id="companyPerfBody"></tbody>
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="card fiscalSection">
+
+  <div class="sectionHead">
+    <div>
+      <h2>⏱ Paradas em posto fiscal</h2>
+      <p>Controle o tempo parado por placa e posto fiscal</p>
+    </div>
+    <span id="fiscalBadge" class="tag">0 NO FISCAL</span>
+  </div>
+
+  <div class="fiscalGrid">
+
+    <div class="fiscalForm">
+      <div class="sectionTitle"><span>▣</span><h2>Nova parada</h2></div>
+
+      <label>Placa</label>
+      <input id="fiscalPlate" placeholder="ABC-1D23">
+
+      <label>Posto fiscal</label>
+      <input id="fiscalName" placeholder="Nome do posto fiscal">
+
+      <label>Senha de atendimento</label>
+      <input id="fiscalPassword" placeholder="Digite a senha de atendimento do motorista">
+
+      <label>Data e hora de início</label>
+      <input id="fiscalStart" type="datetime-local">
+
+      <button class="primary" onclick="startFiscalStop()">▶ Iniciar cronômetro</button>
+    </div>
+
+    <div>
+
+      <div class="fiscalStats">
+        <div class="fiscalStat"><b id="fiscalActiveCount">0</b><span>VEÍCULOS PARADOS AGORA</span></div>
+        <div class="fiscalStat"><b id="fiscalLongest">—</b><span>MAIOR TEMPO NO HISTÓRICO</span></div>
+        <div class="fiscalStat"><b id="fiscalFortnightTotal">—</b><span>TEMPO TOTAL • QUINZENA</span></div>
+        <div class="fiscalStat"><b id="fiscalFortnightCount">0</b><span>PARADAS • QUINZENA</span></div>
+      </div>
+
+      <div class="tableScroll">
+        <table>
+          <thead>
+          <tr>
+            <th>PLACA</th>
+            <th>POSTO FISCAL</th>
+            <th>SENHA</th>
+            <th>INÍCIO</th>
+            <th>TEMPO PARADO</th>
+            <th>AÇÕES</th>
+          </tr>
+          </thead>
+          <tbody id="fiscalActiveBody"></tbody>
+        </table>
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="fiscalFilter">
+    <div>
+      <label>Filtrar histórico por data</label>
+      <input id="fiscalDateFilter" type="date">
+    </div>
+
+    <button class="secondaryBtn" onclick="clearFiscalFilter()">Limpar filtro</button>
+
+    <div class="small">Histórico ordenado do maior para o menor tempo parado.</div>
+  </div>
+
+  <div class="historyWrap">
+    <div class="tableScroll">
+      <table>
+        <thead>
+        <tr>
+          <th>PLACA</th>
+          <th>POSTO FISCAL</th>
+          <th>SENHA</th>
+          <th>INÍCIO</th>
+          <th>FINALIZAÇÃO</th>
+          <th>TEMPO TOTAL</th>
+          <th>AÇÃO</th>
+        </tr>
+        </thead>
+        <tbody id="fiscalHistoryBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+</section>
 </div>
 </main>
 </div>
 
 <div id="delaysView" class="view">
-  <div class="delayPage">
-    <div class="delaySummary">
-      <div class="card delayStat"><b id="dTotal">0</b><span>ATRASOS NO PERÍODO</span></div>
-      <div class="card delayStat"><b id="dPending" style="color:#e38400">0</b><span>AGUARDANDO JUSTIFICATIVA</span></div>
-      <div class="card delayStat"><b id="dJustified" style="color:#18a75b">0</b><span>JUSTIFICADOS</span></div>
-      <div class="card delayStat"><b id="dMinutes" style="color:#e01c2b">0h</b><span>TEMPO TOTAL DE ATRASO</span></div>
+
+<div class="delayPage">
+
+  <div class="delaySummary">
+
+    <div class="card delayStat">
+      <b id="dTotal">0</b>
+      <span>ATRASOS NO PERÍODO</span>
     </div>
-    <div class="card">
-      <div class="sectionHead"><div><h2>⚠ Justificativa de atrasos</h2><p>Toda viagem finalizada com atraso aparece automaticamente aqui.</p></div><span class="tag" id="delayPeriodBadge">QUINZENA ATUAL</span></div>
-      <div class="delayToolbar">
-        <div><label>Período</label><select id="delayPeriod"><option value="current">Quinzena atual</option><option value="all">Todo histórico</option></select></div>
-        <div><label>Motorista</label><input id="delayDriverFilter" placeholder="Buscar"></div>
-        <div><label>Empresa</label><input id="delayCompanyFilter" placeholder="Buscar"></div>
-        <div><label>Rota</label><input id="delayRouteFilter" placeholder="Buscar"></div>
-        <div><label>Motivo</label><select id="delayReasonFilter"><option value="">Todos</option><option>Posto fiscal</option><option>Trânsito</option><option>Atraso motorista</option><option>Liberado Smart</option><option>Bloqueio rastreador</option><option>Documentação</option></select></div>
-      </div>
-      <div class="delayTableWrap"><table><thead><tr><th>DATA</th><th>MOTORISTA</th><th>EMPRESA</th><th>PLACA</th><th>ROTA</th><th>PREVISTO</th><th>REAL</th><th>ATRASO</th><th>MOTIVO</th><th>STATUS</th><th>AÇÃO</th></tr></thead><tbody id="delayBody"></tbody></table></div>
+
+    <div class="card delayStat">
+      <b id="dPending" style="color:#e38400">0</b>
+      <span>AGUARDANDO JUSTIFICATIVA</span>
     </div>
+
+    <div class="card delayStat">
+      <b id="dJustified" style="color:#18a75b">0</b>
+      <span>JUSTIFICADOS</span>
+    </div>
+
+    <div class="card delayStat">
+      <b id="dMinutes" style="color:#e01c2b">0h</b>
+      <span>TEMPO TOTAL DE ATRASO</span>
+    </div>
+
   </div>
+
+  <div class="card">
+
+    <div class="sectionHead">
+      <div>
+        <h2>⚠ Justificativa de atrasos</h2>
+        <p>Toda viagem finalizada com atraso aparece automaticamente aqui.</p>
+      </div>
+      <span class="tag" id="delayPeriodBadge">QUINZENA ATUAL</span>
+    </div>
+
+    <div class="delayToolbar">
+
+      <div>
+        <label>Período</label>
+        <select id="delayPeriod">
+          <option value="current">Quinzena atual</option>
+          <option value="all">Todo histórico</option>
+        </select>
+      </div>
+
+      <div>
+        <label>Motorista</label>
+        <input id="delayDriverFilter" placeholder="Buscar">
+      </div>
+
+      <div>
+        <label>Empresa</label>
+        <input id="delayCompanyFilter" placeholder="Buscar">
+      </div>
+
+      <div>
+        <label>Rota</label>
+        <input id="delayRouteFilter" placeholder="Buscar">
+      </div>
+
+      <div>
+        <label>Motivo</label>
+        <select id="delayReasonFilter">
+          <option value="">Todos</option>
+          <option>Posto fiscal</option>
+          <option>Trânsito</option>
+          <option>Atraso motorista</option>
+          <option>Liberado Smart</option>
+          <option>Bloqueio rastreador</option>
+          <option>Documentação</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div class="delayTableWrap">
+
+      <table>
+
+        <thead>
+        <tr>
+          <th>DATA</th>
+          <th>MOTORISTA</th>
+          <th>EMPRESA</th>
+          <th>PLACA</th>
+          <th>ROTA</th>
+          <th>PREVISTO</th>
+          <th>REAL</th>
+          <th>ATRASO</th>
+          <th>MOTIVO</th>
+          <th>STATUS</th>
+          <th>AÇÃO</th>
+        </tr>
+        </thead>
+
+        <tbody id="delayBody"></tbody>
+
+      </table>
+
+    </div>
+
+  </div>
+
+</div>
 </div>
 
 <div id="executiveView" class="view">
-  <div class="execPage"><div class="execShell">
-    <div class="execTop">
-      <div><h2>📊 Painel Executivo da Operação</h2><p>Indicadores consolidados, rankings e pontos críticos atualizados pelas viagens concluídas.</p></div>
-      <div class="execFilters">
-        <select id="execCompany"><option value="ALL">Geral • Todas as empresas</option></select>
-        <select id="execPeriod"><option value="current">Quinzena atual</option><option value="all">Todo histórico</option></select>
+
+<div class="execPage">
+<div class="execShell">
+
+  <div class="execTop">
+
+    <div>
+      <h2>📊 Painel Executivo da Operação</h2>
+      <p>Indicadores consolidados, rankings e pontos críticos atualizados pelas viagens concluídas.</p>
+    </div>
+
+    <div class="execFilters">
+      <select id="execCompany">
+        <option value="ALL">Geral • Todas as empresas</option>
+      </select>
+
+      <select id="execPeriod">
+        <option value="current">Quinzena atual</option>
+        <option value="all">Todo histórico</option>
+      </select>
+    </div>
+
+  </div>
+
+  <div class="gaugeGrid">
+
+    <div class="darkCard gaugeCard">
+      <div class="gaugeTitle">SLA REAL • CHEGADAS NO PRAZO</div>
+      <div id="gSla" class="gauge">
+        <div id="gSlaVal" class="gaugeValue">—</div>
       </div>
+      <div id="gSlaSub" class="gaugeSub">—</div>
     </div>
 
-    <div class="gaugeGrid">
-      <div class="darkCard gaugeCard"><div class="gaugeTitle">SLA REAL • CHEGADAS NO PRAZO</div><div id="gSla" class="gauge"><div id="gSlaVal" class="gaugeValue">—</div></div><div id="gSlaSub" class="gaugeSub">—</div></div>
-      <div class="darkCard gaugeCard"><div class="gaugeTitle">PERFORMANCE CONTROLÁVEL</div><div id="gCtrl" class="gauge"><div id="gCtrlVal" class="gaugeValue">—</div></div><div class="gaugeSub">Desconsidera causas externas justificadas</div></div>
-      <div class="darkCard gaugeCard"><div class="gaugeTitle">ATRASOS JUSTIFICADOS</div><div id="gJust" class="gauge"><div id="gJustVal" class="gaugeValue">—</div></div><div class="gaugeSub">Percentual dos atrasos com causa registrada</div></div>
-      <div class="darkCard gaugeCard"><div class="gaugeTitle">JUSTIFICATIVAS PENDENTES</div><div id="gPend" class="gauge"><div id="gPendVal" class="gaugeValue">—</div></div><div class="gaugeSub">Meta operacional: zerar pendências</div></div>
+    <div class="darkCard gaugeCard">
+      <div class="gaugeTitle">PERFORMANCE CONTROLÁVEL</div>
+      <div id="gCtrl" class="gauge">
+        <div id="gCtrlVal" class="gaugeValue">—</div>
+      </div>
+      <div class="gaugeSub">Desconsidera causas externas justificadas</div>
     </div>
 
-    <div class="execGrid">
-      <div class="darkCard execCard"><h3>🚨 Pontos críticos</h3><div id="criticalList" class="criticalList"></div></div>
-      <div class="darkCard execCard"><h3>🏆 Melhores motoristas</h3><div id="bestDrivers" class="rankList"></div></div>
-      <div class="darkCard execCard"><h3>⚠ Motoristas em atenção</h3><div id="worstDrivers" class="rankList"></div></div>
-      <div class="darkCard execCard"><h3>🏢 Melhores empresas</h3><div id="bestCompanies" class="rankList"></div></div>
-      <div class="darkCard execCard"><h3>📉 Empresas em atenção</h3><div id="worstCompanies" class="rankList"></div></div>
-      <div class="darkCard execCard"><h3>🧭 Causas dos atrasos</h3><div id="reasonBars" class="reasonBars"></div></div>
-      <div class="darkCard execCard execWide"><h3>📈 Eficiência diária</h3><div id="trend" class="trend"></div></div>
+    <div class="darkCard gaugeCard">
+      <div class="gaugeTitle">ATRASOS JUSTIFICADOS</div>
+      <div id="gJust" class="gauge">
+        <div id="gJustVal" class="gaugeValue">—</div>
+      </div>
+      <div class="gaugeSub">Percentual dos atrasos com causa registrada</div>
     </div>
-  </div></div>
+
+    <div class="darkCard gaugeCard">
+      <div class="gaugeTitle">JUSTIFICATIVAS PENDENTES</div>
+      <div id="gPend" class="gauge">
+        <div id="gPendVal" class="gaugeValue">—</div>
+      </div>
+      <div class="gaugeSub">Meta operacional: zerar pendências</div>
+    </div>
+
+  </div>
+
+  <div class="execGrid">
+
+    <div class="darkCard execCard">
+      <h3>🚨 Pontos críticos</h3>
+      <div id="criticalList" class="criticalList"></div>
+    </div>
+
+    <div class="darkCard execCard">
+      <h3>🏆 Melhores motoristas</h3>
+      <div id="bestDrivers" class="rankList"></div>
+    </div>
+
+    <div class="darkCard execCard">
+      <h3>⚠ Motoristas em atenção</h3>
+      <div id="worstDrivers" class="rankList"></div>
+    </div>
+
+    <div class="darkCard execCard">
+      <h3>🏢 Melhores empresas</h3>
+      <div id="bestCompanies" class="rankList"></div>
+    </div>
+
+    <div class="darkCard execCard">
+      <h3>📉 Empresas em atenção</h3>
+      <div id="worstCompanies" class="rankList"></div>
+    </div>
+
+    <div class="darkCard execCard">
+      <h3>🧭 Causas dos atrasos</h3>
+      <div id="reasonBars" class="reasonBars"></div>
+    </div>
+
+    <div class="darkCard execCard execWide">
+      <h3>📈 Eficiência diária</h3>
+      <div id="trend" class="trend"></div>
+    </div>
+
+  </div>
+
+</div>
+</div>
 </div>
 
 <div id="justifyModal" class="modalBackdrop">
-  <div class="modal">
-    <div class="modalHead"><div><h2>Justificar atraso</h2><div class="small">A justificativa ficará vinculada permanentemente à viagem.</div></div><button class="modalClose" onclick="closeJustify()">✕</button></div>
-    <div id="delayModalMeta" class="delayMeta"></div>
-    <input type="hidden" id="justifyTripId">
-    <label>Motivo do atraso</label>
-    <select id="justifyReason"><option value="">Selecione</option><option>Posto fiscal</option><option>Trânsito</option><option>Atraso motorista</option><option>Liberado Smart</option><option>Bloqueio rastreador</option><option>Documentação</option></select>
-    <label>Justificativa / observação</label><textarea id="justifyText" placeholder="Digite os detalhes do atraso..."></textarea>
-    <button class="primary" onclick="saveJustification()">✓ Salvar justificativa</button>
+
+<div class="modal">
+
+  <div class="modalHead">
+    <div>
+      <h2>Justificar atraso</h2>
+      <div class="small">A justificativa ficará vinculada permanentemente à viagem.</div>
+    </div>
+
+    <button class="modalClose" onclick="closeJustify()">✕</button>
   </div>
+
+  <div id="delayModalMeta" class="delayMeta"></div>
+
+  <input type="hidden" id="justifyTripId">
+
+  <label>Motivo do atraso</label>
+  <select id="justifyReason">
+    <option value="">Selecione</option>
+    <option>Posto fiscal</option>
+    <option>Trânsito</option>
+    <option>Atraso motorista</option>
+    <option>Liberado Smart</option>
+    <option>Bloqueio rastreador</option>
+    <option>Documentação</option>
+  </select>
+
+  <label>Justificativa / observação</label>
+  <textarea id="justifyText" placeholder="Digite os detalhes do atraso..."></textarea>
+
+  <button class="primary" onclick="saveJustification()">✓ Salvar justificativa</button>
+
+</div>
 </div>
 
 <script>
+
 const URL='https://epzwdmqjvlmdugpwrcky.supabase.co';
 const KEY='sb_publishable_4hrEJpIC28RCJ7b04o8tBw_gnhwAoxC';
-const H={apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'};
-const TIMES={'BRE-AJU':44,'BRE-ANA':62,'BRE-CGR':19,'CGR-BRE':21,'BRE-CGB':37,'BRE-FOR':75+20/60,'BRE-MRB':44+20/60,'BRE-SNS':49,'BRE-CGE':12,'CGE-BRE':12,'SNS-FOR':26+20/60,'FOR-SNS':26+20/60,'SNS-FEC':10,'FEC-BRE':40,'FOR-BRE':75+20/60,'CGB-ROO':4,'ROO-CGR':11,'CGB-BRE':35+10/60,'ANA-MRB':15.5,'MRB-PMW':13+20/60,'PMW-BSB':16,'BSB-BRE':19.5,'GRU-SJM':8.5,'SJM-FEC':40,'SJM-FOR':71,'GRU-CGE':11,'GRU-RBP':6.5,'GRU-FEC':37,'GRU-CGB':37};
-const EXTERNAL_REASONS=new Set(['Posto fiscal','Trânsito','Liberado Smart','Bloqueio rastreador','Documentação']);
-let tripsCache=[],fiscalCache=[];
+
+const H={
+  apikey:KEY,
+  Authorization:'Bearer '+KEY,
+  'Content-Type':'application/json'
+};
+
+const TIMES={
+  'BRE-AJU':44,
+  'BRE-ANA':62,
+  'BRE-CGR':19,
+  'CGR-BRE':21,
+  'BRE-CGB':37,
+  'BRE-FOR':75+20/60,
+  'BRE-MRB':44+20/60,
+  'BRE-SNS':49,
+  'BRE-CGE':12,
+  'CGE-BRE':12,
+  'SNS-FOR':26+20/60,
+  'FOR-SNS':26+20/60,
+  'SNS-FEC':10,
+  'FEC-BRE':40,
+  'FOR-BRE':75+20/60,
+  'CGB-ROO':4,
+  'ROO-CGR':11,
+  'CGB-BRE':35+10/60,
+  'ANA-MRB':15.5,
+  'MRB-PMW':13+20/60,
+  'PMW-BSB':16,
+  'BSB-BRE':19.5,
+  'GRU-SJM':8.5,
+  'SJM-FEC':40,
+  'SJM-FOR':71,
+  'GRU-CGE':11,
+  'GRU-RBP':6.5,
+  'GRU-FEC':37,
+  'GRU-CGB':37
+};
+
+const EXTERNAL_REASONS=new Set([
+  'Posto fiscal',
+  'Trânsito',
+  'Liberado Smart',
+  'Bloqueio rastreador',
+  'Documentação'
+]);
+
+let tripsCache=[];
+let fiscalCache=[];
 
 const $=id=>document.getElementById(id);
+
 const route=$('route');
-Object.keys(TIMES).forEach(x=>{let o=document.createElement('option');o.value=x;o.textContent=x;route.appendChild(o)});
 
-function fmtTransit(h){let m=Math.round(h*60),hh=Math.floor(m/60),mm=m%60;return mm?`${hh}h ${String(mm).padStart(2,'0')}min`:`${hh}h`}
-function formatLocalInput(d){const z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`}
-function fmtDT(v){return new Date(v).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false,hourCycle:'h23'})}
-function dayKey(v){let d=new Date(v);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function quinzenalRange(ref=new Date()){const y=ref.getFullYear(),m=ref.getMonth();const start=ref.getDate()<=15?new Date(y,m,1):new Date(y,m,16);const end=ref.getDate()<=15?new Date(y,m,15,23,59,59,999):new Date(y,m+1,0,23,59,59,999);return{start,end}}
-function tripMeta(t){const parts=String(t.driver||'').split(' • ').map(x=>x.trim()).filter(Boolean);return{driverName:parts[0]||'Sem motorista',company:parts.find((p,i)=>i>0&&!/^ID\s/i.test(p))||'Sem empresa',tripId:(parts.find(p=>/^ID\s/i.test(p))||'').replace(/^ID\s*/i,'')}}
-function countdownText(target){const diff=new Date(target)-new Date();if(diff<=0)return'CHEGADA VENCIDA';let s=Math.floor(diff/1000),d=Math.floor(s/86400);s%=86400;let h=Math.floor(s/3600);s%=3600;let m=Math.floor(s/60),sec=s%60;return`${String(d).padStart(2,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`}
-function delayMinutes(t){return Math.max(0,Math.round((new Date(t.real_arrival)-new Date(t.arrival))/60000))}
-function minsText(mins){const d=Math.floor(mins/1440),h=Math.floor((mins%1440)/60),m=mins%60;return`${d?d+'d ':''}${h}h ${String(m).padStart(2,'0')}min`}
-function durationMinutes(start,end){return Math.max(0,Math.round((new Date(end)-new Date(start))/60000))}
-function durationShort(start,end){return minsText(durationMinutes(start,end))}
-function minutesAsDays(mins){const d=Math.floor(mins/1440),h=Math.floor((mins%1440)/60),m=mins%60;return`${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}min`}
-function durationText(start,end=new Date()){let s=Math.floor(Math.max(0,new Date(end)-new Date(start))/1000),d=Math.floor(s/86400);s%=86400;let h=Math.floor(s/3600);s%=3600;let m=Math.floor(s/60),sec=s%60;return`${d?d+'d ':''}${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`}
-function periodDone(mode){let done=tripsCache.filter(x=>x.done&&x.real_arrival);if(mode==='current'){const q=quinzenalRange();done=done.filter(x=>{const d=new Date(x.real_arrival);return d>=q.start&&d<=q.end})}return done}
+Object.keys(TIMES).forEach(x=>{
+  let o=document.createElement('option');
+  o.value=x;
+  o.textContent=x;
+  route.appendChild(o);
+});
 
-$('departure').value=formatLocalInput(new Date());$('fiscalStart').value=formatLocalInput(new Date());
-function updatePreview(){let h=TIMES[route.value],dep=new Date($('departure').value);$('routeHint').textContent=`Transit-Time: ${fmtTransit(h)}`;if(!isNaN(dep)){let arr=new Date(dep.getTime()+h*3600000);$('arrivalPreview').value=arr.toLocaleString('pt-BR');$('formCountdown').textContent=countdownText(arr)}}
-route.onchange=updatePreview;$('departure').onchange=updatePreview;updatePreview();
+function fmtTransit(h){
+  let m=Math.round(h*60);
+  let hh=Math.floor(m/60);
+  let mm=m%60;
 
-async function api(path,opt={}){let r=await fetch(URL+'/rest/v1/'+path,{...opt,headers:{...H,...(opt.headers||{})}});if(!r.ok)throw Error(await r.text());let t=await r.text();return t?JSON.parse(t):null}
+  return mm
+  ?`${hh}h ${String(mm).padStart(2,'0')}min`
+  :`${hh}h`;
+}
+
+function formatLocalInput(d){
+  const z=n=>String(n).padStart(2,'0');
+
+  return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}T${z(d.getHours())}:${z(d.getMinutes())}`;
+}
+
+function fmtDT(v){
+  return new Date(v).toLocaleString('pt-BR',{
+    day:'2-digit',
+    month:'2-digit',
+    year:'numeric',
+    hour:'2-digit',
+    minute:'2-digit',
+    hour12:false,
+    hourCycle:'h23'
+  });
+}
+
+function dayKey(v){
+  let d=new Date(v);
+
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+function esc(v){
+  return String(v??'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;'
+  }[c]));
+}
+
+function quinzenalRange(ref=new Date()){
+
+  const y=ref.getFullYear();
+  const m=ref.getMonth();
+
+  const start=ref.getDate()<=15
+  ?new Date(y,m,1)
+  :new Date(y,m,16);
+
+  const end=ref.getDate()<=15
+  ?new Date(y,m,15,23,59,59,999)
+  :new Date(y,m+1,0,23,59,59,999);
+
+  return{start,end};
+}
+
+function tripMeta(t){
+
+  const parts=String(t.driver||'')
+  .split(' • ')
+  .map(x=>x.trim())
+  .filter(Boolean);
+
+  return{
+    driverName:parts[0]||'Sem motorista',
+    company:parts.find((p,i)=>i>0&&!/^ID\s/i.test(p))||'Sem empresa',
+    tripId:(parts.find(p=>/^ID\s/i.test(p))||'').replace(/^ID\s*/i,'')
+  };
+}
+
+function countdownText(target){
+
+  const diff=new Date(target)-new Date();
+
+  if(diff<=0)return'CHEGADA VENCIDA';
+
+  let s=Math.floor(diff/1000);
+
+  let d=Math.floor(s/86400);
+  s%=86400;
+
+  let h=Math.floor(s/3600);
+  s%=3600;
+
+  let m=Math.floor(s/60);
+  let sec=s%60;
+
+  return`${String(d).padStart(2,'0')}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`;
+}
+
+function delayMinutes(t){
+  return Math.max(
+    0,
+    Math.round(
+      (new Date(t.real_arrival)-new Date(t.arrival))/60000
+    )
+  );
+}
+
+function minsText(mins){
+
+  const d=Math.floor(mins/1440);
+  const h=Math.floor((mins%1440)/60);
+  const m=mins%60;
+
+  return`${d?d+'d ':''}${h}h ${String(m).padStart(2,'0')}min`;
+}
+
+function durationMinutes(start,end){
+
+  return Math.max(
+    0,
+    Math.round(
+      (new Date(end)-new Date(start))/60000
+    )
+  );
+}
+
+function durationShort(start,end){
+  return minsText(durationMinutes(start,end));
+}
+
+function minutesAsDays(mins){
+
+  const d=Math.floor(mins/1440);
+  const h=Math.floor((mins%1440)/60);
+  const m=mins%60;
+
+  return`${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}min`;
+}
+
+function durationText(start,end=new Date()){
+
+  let s=Math.floor(
+    Math.max(
+      0,
+      new Date(end)-new Date(start)
+    )/1000
+  );
+
+  let d=Math.floor(s/86400);
+  s%=86400;
+
+  let h=Math.floor(s/3600);
+  s%=3600;
+
+  let m=Math.floor(s/60);
+  let sec=s%60;
+
+  return`${d?d+'d ':''}${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(sec).padStart(2,'0')}s`;
+}
+
+function periodDone(mode){
+
+  let done=tripsCache.filter(
+    x=>x.done&&x.real_arrival
+  );
+
+  if(mode==='current'){
+
+    const q=quinzenalRange();
+
+    done=done.filter(x=>{
+
+      const d=new Date(x.real_arrival);
+
+      return d>=q.start&&d<=q.end;
+    });
+  }
+
+  return done;
+}
+
+$('departure').value=formatLocalInput(new Date());
+$('fiscalStart').value=formatLocalInput(new Date());
+
+function updatePreview(){
+
+  let h=TIMES[route.value];
+  let dep=new Date($('departure').value);
+
+  $('routeHint').textContent=`Transit-Time: ${fmtTransit(h)}`;
+
+  if(!isNaN(dep)){
+
+    let arr=new Date(
+      dep.getTime()+h*3600000
+    );
+
+    $('arrivalPreview').value=
+    arr.toLocaleString('pt-BR');
+
+    $('formCountdown').textContent=
+    countdownText(arr);
+  }
+}
+
+route.onchange=updatePreview;
+$('departure').onchange=updatePreview;
+
+updatePreview();
+
+async function api(path,opt={}){
+
+  let r=await fetch(
+    URL+'/rest/v1/'+path,
+    {
+      ...opt,
+      headers:{
+        ...H,
+        ...(opt.headers||{})
+      }
+    }
+  );
+
+  if(!r.ok)
+  throw Error(await r.text());
+
+  let t=await r.text();
+
+  return t?JSON.parse(t):null;
+}
 
 async function saveTrip(){
- if(!$('driver').value||!$('departure').value)return alert('Preencha motorista e previsão de saída.');
- let h=TIMES[route.value],dep=new Date($('departure').value),arr=new Date(dep.getTime()+h*3600000);
- let dname=$('driver').value+($('company').value?' • '+$('company').value:'')+($('tripid').value?' • ID '+$('tripid').value:'');
- await api('trips',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({driver:dname,plate:$('plate').value,route:route.value.replace('-', ' → '),transit:fmtTransit(h),departure:dep.toISOString(),arrival:arr.toISOString(),done:false})});
- $('driver').value='';$('company').value='';$('tripid').value='';$('plate').value='';load();
+
+  if(
+    !$('driver').value||
+    !$('departure').value
+  )
+  return alert('Preencha motorista e previsão de saída.');
+
+  let h=TIMES[route.value];
+  let dep=new Date($('departure').value);
+
+  let arr=new Date(
+    dep.getTime()+h*3600000
+  );
+
+  let dname=
+  $('driver').value+
+  ($('company').value?' • '+$('company').value:'')+
+  ($('tripid').value?' • ID '+$('tripid').value:'');
+
+  await api('trips',{
+    method:'POST',
+    headers:{
+      Prefer:'return=minimal'
+    },
+    body:JSON.stringify({
+      driver:dname,
+      plate:$('plate').value,
+      route:route.value.replace('-', ' → '),
+      transit:fmtTransit(h),
+      departure:dep.toISOString(),
+      arrival:arr.toISOString(),
+      done:false
+    })
+  });
+
+  $('driver').value='';
+  $('company').value='';
+  $('tripid').value='';
+  $('plate').value='';
+
+  load();
 }
-async function conclude(id,planned){let now=new Date(),local=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16).replace('T',' ');let raw=prompt('Data/hora real de chegada (AAAA-MM-DD HH:MM):',local);if(!raw)return;let real=new Date(raw.replace(' ','T'));if(isNaN(real))return alert('Data inválida.');await api('trips?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({done:true,real_arrival:real.toISOString(),on_time:real<=new Date(planned),updated_at:new Date().toISOString()})});load()}
-async function editArrival(id,planned,current){let d=new Date(current),local=new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16).replace('T',' '),raw=prompt('Corrigir data/hora real (AAAA-MM-DD HH:MM):',local);if(!raw)return;let real=new Date(raw.replace(' ','T'));if(isNaN(real))return alert('Data inválida.');await api('trips?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({real_arrival:real.toISOString(),on_time:real<=new Date(planned),updated_at:new Date().toISOString()})});load()}
-async function deleteTrip(id){if(!confirm('Excluir esta viagem do histórico?'))return;await api('trips?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});load()}
-async function deleteActiveTrip(id){if(!confirm('Excluir esta viagem da fila?'))return;await api('trips?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});load()}
+
+async function conclude(id,planned){
+
+  let now=new Date();
+
+  let local=
+  new Date(
+    now.getTime()-now.getTimezoneOffset()*60000
+  )
+  .toISOString()
+  .slice(0,16)
+  .replace('T',' ');
+
+  let raw=prompt(
+    'Data/hora real de chegada (AAAA-MM-DD HH:MM):',
+    local
+  );
+
+  if(!raw)return;
+
+  let real=
+  new Date(
+    raw.replace(' ','T')
+  );
+
+  if(isNaN(real))
+  return alert('Data inválida.');
+
+  await api(
+    'trips?id=eq.'+id,
+    {
+      method:'PATCH',
+      headers:{
+        Prefer:'return=minimal'
+      },
+      body:JSON.stringify({
+        done:true,
+        real_arrival:real.toISOString(),
+        on_time:real<=new Date(planned),
+        updated_at:new Date().toISOString()
+      })
+    }
+  );
+
+  load();
+}
+
+async function editArrival(id,planned,current){
+
+  let d=new Date(current);
+
+  let local=
+  new Date(
+    d.getTime()-d.getTimezoneOffset()*60000
+  )
+  .toISOString()
+  .slice(0,16)
+  .replace('T',' ');
+
+  let raw=prompt(
+    'Corrigir data/hora real (AAAA-MM-DD HH:MM):',
+    local
+  );
+
+  if(!raw)return;
+
+  let real=
+  new Date(
+    raw.replace(' ','T')
+  );
+
+  if(isNaN(real))
+  return alert('Data inválida.');
+
+  await api(
+    'trips?id=eq.'+id,
+    {
+      method:'PATCH',
+      headers:{
+        Prefer:'return=minimal'
+      },
+      body:JSON.stringify({
+        real_arrival:real.toISOString(),
+        on_time:real<=new Date(planned),
+        updated_at:new Date().toISOString()
+      })
+    }
+  );
+
+  load();
+}
+
+async function deleteTrip(id){
+
+  if(!confirm('Excluir esta viagem do histórico?'))
+  return;
+
+  await api(
+    'trips?id=eq.'+id,
+    {
+      method:'DELETE',
+      headers:{
+        Prefer:'return=minimal'
+      }
+    }
+  );
+
+  load();
+}
+
+async function deleteActiveTrip(id){
+
+  if(!confirm('Excluir esta viagem da fila?'))
+  return;
+
+  await api(
+    'trips?id=eq.'+id,
+    {
+      method:'DELETE',
+      headers:{
+        Prefer:'return=minimal'
+      }
+    }
+  );
+
+  load();
+}
 
 async function startFiscalStop(){
- if(!$('fiscalPlate').value.trim()||!$('fiscalName').value.trim()||!$('fiscalPassword').value.trim()||!$('fiscalStart').value)return alert('Preencha placa, posto fiscal, senha e início.');
- let start=new Date($('fiscalStart').value);
- await api('fiscal_stops',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify({plate:$('fiscalPlate').value.trim().toUpperCase(),fiscal_name:$('fiscalName').value.trim(),service_password:$('fiscalPassword').value.trim(),started_at:start.toISOString()})});
- $('fiscalPlate').value='';$('fiscalName').value='';$('fiscalPassword').value='';$('fiscalStart').value=formatLocalInput(new Date());load()
+
+  if(
+    !$('fiscalPlate').value.trim()||
+    !$('fiscalName').value.trim()||
+    !$('fiscalPassword').value.trim()||
+    !$('fiscalStart').value
+  )
+  return alert('Preencha placa, posto fiscal, senha e início.');
+
+  let start=
+  new Date(
+    $('fiscalStart').value
+  );
+
+  await api(
+    'fiscal_stops',
+    {
+      method:'POST',
+      headers:{
+        Prefer:'return=minimal'
+      },
+      body:JSON.stringify({
+        plate:$('fiscalPlate').value.trim().toUpperCase(),
+        fiscal_name:$('fiscalName').value.trim(),
+        service_password:$('fiscalPassword').value.trim(),
+        started_at:start.toISOString()
+      })
+    }
+  );
+
+  $('fiscalPlate').value='';
+  $('fiscalName').value='';
+  $('fiscalPassword').value='';
+  $('fiscalStart').value=formatLocalInput(new Date());
+
+  load();
 }
-async function finishFiscalStop(id,currentStart){let now=new Date(),local=new Date(now.getTime()-now.getTimezoneOffset()*60000).toISOString().slice(0,16).replace('T',' '),raw=prompt('Data/hora final da parada (AAAA-MM-DD HH:MM):',local);if(!raw)return;let end=new Date(raw.replace(' ','T'));if(isNaN(end)||end<new Date(currentStart))return alert('Data/hora inválida.');await api('fiscal_stops?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({ended_at:end.toISOString(),updated_at:new Date().toISOString()})});load()}
-async function deleteFiscalStop(id){if(!confirm('Excluir esta parada?'))return;await api('fiscal_stops?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});load()}
-function clearFiscalFilter(){$('fiscalDateFilter').value='';renderFiscal()}
+
+async function finishFiscalStop(id,currentStart){
+
+  let now=new Date();
+
+  let local=
+  new Date(
+    now.getTime()-now.getTimezoneOffset()*60000
+  )
+  .toISOString()
+  .slice(0,16)
+  .replace('T',' ');
+
+  let raw=prompt(
+    'Data/hora final da parada (AAAA-MM-DD HH:MM):',
+    local
+  );
+
+  if(!raw)return;
+
+  let end=
+  new Date(
+    raw.replace(' ','T')
+  );
+
+  if(
+    isNaN(end)||
+    end<new Date(currentStart)
+  )
+  return alert('Data/hora inválida.');
+
+  await api(
+    'fiscal_stops?id=eq.'+id,
+    {
+      method:'PATCH',
+      headers:{
+        Prefer:'return=minimal'
+      },
+      body:JSON.stringify({
+        ended_at:end.toISOString(),
+        updated_at:new Date().toISOString()
+      })
+    }
+  );
+
+  load();
+}
+
+async function deleteFiscalStop(id){
+
+  if(!confirm('Excluir esta parada?'))
+  return;
+
+  await api(
+    'fiscal_stops?id=eq.'+id,
+    {
+      method:'DELETE',
+      headers:{
+        Prefer:'return=minimal'
+      }
+    }
+  );
+
+  load();
+}
+
+function clearFiscalFilter(){
+
+  $('fiscalDateFilter').value='';
+
+  renderFiscal();
+}
 
 function renderFiscal(){
- let active=fiscalCache.filter(x=>!x.ended_at).sort((a,b)=>new Date(a.started_at)-new Date(b.started_at)),done=fiscalCache.filter(x=>x.ended_at).sort((a,b)=>durationMinutes(b.started_at,b.ended_at)-durationMinutes(a.started_at,a.ended_at));
- $('fiscalBadge').textContent=`${active.length} NO FISCAL`;$('fiscalActiveCount').textContent=active.length;
- $('fiscalActiveBody').innerHTML=active.length?active.map(x=>`<tr><td><b>${esc(x.plate)}</b></td><td>${esc(x.fiscal_name)}</td><td><b>${esc(x.service_password||'—')}</b></td><td>${fmtDT(x.started_at)}</td><td class="timerLive">${durationText(x.started_at)}</td><td><div class="historyActions"><button class="statusBtn" onclick="finishFiscalStop(${x.id},'${x.started_at}')">Finalizar</button><button class="deleteBtn" onclick="deleteFiscalStop(${x.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="6" class="empty">Nenhum veículo parado no fiscal agora.</td></tr>`;
- $('fiscalLongest').textContent=done[0]?durationShort(done[0].started_at,done[0].ended_at):'—';
- let q=quinzenalRange(),fq=done.filter(x=>{let d=new Date(x.started_at);return d>=q.start&&d<=q.end}),mins=fq.reduce((s,x)=>s+durationMinutes(x.started_at,x.ended_at),0);
- $('fiscalFortnightTotal').textContent=minutesAsDays(mins);$('fiscalFortnightCount').textContent=fq.length;
- let filter=$('fiscalDateFilter').value;if(filter)done=done.filter(x=>dayKey(x.started_at)===filter);
- $('fiscalHistoryBody').innerHTML=done.length?done.map(x=>`<tr><td><b>${esc(x.plate)}</b></td><td>${esc(x.fiscal_name)}</td><td><b>${esc(x.service_password||'—')}</b></td><td>${fmtDT(x.started_at)}</td><td>${fmtDT(x.ended_at)}</td><td><b>${durationShort(x.started_at,x.ended_at)}</b></td><td><button class="deleteBtn" onclick="deleteFiscalStop(${x.id})">Excluir</button></td></tr>`).join(''):`<tr><td colspan="7" class="empty">Nenhuma parada finalizada.</td></tr>`
+
+  let active=
+  fiscalCache
+  .filter(x=>!x.ended_at)
+  .sort(
+    (a,b)=>
+    new Date(a.started_at)-
+    new Date(b.started_at)
+  );
+
+  let done=
+  fiscalCache
+  .filter(x=>x.ended_at)
+  .sort(
+    (a,b)=>
+    durationMinutes(
+      b.started_at,
+      b.ended_at
+    )-
+    durationMinutes(
+      a.started_at,
+      a.ended_at
+    )
+  );
+
+  $('fiscalBadge').textContent=
+  `${active.length} NO FISCAL`;
+
+  $('fiscalActiveCount').textContent=
+  active.length;
+
+  $('fiscalActiveBody').innerHTML=
+  active.length
+  ?
+  active.map(x=>`
+  <tr>
+    <td><b>${esc(x.plate)}</b></td>
+    <td>${esc(x.fiscal_name)}</td>
+    <td><b>${esc(x.service_password||'—')}</b></td>
+    <td>${fmtDT(x.started_at)}</td>
+    <td class="timerLive">${durationText(x.started_at)}</td>
+    <td>
+      <div class="historyActions">
+        <button class="statusBtn" onclick="finishFiscalStop(${x.id},'${x.started_at}')">Finalizar</button>
+        <button class="deleteBtn" onclick="deleteFiscalStop(${x.id})">Excluir</button>
+      </div>
+    </td>
+  </tr>
+  `).join('')
+  :
+  `<tr><td colspan="6" class="empty">Nenhum veículo parado no fiscal agora.</td></tr>`;
+
+  $('fiscalLongest').textContent=
+  done[0]
+  ?
+  durationShort(
+    done[0].started_at,
+    done[0].ended_at
+  )
+  :
+  '—';
+
+  let q=quinzenalRange();
+
+  let fq=
+  done.filter(x=>{
+
+    let d=new Date(x.started_at);
+
+    return d>=q.start&&d<=q.end;
+  });
+
+  let mins=
+  fq.reduce(
+    (s,x)=>
+    s+
+    durationMinutes(
+      x.started_at,
+      x.ended_at
+    ),
+    0
+  );
+
+  $('fiscalFortnightTotal').textContent=
+  minutesAsDays(mins);
+
+  $('fiscalFortnightCount').textContent=
+  fq.length;
+
+  let filter=
+  $('fiscalDateFilter').value;
+
+  if(filter)
+  done=
+  done.filter(
+    x=>dayKey(x.started_at)===filter
+  );
+
+  $('fiscalHistoryBody').innerHTML=
+  done.length
+  ?
+  done.map(x=>`
+  <tr>
+    <td><b>${esc(x.plate)}</b></td>
+    <td>${esc(x.fiscal_name)}</td>
+    <td><b>${esc(x.service_password||'—')}</b></td>
+    <td>${fmtDT(x.started_at)}</td>
+    <td>${fmtDT(x.ended_at)}</td>
+    <td><b>${durationShort(x.started_at,x.ended_at)}</b></td>
+    <td>
+      <button class="deleteBtn" onclick="deleteFiscalStop(${x.id})">Excluir</button>
+    </td>
+  </tr>
+  `).join('')
+  :
+  `<tr><td colspan="7" class="empty">Nenhuma parada finalizada.</td></tr>`;
 }
 
 function renderPerformance(allDone){
- let key=$('performanceFortnight').value||'ALL',current=quinzenalRange(),period=key==='ALL'?allDone:allDone.filter(x=>{let d=new Date(x.real_arrival);return d>=current.start&&d<=current.end});
- $('performanceFortnight').innerHTML='<option value="ALL">Todo o histórico</option><option value="CURRENT">Quinzena atual</option>'; if(key==='CURRENT')$('performanceFortnight').value='CURRENT';
- if(key==='CURRENT')period=allDone.filter(x=>{let d=new Date(x.real_arrival);return d>=current.start&&d<=current.end});
- $('performanceBadge').textContent=key==='CURRENT'?'QUINZENA':'TODO HISTÓRICO';$('performanceRange').textContent=`${period.length} viagem(ns) concluída(s) contabilizada(s)`;
- let cf=$('companyPerfFilter').value.trim().toLowerCase(),byC={};
- period.forEach(t=>{let c=tripMeta(t).company;if(cf&&!c.toLowerCase().includes(cf))return;(byC[c]??=[]).push(t)});
- let ce=Object.entries(byC).sort((a,b)=>b[1].length-a[1].length),ct=ce.reduce((s,[,a])=>s+a.length,0),co=ce.reduce((s,[,a])=>s+a.filter(x=>x.on_time===true).length,0);
- $('companyCount').textContent=ce.length;$('companyTrips').textContent=ct;$('companyOnTime').textContent=co;$('companyEfficiency').textContent=ct?Math.round(co/ct*100)+'%':'—';
- $('companyPerfBody').innerHTML=ce.length?ce.map(([c,a])=>{let o=a.filter(x=>x.on_time===true).length,e=Math.round(o/a.length*100);return`<tr><td><b>${esc(c)}</b></td><td>${a.length}</td><td>${o}</td><td>${a.length-o}</td><td class="${e>=90?'effGood':'effBad'}">${e}%</td></tr>`}).join(''):`<tr><td colspan="5" class="performanceEmpty">Nenhuma empresa encontrada.</td></tr>`;
- let term=$('driverPerfFilter').value.trim().toLowerCase(),rows=[];
- if(term){let matches=period.filter(t=>tripMeta(t).driverName.toLowerCase().includes(term)),names=[...new Set(matches.map(t=>tripMeta(t).driverName))],chosen=names.find(n=>n.toLowerCase()===term)||names[0];
-   if(chosen){let sel=period.filter(t=>tripMeta(t).driverName===chosen),on=sel.filter(t=>t.on_time===true).length;$('driverPerfName').textContent=chosen;$('driverPerfHint').textContent=`${sel.length} viagem(ns) concluída(s).`;$('driverTrips').textContent=sel.length;$('driverOnTime').textContent=on;$('driverLate').textContent=sel.length-on;$('driverEfficiency').textContent=Math.round(on/sel.length*100)+'%';let br={};sel.forEach(t=>(br[t.route||'Sem rota']??=[]).push(t));rows=Object.entries(br).map(([r,a])=>{let o=a.filter(x=>x.on_time===true).length,e=Math.round(o/a.length*100);return`<tr><td><b>${esc(r)}</b></td><td>${a.length}</td><td>${o}</td><td>${a.length-o}</td><td class="${e>=90?'effGood':'effBad'}">${e}%</td></tr>`})}
- } else {$('driverPerfName').textContent='Digite um motorista';$('driverPerfHint').textContent=`${period.length} viagem(ns) disponíveis.`;$('driverTrips').textContent='0';$('driverOnTime').textContent='0';$('driverLate').textContent='0';$('driverEfficiency').textContent='—'}
- $('driverRouteBody').innerHTML=rows.length?rows.join(''):`<tr><td colspan="5" class="performanceEmpty">Digite o nome do motorista.</td></tr>`
+
+  let key=
+  $('performanceFortnight').value||
+  'ALL';
+
+  let current=
+  quinzenalRange();
+
+  let period=
+  key==='ALL'
+  ?
+  allDone
+  :
+  allDone.filter(x=>{
+
+    let d=new Date(x.real_arrival);
+
+    return d>=current.start&&d<=current.end;
+  });
+
+  $('performanceFortnight').innerHTML=
+  '<option value="ALL">Todo o histórico</option>'+
+  '<option value="CURRENT">Quinzena atual</option>';
+
+  if(key==='CURRENT')
+  $('performanceFortnight').value='CURRENT';
+
+  if(key==='CURRENT')
+  period=
+  allDone.filter(x=>{
+
+    let d=new Date(x.real_arrival);
+
+    return d>=current.start&&d<=current.end;
+  });
+
+  $('performanceBadge').textContent=
+  key==='CURRENT'
+  ?
+  'QUINZENA'
+  :
+  'TODO HISTÓRICO';
+
+  $('performanceRange').textContent=
+  `${period.length} viagem(ns) concluída(s) contabilizada(s)`;
+
+  let cf=
+  $('companyPerfFilter')
+  .value
+  .trim()
+  .toLowerCase();
+
+  let byC={};
+
+  period.forEach(t=>{
+
+    let c=
+    tripMeta(t).company;
+
+    if(
+      cf&&
+      !c.toLowerCase().includes(cf)
+    )
+    return;
+
+    (byC[c]??=[]).push(t);
+  });
+
+  let ce=
+  Object.entries(byC)
+  .sort(
+    (a,b)=>
+    b[1].length-
+    a[1].length
+  );
+
+  let ct=
+  ce.reduce(
+    (s,[,a])=>
+    s+a.length,
+    0
+  );
+
+  let co=
+  ce.reduce(
+    (s,[,a])=>
+    s+
+    a.filter(
+      x=>x.on_time===true
+    ).length,
+    0
+  );
+
+  $('companyCount').textContent=
+  ce.length;
+
+  $('companyTrips').textContent=
+  ct;
+
+  $('companyOnTime').textContent=
+  co;
+
+  $('companyEfficiency').textContent=
+  ct
+  ?
+  Math.round(co/ct*100)+'%'
+  :
+  '—';
+
+  $('companyPerfBody').innerHTML=
+  ce.length
+  ?
+  ce.map(([c,a])=>{
+
+    let o=
+    a.filter(
+      x=>x.on_time===true
+    ).length;
+
+    let e=
+    Math.round(
+      o/a.length*100
+    );
+
+    return`
+    <tr>
+      <td><b>${esc(c)}</b></td>
+      <td>${a.length}</td>
+      <td>${o}</td>
+      <td>${a.length-o}</td>
+      <td class="${e>=90?'effGood':'effBad'}">${e}%</td>
+    </tr>
+    `;
+  }).join('')
+  :
+  `<tr><td colspan="5" class="performanceEmpty">Nenhuma empresa encontrada.</td></tr>`;
+
+  let term=
+  $('driverPerfFilter')
+  .value
+  .trim()
+  .toLowerCase();
+
+  let rows=[];
+
+  if(term){
+
+    let matches=
+    period.filter(
+      t=>
+      tripMeta(t)
+      .driverName
+      .toLowerCase()
+      .includes(term)
+    );
+
+    let names=[
+      ...new Set(
+        matches.map(
+          t=>tripMeta(t).driverName
+        )
+      )
+    ];
+
+    let chosen=
+    names.find(
+      n=>n.toLowerCase()===term
+    )
+    ||
+    names[0];
+
+    if(chosen){
+
+      let sel=
+      period.filter(
+        t=>
+        tripMeta(t).driverName===chosen
+      );
+
+      let on=
+      sel.filter(
+        t=>t.on_time===true
+      ).length;
+
+      $('driverPerfName').textContent=
+      chosen;
+
+      $('driverPerfHint').textContent=
+      `${sel.length} viagem(ns) concluída(s).`;
+
+      $('driverTrips').textContent=
+      sel.length;
+
+      $('driverOnTime').textContent=
+      on;
+
+      $('driverLate').textContent=
+      sel.length-on;
+
+      $('driverEfficiency').textContent=
+      Math.round(
+        on/sel.length*100
+      )+'%';
+
+      let br={};
+
+      sel.forEach(t=>
+        (br[t.route||'Sem rota']??=[]).push(t)
+      );
+
+      rows=
+      Object.entries(br)
+      .map(([r,a])=>{
+
+        let o=
+        a.filter(
+          x=>x.on_time===true
+        ).length;
+
+        let e=
+        Math.round(
+          o/a.length*100
+        );
+
+        return`
+        <tr>
+          <td><b>${esc(r)}</b></td>
+          <td>${a.length}</td>
+          <td>${o}</td>
+          <td>${a.length-o}</td>
+          <td class="${e>=90?'effGood':'effBad'}">${e}%</td>
+        </tr>
+        `;
+      });
+    }
+
+  }else{
+
+    $('driverPerfName').textContent=
+    'Digite um motorista';
+
+    $('driverPerfHint').textContent=
+    `${period.length} viagem(ns) disponíveis.`;
+
+    $('driverTrips').textContent='0';
+    $('driverOnTime').textContent='0';
+    $('driverLate').textContent='0';
+    $('driverEfficiency').textContent='—';
+  }
+
+  $('driverRouteBody').innerHTML=
+  rows.length
+  ?
+  rows.join('')
+  :
+  `<tr><td colspan="5" class="performanceEmpty">Digite o nome do motorista.</td></tr>`;
 }
 
 function openJustify(id){
- let t=tripsCache.find(x=>String(x.id)===String(id));if(!t)return;let m=tripMeta(t);
- $('justifyTripId').value=t.id;$('justifyReason').value=t.delay_reason||'';$('justifyText').value=t.delay_justification||'';
- $('delayModalMeta').innerHTML=`<div><b>MOTORISTA</b>${esc(m.driverName)}</div><div><b>EMPRESA</b>${esc(m.company)}</div><div><b>PLACA</b>${esc(t.plate||'—')}</div><div><b>ROTA</b>${esc(t.route||'—')}</div><div><b>PREVISÃO</b>${fmtDT(t.arrival)}</div><div><b>CHEGADA REAL</b>${fmtDT(t.real_arrival)}</div><div><b>ATRASO</b>${minsText(delayMinutes(t))}</div><div><b>ID</b>${esc(m.tripId||t.id)}</div>`;
- $('justifyModal').classList.add('open')
+
+  let t=
+  tripsCache.find(
+    x=>String(x.id)===String(id)
+  );
+
+  if(!t)return;
+
+  let m=
+  tripMeta(t);
+
+  $('justifyTripId').value=
+  t.id;
+
+  $('justifyReason').value=
+  t.delay_reason||'';
+
+  $('justifyText').value=
+  t.delay_justification||'';
+
+  $('delayModalMeta').innerHTML=`
+  <div><b>MOTORISTA</b>${esc(m.driverName)}</div>
+  <div><b>EMPRESA</b>${esc(m.company)}</div>
+  <div><b>PLACA</b>${esc(t.plate||'—')}</div>
+  <div><b>ROTA</b>${esc(t.route||'—')}</div>
+  <div><b>PREVISÃO</b>${fmtDT(t.arrival)}</div>
+  <div><b>CHEGADA REAL</b>${fmtDT(t.real_arrival)}</div>
+  <div><b>ATRASO</b>${minsText(delayMinutes(t))}</div>
+  <div><b>ID</b>${esc(m.tripId||t.id)}</div>
+  `;
+
+  $('justifyModal')
+  .classList
+  .add('open');
 }
-function closeJustify(){$('justifyModal').classList.remove('open')}
+
+function closeJustify(){
+
+  $('justifyModal')
+  .classList
+  .remove('open');
+}
+
 async function saveJustification(){
- let id=$('justifyTripId').value,reason=$('justifyReason').value,text=$('justifyText').value.trim();if(!reason)return alert('Selecione o motivo do atraso.');if(!text)return alert('Digite a justificativa/observação.');
- try{await api('trips?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({delay_reason:reason,delay_justification:text,delay_justified_at:new Date().toISOString(),updated_at:new Date().toISOString()})});closeJustify();await load()}
- catch(e){console.error(e);alert('Não foi possível salvar. Execute primeiro o arquivo SQL de atualização do banco.')}
+
+  let id=
+  $('justifyTripId').value;
+
+  let reason=
+  $('justifyReason').value;
+
+  let text=
+  $('justifyText')
+  .value
+  .trim();
+
+  if(!reason)
+  return alert('Selecione o motivo do atraso.');
+
+  if(!text)
+  return alert('Digite a justificativa/observação.');
+
+  try{
+
+    await api(
+      'trips?id=eq.'+id,
+      {
+        method:'PATCH',
+        headers:{
+          Prefer:'return=minimal'
+        },
+        body:JSON.stringify({
+          delay_reason:reason,
+          delay_justification:text,
+          delay_justified_at:new Date().toISOString(),
+          updated_at:new Date().toISOString()
+        })
+      }
+    );
+
+    closeJustify();
+
+    await load();
+
+  }catch(e){
+
+    console.error(e);
+
+    alert(
+      'Não foi possível salvar. Execute primeiro o arquivo SQL de atualização do banco.'
+    );
+  }
 }
 
 function renderDelays(){
- let period=periodDone($('delayPeriod').value),late=period.filter(t=>t.on_time===false),df=$('delayDriverFilter').value.trim().toLowerCase(),cf=$('delayCompanyFilter').value.trim().toLowerCase(),rf=$('delayRouteFilter').value.trim().toLowerCase(),reason=$('delayReasonFilter').value;
- late=late.filter(t=>{let m=tripMeta(t);return(!df||m.driverName.toLowerCase().includes(df))&&(!cf||m.company.toLowerCase().includes(cf))&&(!rf||(t.route||'').toLowerCase().includes(rf))&&(!reason||t.delay_reason===reason)});
- let pending=late.filter(t=>!t.delay_reason||!t.delay_justification),just=late.length-pending.length,mins=late.reduce((s,t)=>s+delayMinutes(t),0);
- $('dTotal').textContent=late.length;$('dPending').textContent=pending.length;$('dJustified').textContent=just;$('dMinutes').textContent=minsText(mins);$('delayTabBadge').textContent=pending.length?`(${pending.length})`:'';$('delayPeriodBadge').textContent=$('delayPeriod').value==='current'?'QUINZENA ATUAL':'TODO HISTÓRICO';
- $('delayBody').innerHTML=late.length?late.sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival)).map(t=>{let m=tripMeta(t),ok=t.delay_reason&&t.delay_justification;return`<tr><td>${fmtDT(t.real_arrival)}</td><td><b>${esc(m.driverName)}</b></td><td>${esc(m.company)}</td><td>${esc(t.plate||'—')}</td><td>${esc(t.route||'—')}</td><td>${fmtDT(t.arrival)}</td><td>${fmtDT(t.real_arrival)}</td><td><b style="color:#e01c2b">${minsText(delayMinutes(t))}</b></td><td>${esc(t.delay_reason||'—')}</td><td><span class="delayStatus ${ok?'delayDone':'delayPending'}">${ok?'JUSTIFICADO':'PENDENTE'}</span></td><td><button class="justifyBtn" onclick="openJustify(${t.id})">${ok?'Editar':'Justificar'}</button></td></tr>`}).join(''):`<tr><td colspan="11" class="empty">Nenhum atraso encontrado neste filtro.</td></tr>`
+
+  let period=
+  periodDone(
+    $('delayPeriod').value
+  );
+
+  let late=
+  period.filter(
+    t=>t.on_time===false
+  );
+
+  let df=
+  $('delayDriverFilter')
+  .value
+  .trim()
+  .toLowerCase();
+
+  let cf=
+  $('delayCompanyFilter')
+  .value
+  .trim()
+  .toLowerCase();
+
+  let rf=
+  $('delayRouteFilter')
+  .value
+  .trim()
+  .toLowerCase();
+
+  let reason=
+  $('delayReasonFilter').value;
+
+  late=
+  late.filter(t=>{
+
+    let m=
+    tripMeta(t);
+
+    return(
+      (!df||m.driverName.toLowerCase().includes(df))
+      &&
+      (!cf||m.company.toLowerCase().includes(cf))
+      &&
+      (!rf||(t.route||'').toLowerCase().includes(rf))
+      &&
+      (!reason||t.delay_reason===reason)
+    );
+  });
+
+  let pending=
+  late.filter(
+    t=>
+    !t.delay_reason||
+    !t.delay_justification
+  );
+
+  let just=
+  late.length-
+  pending.length;
+
+  let mins=
+  late.reduce(
+    (s,t)=>
+    s+delayMinutes(t),
+    0
+  );
+
+  $('dTotal').textContent=
+  late.length;
+
+  $('dPending').textContent=
+  pending.length;
+
+  $('dJustified').textContent=
+  just;
+
+  $('dMinutes').textContent=
+  minsText(mins);
+
+  $('delayTabBadge').textContent=
+  pending.length
+  ?
+  `(${pending.length})`
+  :
+  '';
+
+  $('delayPeriodBadge').textContent=
+  $('delayPeriod').value==='current'
+  ?
+  'QUINZENA ATUAL'
+  :
+  'TODO HISTÓRICO';
+
+  $('delayBody').innerHTML=
+  late.length
+  ?
+  late
+  .sort(
+    (a,b)=>
+    new Date(b.real_arrival)-
+    new Date(a.real_arrival)
+  )
+  .map(t=>{
+
+    let m=
+    tripMeta(t);
+
+    let ok=
+    t.delay_reason&&
+    t.delay_justification;
+
+    return`
+    <tr>
+      <td>${fmtDT(t.real_arrival)}</td>
+      <td><b>${esc(m.driverName)}</b></td>
+      <td>${esc(m.company)}</td>
+      <td>${esc(t.plate||'—')}</td>
+      <td>${esc(t.route||'—')}</td>
+      <td>${fmtDT(t.arrival)}</td>
+      <td>${fmtDT(t.real_arrival)}</td>
+      <td><b style="color:#e01c2b">${minsText(delayMinutes(t))}</b></td>
+      <td>${esc(t.delay_reason||'—')}</td>
+      <td>
+        <span class="delayStatus ${ok?'delayDone':'delayPending'}">
+          ${ok?'JUSTIFICADO':'PENDENTE'}
+        </span>
+      </td>
+      <td>
+        <button class="justifyBtn" onclick="openJustify(${t.id})">
+          ${ok?'Editar':'Justificar'}
+        </button>
+      </td>
+    </tr>
+    `;
+  })
+  .join('')
+  :
+  `<tr><td colspan="11" class="empty">Nenhum atraso encontrado neste filtro.</td></tr>`;
 }
 
-function aggregate(items,keyFn){let o={};items.forEach(t=>{let k=keyFn(t);if(!k)return;(o[k]??=[]).push(t)});return Object.entries(o).map(([name,a])=>({name,trips:a.length,on:a.filter(x=>x.on_time===true).length,late:a.filter(x=>x.on_time===false).length,eff:Math.round(a.filter(x=>x.on_time===true).length/a.length*100)}))}
-function rankHtml(arr,bad=false){return arr.length?arr.slice(0,5).map((x,i)=>`<div class="rankItem"><div><b>${i+1}. ${esc(x.name)}</b><br><span>${x.trips} viagem(ns) • ${x.late} atraso(s)</span></div><span class="score ${bad?'bad':''}">${x.eff}%</span></div>`).join(''):'<div class="rankItem"><span>Sem dados no período.</span></div>'}
+function aggregate(items,keyFn){
+
+  let o={};
+
+  items.forEach(t=>{
+
+    let k=
+    keyFn(t);
+
+    if(!k)return;
+
+    (o[k]??=[]).push(t);
+  });
+
+  return Object.entries(o)
+  .map(([name,a])=>({
+    name,
+    trips:a.length,
+    on:a.filter(
+      x=>x.on_time===true
+    ).length,
+    late:a.filter(
+      x=>x.on_time===false
+    ).length,
+    eff:Math.round(
+      a.filter(
+        x=>x.on_time===true
+      ).length/
+      a.length*
+      100
+    )
+  }));
+}
+
+/* ALTERADO PARA MOSTRAR A EMPRESA DO MOTORISTA */
+function rankHtml(arr,bad=false,showCompany=false){
+
+  return arr.length
+  ?
+  arr
+  .slice(0,5)
+  .map((x,i)=>`
+  <div class="rankItem">
+    <div>
+      <b>
+        ${i+1}. ${esc(x.name)}
+        ${showCompany&&x.company?' ('+esc(x.company)+')':''}
+      </b>
+      <br>
+      <span>
+        ${x.trips} viagem(ns) • ${x.late} atraso(s)
+      </span>
+    </div>
+
+    <span class="score ${bad?'bad':''}">
+      ${x.eff}%
+    </span>
+  </div>
+  `)
+  .join('')
+  :
+  '<div class="rankItem"><span>Sem dados no período.</span></div>';
+}
+
 function setGauge(id,val,mode='good'){
- let el=$(id),safe=Math.max(0,Math.min(100,Number(val)||0)),color=mode==='bad'?(safe<=5?'#41e38a':safe<=15?'#ffb020':'#ff6370'):(safe>=99?'#41e38a':safe>=95?'#ffb020':'#ff6370');
- el.style.setProperty('--p',safe);el.style.setProperty('--g',color)
+
+  let el=$(id);
+
+  let safe=
+  Math.max(
+    0,
+    Math.min(
+      100,
+      Number(val)||0
+    )
+  );
+
+  let color=
+  mode==='bad'
+  ?
+  (
+    safe<=5
+    ?
+    '#41e38a'
+    :
+    safe<=15
+    ?
+    '#ffb020'
+    :
+    '#ff6370'
+  )
+  :
+  (
+    safe>=99
+    ?
+    '#41e38a'
+    :
+    safe>=95
+    ?
+    '#ffb020'
+    :
+    '#ff6370'
+  );
+
+  el.style.setProperty('--p',safe);
+  el.style.setProperty('--g',color);
 }
+
 function renderExecutive(){
- let base=periodDone($('execPeriod').value);
- let companyOptions=[...new Set(base.map(t=>tripMeta(t).company).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
- let sel=$('execCompany').value||'ALL';
- $('execCompany').innerHTML='<option value="ALL">Geral • Todas as empresas</option>'+companyOptions.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
- $('execCompany').value=(sel==='ALL'||companyOptions.includes(sel))?sel:'ALL';
- let company=$('execCompany').value;
- let done=company==='ALL'?base:base.filter(t=>tripMeta(t).company===company);
- let late=done.filter(t=>t.on_time===false),on=done.length-late.length,sla=done.length?Math.round(on/done.length*100):0,just=late.filter(t=>t.delay_reason&&t.delay_justification),pending=late.length-just.length;
- let external=late.filter(t=>t.delay_reason&&t.delay_justification&&EXTERNAL_REASONS.has(t.delay_reason)),ctrlDen=Math.max(0,done.length-external.length),ctrl=ctrlDen?Math.round(on/ctrlDen*100):0,justRate=late.length?Math.round(just.length/late.length*100):100,pendRate=late.length?Math.round(pending/late.length*100):0;
- $('gSlaVal').textContent=done.length?sla+'%':'—';$('gCtrlVal').textContent=done.length?ctrl+'%':'—';$('gJustVal').textContent=late.length?justRate+'%':'100%';$('gPendVal').textContent=pending;
- $('gSlaSub').textContent=`${on} no prazo de ${done.length} concluídas`;setGauge('gSla',sla);setGauge('gCtrl',ctrl);setGauge('gJust',justRate);setGauge('gPend',pendRate,'bad');
 
- let drivers=aggregate(done,t=>tripMeta(t).driverName),companies=aggregate(done,t=>tripMeta(t).company),routes=aggregate(done,t=>t.route||'Sem rota');
- $('bestDrivers').innerHTML=rankHtml([...drivers].sort((a,b)=>b.eff-a.eff||b.trips-a.trips));
- $('worstDrivers').innerHTML=rankHtml([...drivers].sort((a,b)=>a.eff-b.eff||b.trips-a.trips),true);
- $('bestCompanies').innerHTML=rankHtml([...companies].sort((a,b)=>b.eff-a.eff||b.trips-a.trips));
- $('worstCompanies').innerHTML=rankHtml([...companies].sort((a,b)=>a.eff-b.eff||b.trips-a.trips),true);
- let critical=[...routes].sort((a,b)=>b.late-a.late||a.eff-b.eff).filter(x=>x.late>0).slice(0,5);
- $('criticalList').innerHTML=critical.length?critical.map(x=>`<div class="criticalItem"><div><b>${esc(x.name)}</b><br><span>${x.late} atraso(s) em ${x.trips} viagem(ns)</span></div><span class="score bad">${x.eff}%</span></div>`).join(''):'<div class="criticalItem"><span>Nenhum ponto crítico identificado.</span></div>';
- let reasons={};late.forEach(t=>{let r=t.delay_reason||'Sem justificativa';reasons[r]=(reasons[r]||0)+1});let rs=Object.entries(reasons).sort((a,b)=>b[1]-a[1]),max=rs[0]?.[1]||1;
- $('reasonBars').innerHTML=rs.length?rs.map(([r,n])=>`<div class="reasonRow"><span>${esc(r)}</span><div class="barTrack"><div class="barFill" style="width:${Math.round(n/max*100)}%"></div></div><b>${n}</b></div>`).join(''):'<div class="rankItem"><span>Sem atrasos no período.</span></div>';
- let byDay={};done.forEach(t=>(byDay[dayKey(t.real_arrival)]??=[]).push(t));let days=Object.entries(byDay).sort((a,b)=>a[0].localeCompare(b[0])).slice(-14);
- $('trend').innerHTML=days.length?days.map(([d,a])=>{let e=Math.round(a.filter(x=>x.on_time).length/a.length*100);return`<div class="trendCol"><b style="font-size:9px">${e}%</b><div class="trendBar" style="height:${Math.max(5,e)}%"></div><span>${d.slice(8,10)}/${d.slice(5,7)}</span></div>`}).join(''):'<div class="rankItem"><span>Sem dados para tendência.</span></div>'
+  let base=
+  periodDone(
+    $('execPeriod').value
+  );
+
+  let companyOptions=[
+    ...new Set(
+      base
+      .map(
+        t=>tripMeta(t).company
+      )
+      .filter(Boolean)
+    )
+  ]
+  .sort(
+    (a,b)=>
+    a.localeCompare(
+      b,
+      'pt-BR'
+    )
+  );
+
+  let sel=
+  $('execCompany').value||
+  'ALL';
+
+  $('execCompany').innerHTML=
+  '<option value="ALL">Geral • Todas as empresas</option>'+
+  companyOptions
+  .map(
+    c=>
+    `<option value="${esc(c)}">${esc(c)}</option>`
+  )
+  .join('');
+
+  $('execCompany').value=
+  (
+    sel==='ALL'||
+    companyOptions.includes(sel)
+  )
+  ?
+  sel
+  :
+  'ALL';
+
+  let company=
+  $('execCompany').value;
+
+  let done=
+  company==='ALL'
+  ?
+  base
+  :
+  base.filter(
+    t=>
+    tripMeta(t).company===company
+  );
+
+  let late=
+  done.filter(
+    t=>t.on_time===false
+  );
+
+  let on=
+  done.length-
+  late.length;
+
+  let sla=
+  done.length
+  ?
+  Math.round(
+    on/done.length*100
+  )
+  :
+  0;
+
+  let just=
+  late.filter(
+    t=>
+    t.delay_reason&&
+    t.delay_justification
+  );
+
+  let pending=
+  late.length-
+  just.length;
+
+  let external=
+  late.filter(
+    t=>
+    t.delay_reason&&
+    t.delay_justification&&
+    EXTERNAL_REASONS.has(
+      t.delay_reason
+    )
+  );
+
+  let ctrlDen=
+  Math.max(
+    0,
+    done.length-
+    external.length
+  );
+
+  let ctrl=
+  ctrlDen
+  ?
+  Math.round(
+    on/ctrlDen*100
+  )
+  :
+  0;
+
+  let justRate=
+  late.length
+  ?
+  Math.round(
+    just.length/
+    late.length*
+    100
+  )
+  :
+  100;
+
+  let pendRate=
+  late.length
+  ?
+  Math.round(
+    pending/
+    late.length*
+    100
+  )
+  :
+  0;
+
+  $('gSlaVal').textContent=
+  done.length
+  ?
+  sla+'%'
+  :
+  '—';
+
+  $('gCtrlVal').textContent=
+  done.length
+  ?
+  ctrl+'%'
+  :
+  '—';
+
+  $('gJustVal').textContent=
+  late.length
+  ?
+  justRate+'%'
+  :
+  '100%';
+
+  $('gPendVal').textContent=
+  pending;
+
+  $('gSlaSub').textContent=
+  `${on} no prazo de ${done.length} concluídas`;
+
+  setGauge(
+    'gSla',
+    sla
+  );
+
+  setGauge(
+    'gCtrl',
+    ctrl
+  );
+
+  setGauge(
+    'gJust',
+    justRate
+  );
+
+  setGauge(
+    'gPend',
+    pendRate,
+    'bad'
+  );
+
+  /* ALTERAÇÃO: MOTORISTA + EMPRESA */
+
+  let drivers=
+  aggregate(
+    done,
+    t=>tripMeta(t).driverName
+  );
+
+  drivers.forEach(d=>{
+
+    let driverTrips=
+    done
+    .filter(
+      t=>
+      tripMeta(t).driverName===d.name
+    )
+    .sort(
+      (a,b)=>
+      new Date(b.real_arrival)-
+      new Date(a.real_arrival)
+    );
+
+    d.company=
+    driverTrips.length
+    ?
+    tripMeta(
+      driverTrips[0]
+    ).company
+    :
+    'Sem empresa';
+  });
+
+  let companies=
+  aggregate(
+    done,
+    t=>tripMeta(t).company
+  );
+
+  let routes=
+  aggregate(
+    done,
+    t=>t.route||'Sem rota'
+  );
+
+  $('bestDrivers').innerHTML=
+  rankHtml(
+    [...drivers].sort(
+      (a,b)=>
+      b.eff-a.eff||
+      b.trips-a.trips
+    ),
+    false,
+    true
+  );
+
+  $('worstDrivers').innerHTML=
+  rankHtml(
+    [...drivers].sort(
+      (a,b)=>
+      a.eff-b.eff||
+      b.trips-a.trips
+    ),
+    true,
+    true
+  );
+
+  $('bestCompanies').innerHTML=
+  rankHtml(
+    [...companies].sort(
+      (a,b)=>
+      b.eff-a.eff||
+      b.trips-a.trips
+    )
+  );
+
+  $('worstCompanies').innerHTML=
+  rankHtml(
+    [...companies].sort(
+      (a,b)=>
+      a.eff-b.eff||
+      b.trips-a.trips
+    ),
+    true
+  );
+
+  let critical=
+  [...routes]
+  .sort(
+    (a,b)=>
+    b.late-a.late||
+    a.eff-b.eff
+  )
+  .filter(
+    x=>x.late>0
+  )
+  .slice(0,5);
+
+  $('criticalList').innerHTML=
+  critical.length
+  ?
+  critical.map(x=>`
+  <div class="criticalItem">
+    <div>
+      <b>${esc(x.name)}</b>
+      <br>
+      <span>
+        ${x.late} atraso(s) em ${x.trips} viagem(ns)
+      </span>
+    </div>
+
+    <span class="score bad">
+      ${x.eff}%
+    </span>
+  </div>
+  `)
+  .join('')
+  :
+  '<div class="criticalItem"><span>Nenhum ponto crítico identificado.</span></div>';
+
+  let reasons={};
+
+  late.forEach(t=>{
+
+    let r=
+    t.delay_reason||
+    'Sem justificativa';
+
+    reasons[r]=
+    (reasons[r]||0)+1;
+  });
+
+  let rs=
+  Object.entries(reasons)
+  .sort(
+    (a,b)=>
+    b[1]-a[1]
+  );
+
+  let max=
+  rs[0]?.[1]||
+  1;
+
+  $('reasonBars').innerHTML=
+  rs.length
+  ?
+  rs.map(([r,n])=>`
+  <div class="reasonRow">
+    <span>${esc(r)}</span>
+    <div class="barTrack">
+      <div class="barFill" style="width:${Math.round(n/max*100)}%"></div>
+    </div>
+    <b>${n}</b>
+  </div>
+  `)
+  .join('')
+  :
+  '<div class="rankItem"><span>Sem atrasos no período.</span></div>';
+
+  let byDay={};
+
+  done.forEach(t=>
+    (byDay[dayKey(t.real_arrival)]??=[]).push(t)
+  );
+
+  let days=
+  Object.entries(byDay)
+  .sort(
+    (a,b)=>
+    a[0].localeCompare(b[0])
+  )
+  .slice(-14);
+
+  $('trend').innerHTML=
+  days.length
+  ?
+  days.map(([d,a])=>{
+
+    let e=
+    Math.round(
+      a.filter(
+        x=>x.on_time
+      ).length/
+      a.length*
+      100
+    );
+
+    return`
+    <div class="trendCol">
+      <b style="font-size:9px">
+        ${e}%
+      </b>
+
+      <div
+        class="trendBar"
+        style="height:${Math.max(5,e)}%">
+      </div>
+
+      <span>
+        ${d.slice(8,10)}/${d.slice(5,7)}
+      </span>
+    </div>
+    `;
+  })
+  .join('')
+  :
+  '<div class="rankItem"><span>Sem dados para tendência.</span></div>';
 }
 
-function setDefaultDates(){let b=new Date(),a=new Date();a.setDate(b.getDate()-1);$('dateA').value=dayKey(a);$('dateB').value=dayKey(b)}
+function setDefaultDates(){
+
+  let b=new Date();
+  let a=new Date();
+
+  a.setDate(
+    b.getDate()-1
+  );
+
+  $('dateA').value=
+  dayKey(a);
+
+  $('dateB').value=
+  dayKey(b);
+}
+
 setDefaultDates();
 
 function render(){
- const queueTerm=$('queueNameFilter').value.trim().toLowerCase(),historyTerm=$('historyNameFilter').value.trim().toLowerCase();
- const allDone=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));
- renderPerformance(allDone);
- let active=tripsCache.filter(x=>!x.done&&(!queueTerm||(x.driver||'').toLowerCase().includes(queueTerm))).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival)),done=allDone.filter(x=>!historyTerm||(x.driver||'').toLowerCase().includes(historyTerm));
- $('queueBadge').textContent=`#${active.length} NA FILA`;
- $('queueBody').innerHTML=active.length?active.map((t,i)=>`<tr><td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${esc(t.transit||'—')}</td><td>${countdownText(t.arrival)}</td><td><div class="historyActions"><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button><button class="deleteBtn" onclick="deleteActiveTrip(${t.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">Nenhuma viagem ativa.</td></tr>`;
- let grouped=[],last='';for(let t of done){let key=dayKey(t.real_arrival);if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="6">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}grouped.push(`<tr><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${fmtDT(t.arrival)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)}
- $('historyBody').innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="6" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;
- let on=done.filter(x=>x.on_time).length,late=done.length-on;$('kOn').textContent=on;$('kLate').textContent=late;$('kDone').textContent=done.length;$('kActive').textContent=active.length;
- let routes=[...new Set(done.map(x=>x.route).filter(Boolean))].sort(),pr=$('effRoute').value;$('effRoute').innerHTML='<option value="ALL">Todas as rotas</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');$('effRoute').value=pr==='ALL'||routes.includes(pr)?pr:'ALL';
- let q=quinzenalRange(),rs=$('effRoute').value,qd=done.filter(x=>{let d=new Date(x.real_arrival);return d>=q.start&&d<=q.end&&(rs==='ALL'||x.route===rs)}),qo=qd.filter(x=>x.on_time).length,qe=qd.length?Math.round(qo/qd.length*100):null;
- $('efficiency').textContent=qe===null?'—':qe+'%';$('effText').textContent=qe===null?'Sem chegadas concluídas nesta quinzena.':`${qo} de ${qd.length} chegadas no prazo nesta quinzena.`;$('effRange').textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')}`;$('effRouteLabel').textContent=rs==='ALL'?'Todas as rotas':`Rota: ${rs}`;$('nextCountdown').textContent=active.length?countdownText(active[0].arrival):'—';
- function ds(k){let a=done.filter(x=>dayKey(x.real_arrival)===k),o=a.filter(x=>x.on_time).length;return{o,l:a.length-o,t:a.length,p:a.length?Math.round(o/a.length*100):null}}let A=ds($('dateA').value),B=ds($('dateB').value);
- $('labelA').textContent=new Date($('dateA').value+'T12:00').toLocaleDateString('pt-BR');$('labelB').textContent=new Date($('dateB').value+'T12:00').toLocaleDateString('pt-BR');$('onA').textContent=A.o;$('lateA').textContent=A.l;$('totA').textContent=A.t;$('onB').textContent=B.o;$('lateB').textContent=B.l;$('totB').textContent=B.t;
- if(A.p===null||B.p===null){$('delta').textContent='—';$('deltaTxt').textContent='Sem dados nos dois dias'}else{let d=B.p-A.p;$('delta').textContent=(d>0?'+':'')+d+' p.p.';$('deltaTxt').textContent=d>0?'Melhora':d<0?'Queda':'Estável'}
- renderFiscal();renderDelays();renderExecutive();$('updated').textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V6'
+
+  const queueTerm=
+  $('queueNameFilter')
+  .value
+  .trim()
+  .toLowerCase();
+
+  const historyTerm=
+  $('historyNameFilter')
+  .value
+  .trim()
+  .toLowerCase();
+
+  const allDone=
+  tripsCache
+  .filter(
+    x=>
+    x.done&&
+    x.real_arrival
+  )
+  .sort(
+    (a,b)=>
+    new Date(b.real_arrival)-
+    new Date(a.real_arrival)
+  );
+
+  renderPerformance(allDone);
+
+  let active=
+  tripsCache
+  .filter(
+    x=>
+    !x.done&&
+    (
+      !queueTerm||
+      (x.driver||'')
+      .toLowerCase()
+      .includes(queueTerm)
+    )
+  )
+  .sort(
+    (a,b)=>
+    new Date(a.arrival)-
+    new Date(b.arrival)
+  );
+
+  let done=
+  allDone.filter(
+    x=>
+    !historyTerm||
+    (x.driver||'')
+    .toLowerCase()
+    .includes(historyTerm)
+  );
+
+  $('queueBadge').textContent=
+  `#${active.length} NA FILA`;
+
+  $('queueBody').innerHTML=
+  active.length
+  ?
+  active.map((t,i)=>`
+  <tr>
+    <td>
+      <span class="tag">
+        ${i+1}
+      </span>
+    </td>
+
+    <td>
+      ${fmtDT(t.arrival)}
+    </td>
+
+    <td>
+      ${esc(t.driver)}
+    </td>
+
+    <td>
+      <b>${esc(t.plate||'—')}</b>
+    </td>
+
+    <td>
+      ${esc(t.route)}
+    </td>
+
+    <td>
+      ${esc(t.transit||'—')}
+    </td>
+
+    <td>
+      ${countdownText(t.arrival)}
+    </td>
+
+    <td>
+      <div class="historyActions">
+        <button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">
+          Chegou
+        </button>
+
+        <button class="deleteBtn" onclick="deleteActiveTrip(${t.id})">
+          Excluir
+        </button>
+      </div>
+    </td>
+  </tr>
+  `)
+  .join('')
+  :
+  `<tr><td colspan="8" class="empty">Nenhuma viagem ativa.</td></tr>`;
+
+  let grouped=[];
+  let last='';
+
+  for(let t of done){
+
+    let key=
+    dayKey(
+      t.real_arrival
+    );
+
+    if(key!==last){
+
+      grouped.push(`
+      <tr class="dayGroup">
+        <td colspan="6">
+          ${
+            new Date(
+              key+'T12:00'
+            )
+            .toLocaleDateString(
+              'pt-BR',
+              {
+                weekday:'long',
+                day:'2-digit',
+                month:'2-digit',
+                year:'numeric'
+              }
+            )
+          }
+        </td>
+      </tr>
+      `);
+
+      last=key;
+    }
+
+    grouped.push(`
+    <tr>
+
+      <td>
+        ${esc(t.driver)}
+      </td>
+
+      <td>
+        <b>${esc(t.plate||'—')}</b>
+      </td>
+
+      <td>
+        ${esc(t.route)}
+      </td>
+
+      <td>
+        ${fmtDT(t.arrival)}
+      </td>
+
+      <td>
+        ${fmtDT(t.real_arrival)}
+      </td>
+
+      <td>
+        <div class="historyActions">
+
+          <button
+            class="statusBtn"
+            style="background:${t.on_time?'#18a75b':'#e01c2b'}"
+            onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">
+
+            ${t.on_time?'No prazo':'Atrasada'}
+
+          </button>
+
+          <button
+            class="deleteBtn"
+            onclick="deleteTrip(${t.id})">
+
+            Excluir
+
+          </button>
+
+        </div>
+      </td>
+
+    </tr>
+    `);
+  }
+
+  $('historyBody').innerHTML=
+  grouped.length
+  ?
+  grouped.join('')
+  :
+  `<tr><td colspan="6" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;
+
+  let on=
+  done.filter(
+    x=>x.on_time
+  ).length;
+
+  let late=
+  done.length-on;
+
+  $('kOn').textContent=
+  on;
+
+  $('kLate').textContent=
+  late;
+
+  $('kDone').textContent=
+  done.length;
+
+  $('kActive').textContent=
+  active.length;
+
+  let routes=[
+    ...new Set(
+      done
+      .map(
+        x=>x.route
+      )
+      .filter(Boolean)
+    )
+  ]
+  .sort();
+
+  let pr=
+  $('effRoute').value;
+
+  $('effRoute').innerHTML=
+  '<option value="ALL">Todas as rotas</option>'+
+  routes
+  .map(
+    r=>
+    `<option value="${esc(r)}">${esc(r)}</option>`
+  )
+  .join('');
+
+  $('effRoute').value=
+  pr==='ALL'||
+  routes.includes(pr)
+  ?
+  pr
+  :
+  'ALL';
+
+  let q=
+  quinzenalRange();
+
+  let rs=
+  $('effRoute').value;
+
+  let qd=
+  done.filter(x=>{
+
+    let d=
+    new Date(
+      x.real_arrival
+    );
+
+    return(
+      d>=q.start&&
+      d<=q.end&&
+      (
+        rs==='ALL'||
+        x.route===rs
+      )
+    );
+  });
+
+  let qo=
+  qd.filter(
+    x=>x.on_time
+  ).length;
+
+  let qe=
+  qd.length
+  ?
+  Math.round(
+    qo/qd.length*100
+  )
+  :
+  null;
+
+  $('efficiency').textContent=
+  qe===null
+  ?
+  '—'
+  :
+  qe+'%';
+
+  $('effText').textContent=
+  qe===null
+  ?
+  'Sem chegadas concluídas nesta quinzena.'
+  :
+  `${qo} de ${qd.length} chegadas no prazo nesta quinzena.`;
+
+  $('effRange').textContent=
+  `Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')}`;
+
+  $('effRouteLabel').textContent=
+  rs==='ALL'
+  ?
+  'Todas as rotas'
+  :
+  `Rota: ${rs}`;
+
+  $('nextCountdown').textContent=
+  active.length
+  ?
+  countdownText(
+    active[0].arrival
+  )
+  :
+  '—';
+
+  function ds(k){
+
+    let a=
+    done.filter(
+      x=>
+      dayKey(x.real_arrival)===k
+    );
+
+    let o=
+    a.filter(
+      x=>x.on_time
+    ).length;
+
+    return{
+      o,
+      l:a.length-o,
+      t:a.length,
+      p:a.length
+      ?
+      Math.round(
+        o/a.length*100
+      )
+      :
+      null
+    };
+  }
+
+  let A=
+  ds(
+    $('dateA').value
+  );
+
+  let B=
+  ds(
+    $('dateB').value
+  );
+
+  $('labelA').textContent=
+  new Date(
+    $('dateA').value+'T12:00'
+  )
+  .toLocaleDateString('pt-BR');
+
+  $('labelB').textContent=
+  new Date(
+    $('dateB').value+'T12:00'
+  )
+  .toLocaleDateString('pt-BR');
+
+  $('onA').textContent=A.o;
+  $('lateA').textContent=A.l;
+  $('totA').textContent=A.t;
+
+  $('onB').textContent=B.o;
+  $('lateB').textContent=B.l;
+  $('totB').textContent=B.t;
+
+  if(
+    A.p===null||
+    B.p===null
+  ){
+
+    $('delta').textContent='—';
+
+    $('deltaTxt').textContent=
+    'Sem dados nos dois dias';
+
+  }else{
+
+    let d=
+    B.p-A.p;
+
+    $('delta').textContent=
+    (d>0?'+':'')+
+    d+
+    ' p.p.';
+
+    $('deltaTxt').textContent=
+    d>0
+    ?
+    'Melhora'
+    :
+    d<0
+    ?
+    'Queda'
+    :
+    'Estável';
+  }
+
+  renderFiscal();
+
+  renderDelays();
+
+  renderExecutive();
+
+  $('updated').textContent=
+  'Atualizado: '+
+  fmtDT(new Date())+
+  ' • PERF-V6';
 }
 
-document.querySelectorAll('.tabBtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.view).classList.add('active');render()}));
-['dateA','dateB','effRoute','fiscalDateFilter','performanceFortnight','driverPerfFilter','companyPerfFilter','queueNameFilter','historyNameFilter','delayPeriod','delayDriverFilter','delayCompanyFilter','delayRouteFilter','delayReasonFilter','execPeriod','execCompany'].forEach(id=>{let el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',render)});
+document
+.querySelectorAll('.tabBtn')
+.forEach(b=>
+  b.addEventListener(
+    'click',
+    ()=>{
 
-async function load(){try{[tripsCache,fiscalCache]=await Promise.all([api('trips?select=*&order=arrival.asc'),api('fiscal_stops?select=*&order=started_at.desc')]);render()}catch(e){console.error(e);alert('Erro ao carregar dados: '+e.message)}}
-setInterval(()=>{updatePreview();render()},1000);setInterval(load,30000);load();
+      document
+      .querySelectorAll('.tabBtn')
+      .forEach(
+        x=>x.classList.remove('active')
+      );
+
+      document
+      .querySelectorAll('.view')
+      .forEach(
+        x=>x.classList.remove('active')
+      );
+
+      b.classList.add('active');
+
+      $(b.dataset.view)
+      .classList
+      .add('active');
+
+      render();
+    }
+  )
+);
+
+[
+  'dateA',
+  'dateB',
+  'effRoute',
+  'fiscalDateFilter',
+  'performanceFortnight',
+  'driverPerfFilter',
+  'companyPerfFilter',
+  'queueNameFilter',
+  'historyNameFilter',
+  'delayPeriod',
+  'delayDriverFilter',
+  'delayCompanyFilter',
+  'delayRouteFilter',
+  'delayReasonFilter',
+  'execPeriod',
+  'execCompany'
+]
+.forEach(id=>{
+
+  let el=$(id);
+
+  if(el)
+  el.addEventListener(
+    el.tagName==='INPUT'
+    ?
+    'input'
+    :
+    'change',
+    render
+  );
+});
+
+async function load(){
+
+  try{
+
+    [
+      tripsCache,
+      fiscalCache
+    ]
+    =
+    await Promise.all([
+      api(
+        'trips?select=*&order=arrival.asc'
+      ),
+      api(
+        'fiscal_stops?select=*&order=started_at.desc'
+      )
+    ]);
+
+    render();
+
+  }catch(e){
+
+    console.error(e);
+
+    alert(
+      'Erro ao carregar dados: '+
+      e.message
+    );
+  }
+}
+
+setInterval(
+  ()=>{
+    updatePreview();
+    render();
+  },
+  1000
+);
+
+setInterval(
+  load,
+  30000
+);
+
+load();
+
 </script>
 </body>
-                                                                                                                                                                                       </html>
+  </html>
