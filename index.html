@@ -99,7 +99,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 <body>
 <header>
   <div class="brand"><div class="logo">TRANS<span class="lek">LEK</span></div><div class="vline"></div><div class="title"><h1>Controle de Chegadas</h1><p>Transit-Time • SLA • Performance</p></div></div>
-  <div class="headright"><div id="updated">Atualizado: — • PERF-V8</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
+  <div class="headright"><div id="updated">Atualizado: — • PERF-V9</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
 </header>
 <nav class="tabs">
   <button class="tabBtn active" data-view="operationView">🚚 Operação</button>
@@ -155,8 +155,8 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 <div class="schedulePage">
 <div class="scheduleStats"><div class="card scheduleStat"><b id="programToday">0</b><span>SAÍDAS PROGRAMADAS HOJE</span></div><div class="card scheduleStat"><b id="programNext30" style="color:#e01c2b">0</b><span>SAÍDAS NOS PRÓXIMOS 30 MIN</span></div><div class="card scheduleStat"><b id="programStarted" style="color:#18a75b">0</b><span>INICIADAS</span></div><div class="card scheduleStat"><b id="programPending" style="color:#f26b00">0</b><span>PENDENTES</span></div></div>
 <div class="scheduleGrid">
-<div class="card scheduleForm"><div class="sectionTitle"><span>▣</span><h2>Nova programação</h2></div><label>Data da saída</label><input id="programDate" type="date"><label>Horário da saída</label><input id="programTime" type="time"><label>Trecho</label><select id="programRoute"></select><label>Empresa</label><input id="programCompany" placeholder="Empresa / agregado"><div class="row2"><div><label>Motorista 1</label><input id="programDriver" placeholder="Nome do motorista 1"></div><div><label>Motorista 2 <span style="font-weight:400;color:var(--muted)">(opcional)</span></label><input id="programDriver2" placeholder="Nome do motorista 2"></div></div><div class="row2"><div><label>Placa</label><input id="programPlate" placeholder="ABC-1D23"></div><div><label>ID / Viagem</label><input id="programTripId" placeholder="ID"></div></div><label>Observação</label><textarea id="programObservation" placeholder="Informações adicionais..."></textarea><button class="primary" onclick="saveProgramming()">＋ Salvar programação</button><div class="small" style="margin-top:8px">A programação é independente. Você pode cadastrar 1 ou 2 motoristas e editar todos os dados depois. O lançamento de viagens na Operação continua exatamente como hoje.</div></div>
-<div class="card sectionCard"><div class="sectionHead"><div><h2>🗓 Programação diária</h2><p>Planejamento das saídas sem alterar a fila de chegadas.</p></div><span id="programmingBadge" class="tag">0 PROGRAMADAS</span></div><div class="scheduleToolbar"><div><label>Data</label><input id="programFilterDate" type="date"></div><div><label>Buscar motorista</label><input id="programFilterDriver" placeholder="Nome do motorista"></div><div><label>Empresa</label><input id="programFilterCompany" placeholder="Empresa"></div><button class="secondaryBtn" onclick="clearProgrammingFilters()">Limpar filtros</button></div><div class="tableScroll"><table><thead><tr><th>DATA</th><th>HORÁRIO</th><th>TRECHO</th><th>MOTORISTA(S)</th><th>EMPRESA</th><th>PLACA</th><th>ID</th><th>STATUS</th><th>AÇÕES</th></tr></thead><tbody id="programmingBody"></tbody></table></div></div>
+<div class="card scheduleForm"><div class="sectionTitle"><span>▣</span><h2>Nova programação</h2></div><label>Data da saída</label><input id="programDate" type="date"><label>Horário da saída</label><input id="programTime" type="time"><label>Trecho</label><select id="programRoute"></select><label>Empresa</label><select id="programCompany"><option value="">Selecione a empresa</option><option>WDS</option><option>TUBARÃO</option><option>TJA</option><option>TRANSRATO</option><option>DUKA</option><option>EMERSON</option><option>TÂNIA</option><option>MARCOS</option><option>GIOVANE</option><option>ADILSON</option><option>EDIVAN</option><option>LUCAS</option><option>RICARDO</option><option>TRANSLEK</option><option>OSMAR</option><option>ALEX</option><option>ALEXIA</option><option>ACACIO</option><option>TRANSBURAN</option><option>WILLIAM</option></select><div class="row2"><div><label>Motorista 1</label><input id="programDriver" placeholder="Nome do motorista 1"></div><div><label>Motorista 2 <span style="font-weight:400;color:var(--muted)">(opcional)</span></label><input id="programDriver2" placeholder="Nome do motorista 2"></div></div><div class="row2"><div><label>Placa do cavalo</label><input id="programPlate" placeholder="ABC-1D23"></div><div><label>Placa da carreta</label><input id="programTrailerPlate" placeholder="ABC-1D23"></div></div><label>ID / Viagem</label><input id="programTripId" placeholder="ID"><label>Observação</label><textarea id="programObservation" placeholder="Informações adicionais..."></textarea><button class="primary" onclick="saveProgramming()">＋ Salvar programação</button><div class="small" style="margin-top:8px">A programação é independente. Você pode cadastrar 1 ou 2 motoristas, placa do cavalo e da carreta, editar a programação e confirmar a saída real. O lançamento de viagens na Operação continua exatamente como hoje.</div></div>
+<div class="card sectionCard"><div class="sectionHead"><div><h2>🗓 Programação diária</h2><p>Planejamento das saídas sem alterar a fila de chegadas.</p></div><span id="programmingBadge" class="tag">0 PROGRAMADAS</span></div><div class="scheduleToolbar"><div><label>Data</label><input id="programFilterDate" type="date"></div><div><label>Buscar motorista</label><input id="programFilterDriver" placeholder="Nome do motorista"></div><div><label>Empresa</label><input id="programFilterCompany" placeholder="Empresa"></div><button class="secondaryBtn" onclick="clearProgrammingFilters()">Limpar filtros</button></div><div class="tableScroll"><table><thead><tr><th>DATA</th><th>SAÍDA PROGRAMADA</th><th>SAÍDA REAL</th><th>TRECHO</th><th>MOTORISTA(S)</th><th>EMPRESA</th><th>PLACA CAVALO</th><th>PLACA CARRETA</th><th>ID</th><th>STATUS</th><th>AÇÕES</th></tr></thead><tbody id="programmingBody"></tbody></table></div></div>
 </div></div></div>
 
 <div id="delaysView" class="view"><div class="delayPage">
@@ -248,6 +248,30 @@ function formatProgramDrivers(value){
   if(!d.driver1&&!d.driver2)return'—';
   return d.driver2?`${esc(d.driver1)}<br><span class="small">+ ${esc(d.driver2)}</span>`:esc(d.driver1)
 }
+function splitProgramPlates(value){
+  const raw=String(value||'');
+  const mark=' | CARRETA: ';
+  const idx=raw.indexOf(mark);
+  if(idx<0)return{tractor:raw.trim(),trailer:''};
+  return{tractor:raw.slice(0,idx).trim(),trailer:raw.slice(idx+mark.length).trim()}
+}
+function joinProgramPlates(tractor,trailer){
+  tractor=String(tractor||'').trim().toUpperCase();
+  trailer=String(trailer||'').trim().toUpperCase();
+  return trailer?`${tractor} | CARRETA: ${trailer}`:tractor
+}
+function parseProgramObservation(value){
+  const raw=String(value||'');
+  const match=raw.match(/^\[\[REAL_DEPARTURE=(.*?)\]\]\n?/);
+  return{real:match?match[1]:'',text:match?raw.slice(match[0].length):raw}
+}
+function joinProgramObservation(text,real){
+  text=String(text||'').trim();
+  return real?`[[REAL_DEPARTURE=${real}]]${text?'\n'+text:''}`:text
+}
+function programRealDeparture(p){
+  return parseProgramObservation(p.observation).real
+}
 async function saveProgramming(){
   let date=$('programDate').value,
       time=$('programTime').value,
@@ -265,9 +289,9 @@ async function saveProgramming(){
       program_date:date,
       departure_time:time,
       route:r.replace('-', ' → '),
-      company:$('programCompany').value.trim(),
+      company:$('programCompany').value,
       driver:joinProgramDrivers(d1,d2),
-      plate:$('programPlate').value.trim().toUpperCase(),
+      plate:joinProgramPlates($('programPlate').value,$('programTrailerPlate').value),
       trip_id:$('programTripId').value.trim(),
       observation:$('programObservation').value.trim(),
       status:'PROGRAMADA'
@@ -279,22 +303,54 @@ async function saveProgramming(){
   $('programDriver').value='';
   $('programDriver2').value='';
   $('programPlate').value='';
+  $('programTrailerPlate').value='';
   $('programTripId').value='';
   $('programObservation').value='';
   loadProgramming()
 }
-async function startProgramming(id){await api('trip_programming?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({status:'INICIADA',updated_at:new Date().toISOString()})});loadProgramming()}
+async function startProgramming(id){return confirmProgrammingDeparture(id)}
+async function confirmProgrammingDeparture(id){
+  let p=programmingCache.find(x=>String(x.id)===String(id));
+  if(!p)return;
+
+  let current=programRealDeparture(p);
+  let base=current?new Date(current):new Date();
+  let local=new Date(base.getTime()-base.getTimezoneOffset()*60000).toISOString().slice(0,16).replace('T',' ');
+  let raw=prompt(current?'Editar saída real (AAAA-MM-DD HH:MM):':'Registrar saída real (AAAA-MM-DD HH:MM):',local);
+  if(!raw)return;
+
+  let real=new Date(raw.replace(' ','T'));
+  if(isNaN(real))return alert('Data/hora inválida.');
+
+  let msg=`Confirmar saída real em ${real.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})}?`;
+  if(!confirm(msg))return;
+
+  let obs=parseProgramObservation(p.observation);
+
+  await api('trip_programming?id=eq.'+id,{
+    method:'PATCH',
+    headers:{Prefer:'return=minimal'},
+    body:JSON.stringify({
+      status:'INICIADA',
+      observation:joinProgramObservation(obs.text,real.toISOString()),
+      updated_at:new Date().toISOString()
+    })
+  });
+  loadProgramming()
+}
 async function deleteProgramming(id){if(!confirm('Excluir esta programação?'))return;await api('trip_programming?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});loadProgramming()}
 async function editProgramming(id){
   let p=programmingCache.find(x=>String(x.id)===String(id));
   if(!p)return;
 
   let drv=splitProgramDrivers(p.driver);
+  let plates=splitProgramPlates(p.plate);
+  let obs=parseProgramObservation(p.observation);
 
   let date=prompt('Data da saída (AAAA-MM-DD):',p.program_date||'');
   if(date===null)return;
 
-  let time=prompt('Horário da saída (HH:MM):',String(p.departure_time||'').slice(0,5));
+  let time=prompt('Horário programado (HH:MM):',String(p.departure_time||'').slice(0,5));
   if(time===null)return;
 
   let route=prompt('Trecho (ex.: GRU-FEC):',String(p.route||'').replace(/\s*→\s*/g,'-'));
@@ -309,13 +365,16 @@ async function editProgramming(id){
   let driver2=prompt('Motorista 2 (opcional):',drv.driver2);
   if(driver2===null)return;
 
-  let plate=prompt('Placa:',p.plate||'');
-  if(plate===null)return;
+  let tractor=prompt('Placa do cavalo:',plates.tractor);
+  if(tractor===null)return;
+
+  let trailer=prompt('Placa da carreta:',plates.trailer);
+  if(trailer===null)return;
 
   let tripId=prompt('ID / Viagem:',p.trip_id||'');
   if(tripId===null)return;
 
-  let observation=prompt('Observação:',p.observation||'');
+  let observation=prompt('Observação:',obs.text||'');
   if(observation===null)return;
 
   date=date.trim();
@@ -335,9 +394,9 @@ async function editProgramming(id){
       route:route.replace('-', ' → '),
       company:company.trim(),
       driver:joinProgramDrivers(driver1,driver2),
-      plate:plate.trim().toUpperCase(),
+      plate:joinProgramPlates(tractor,trailer),
       trip_id:tripId.trim(),
-      observation:observation.trim(),
+      observation:joinProgramObservation(observation,obs.real),
       updated_at:new Date().toISOString()
     })
   });
@@ -347,11 +406,56 @@ async function editProgramming(id){
 function clearProgrammingFilters(){$('programFilterDate').value=progToday();$('programFilterDriver').value='';$('programFilterCompany').value='';renderProgramming()}
 function openProgrammingFromAlert(id){document.querySelector('[data-view="programmingView"]').click();let p=programmingCache.find(x=>String(x.id)===String(id));if(p){$('programFilterDate').value=p.program_date;renderProgramming()}}
 function renderDepartureAlerts(){let area=$('departureAlertArea'),list=$('departureAlertList'),alerts=programmingCache.filter(p=>p.program_date===progToday()&&p.status!=='INICIADA'&&progMins(p)<=30).sort((a,b)=>progDT(a)-progDT(b));if(!alerts.length){area.classList.remove('show');list.innerHTML='';return}area.classList.add('show');list.innerHTML=alerts.map(p=>{let m=progMins(p);return`<button class="departureAlert ${m<0?'late':''}" onclick="openProgrammingFromAlert(${p.id})"><b>🔴 ${progTimeText(m)}</b><span>${esc(p.route||'—')} • ${String(p.departure_time||'').slice(0,5)}${p.driver?' • '+esc(p.driver).replace(' / ',' + '):''}${p.company?' • '+esc(p.company):''}</span></button>`}).join('')}
-function renderProgramming(){let date=$('programFilterDate').value,df=$('programFilterDriver').value.trim().toLowerCase(),cf=$('programFilterCompany').value.trim().toLowerCase(),items=[...programmingCache].filter(x=>(!date||x.program_date===date)&&(!df||String(x.driver||'').toLowerCase().includes(df))&&(!cf||String(x.company||'').toLowerCase().includes(cf))).sort((a,b)=>progDT(a)-progDT(b));$('programmingBadge').textContent=`${items.length} PROGRAMADAS`;$('programmingBody').innerHTML=items.length?items.map(p=>{let s=progStatus(p);return`<tr><td>${new Date(p.program_date+'T12:00').toLocaleDateString('pt-BR')}</td><td><b>${String(p.departure_time||'').slice(0,5)}</b></td><td>${esc(p.route||'—')}</td><td>${formatProgramDrivers(p.driver)}</td><td>${esc(p.company||'—')}</td><td><b>${esc(p.plate||'—')}</b></td><td>${esc(p.trip_id||'—')}</td><td><span class="scheduleStatus ${s.cls}">${s.text}</span></td><td><div class="historyActions">${p.status!=='INICIADA'?`<button class="scheduleBtn scheduleStart" onclick="startProgramming(${p.id})">Iniciada</button>`:''}<button class="scheduleBtn scheduleEdit" onclick="editProgramming(${p.id})">Editar</button><button class="scheduleBtn scheduleDelete" onclick="deleteProgramming(${p.id})">Excluir</button></div></td></tr>`}).join(''):`<tr><td colspan="9" class="empty">Nenhuma saída programada para este filtro.</td></tr>`;let today=programmingCache.filter(x=>x.program_date===progToday()),started=today.filter(x=>x.status==='INICIADA'),next30=today.filter(x=>x.status!=='INICIADA'&&progMins(x)>=0&&progMins(x)<=30);$('programToday').textContent=today.length;$('programNext30').textContent=next30.length;$('programStarted').textContent=started.length;$('programPending').textContent=today.length-started.length;renderDepartureAlerts()}
+function renderProgramming(){
+  let date=$('programFilterDate').value,
+      df=$('programFilterDriver').value.trim().toLowerCase(),
+      cf=$('programFilterCompany').value.trim().toLowerCase(),
+      items=[...programmingCache]
+        .filter(x=>(!date||x.program_date===date)
+          &&(!df||String(x.driver||'').toLowerCase().includes(df))
+          &&(!cf||String(x.company||'').toLowerCase().includes(cf)))
+        .sort((a,b)=>progDT(a)-progDT(b));
+
+  $('programmingBadge').textContent=`${items.length} PROGRAMADAS`;
+
+  $('programmingBody').innerHTML=items.length?items.map(p=>{
+    let s=progStatus(p),
+        plates=splitProgramPlates(p.plate),
+        real=programRealDeparture(p);
+
+    return `<tr>
+      <td>${new Date(p.program_date+'T12:00').toLocaleDateString('pt-BR')}</td>
+      <td><b>${String(p.departure_time||'').slice(0,5)}</b></td>
+      <td>${real?`<b style="color:#18a75b">${fmtDT(real)}</b>`:'—'}</td>
+      <td>${esc(p.route||'—')}</td>
+      <td>${formatProgramDrivers(p.driver)}</td>
+      <td>${esc(p.company||'—')}</td>
+      <td><b>${esc(plates.tractor||'—')}</b></td>
+      <td><b>${esc(plates.trailer||'—')}</b></td>
+      <td>${esc(p.trip_id||'—')}</td>
+      <td><span class="scheduleStatus ${s.cls}">${s.text}</span></td>
+      <td><div class="historyActions">
+        <button class="scheduleBtn scheduleStart" onclick="confirmProgrammingDeparture(${p.id})">${real?'Editar saída':'Confirmar saída'}</button>
+        <button class="scheduleBtn scheduleEdit" onclick="editProgramming(${p.id})">Editar programação</button>
+        <button class="scheduleBtn scheduleDelete" onclick="deleteProgramming(${p.id})">Excluir</button>
+      </div></td>
+    </tr>`
+  }).join(''):`<tr><td colspan="11" class="empty">Nenhuma saída programada para este filtro.</td></tr>`;
+
+  let today=programmingCache.filter(x=>x.program_date===progToday()),
+      started=today.filter(x=>x.status==='INICIADA'),
+      next30=today.filter(x=>x.status!=='INICIADA'&&progMins(x)>=0&&progMins(x)<=30);
+
+  $('programToday').textContent=today.length;
+  $('programNext30').textContent=next30.length;
+  $('programStarted').textContent=started.length;
+  $('programPending').textContent=today.length-started.length;
+  renderDepartureAlerts()
+}
 async function loadProgramming(){try{programmingCache=await api('trip_programming?select=*&order=program_date.asc,departure_time.asc');renderProgramming()}catch(e){console.error('Erro programação:',e)}}
 
 function setDefaultDates(){let b=new Date(),a=new Date();a.setDate(b.getDate()-1);$('dateA').value=dayKey(a);$('dateB').value=dayKey(b)}setDefaultDates();
-function render(){const queueTerm=$('queueNameFilter').value.trim().toLowerCase(),historyTerm=$('historyNameFilter').value.trim().toLowerCase(),allDone=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));renderPerformance(allDone);let active=tripsCache.filter(x=>!x.done&&(!queueTerm||(x.driver||'').toLowerCase().includes(queueTerm))).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival)),done=allDone.filter(x=>!historyTerm||(x.driver||'').toLowerCase().includes(historyTerm));$('queueBadge').textContent=`#${active.length} NA FILA`;$('queueBody').innerHTML=active.length?active.map((t,i)=>`<tr><td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${esc(t.transit||'—')}</td><td>${countdownText(t.arrival)}</td><td><div class="historyActions"><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button><button class="deleteBtn" onclick="deleteActiveTrip(${t.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">Nenhuma viagem ativa.</td></tr>`;let grouped=[],last='';for(let t of done){let key=dayKey(t.real_arrival);if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="6">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}grouped.push(`<tr><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${fmtDT(t.arrival)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)}$('historyBody').innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="6" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;let on=done.filter(x=>x.on_time).length,late=done.length-on;$('kOn').textContent=on;$('kLate').textContent=late;$('kDone').textContent=done.length;$('kActive').textContent=active.length;let routes=[...new Set(done.map(x=>x.route).filter(Boolean))].sort(),pr=$('effRoute').value;$('effRoute').innerHTML='<option value="ALL">Todas as rotas</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');$('effRoute').value=pr==='ALL'||routes.includes(pr)?pr:'ALL';let q=quinzenalRange(),rs=$('effRoute').value,qd=done.filter(x=>{let d=new Date(x.real_arrival);return d>=q.start&&d<=q.end&&(rs==='ALL'||x.route===rs)}),qo=qd.filter(x=>x.on_time).length,qe=qd.length?Math.round(qo/qd.length*100):null;$('efficiency').textContent=qe===null?'—':qe+'%';$('effText').textContent=qe===null?'Sem chegadas concluídas nesta quinzena.':`${qo} de ${qd.length} chegadas no prazo nesta quinzena.`;$('effRange').textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')}`;$('effRouteLabel').textContent=rs==='ALL'?'Todas as rotas':`Rota: ${rs}`;$('nextCountdown').textContent=active.length?countdownText(active[0].arrival):'—';function ds(k){let a=done.filter(x=>dayKey(x.real_arrival)===k),o=a.filter(x=>x.on_time).length;return{o,l:a.length-o,t:a.length,p:a.length?Math.round(o/a.length*100):null}}let A=ds($('dateA').value),B=ds($('dateB').value);$('labelA').textContent=new Date($('dateA').value+'T12:00').toLocaleDateString('pt-BR');$('labelB').textContent=new Date($('dateB').value+'T12:00').toLocaleDateString('pt-BR');$('onA').textContent=A.o;$('lateA').textContent=A.l;$('totA').textContent=A.t;$('onB').textContent=B.o;$('lateB').textContent=B.l;$('totB').textContent=B.t;if(A.p===null||B.p===null){$('delta').textContent='—';$('deltaTxt').textContent='Sem dados nos dois dias'}else{let d=B.p-A.p;$('delta').textContent=(d>0?'+':'')+d+' p.p.';$('deltaTxt').textContent=d>0?'Melhora':d<0?'Queda':'Estável'}renderFiscal();renderDelays();renderExecutive();renderDepartureAlerts();$('updated').textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V8'}
+function render(){const queueTerm=$('queueNameFilter').value.trim().toLowerCase(),historyTerm=$('historyNameFilter').value.trim().toLowerCase(),allDone=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));renderPerformance(allDone);let active=tripsCache.filter(x=>!x.done&&(!queueTerm||(x.driver||'').toLowerCase().includes(queueTerm))).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival)),done=allDone.filter(x=>!historyTerm||(x.driver||'').toLowerCase().includes(historyTerm));$('queueBadge').textContent=`#${active.length} NA FILA`;$('queueBody').innerHTML=active.length?active.map((t,i)=>`<tr><td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${esc(t.transit||'—')}</td><td>${countdownText(t.arrival)}</td><td><div class="historyActions"><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button><button class="deleteBtn" onclick="deleteActiveTrip(${t.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">Nenhuma viagem ativa.</td></tr>`;let grouped=[],last='';for(let t of done){let key=dayKey(t.real_arrival);if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="6">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}grouped.push(`<tr><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${fmtDT(t.arrival)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)}$('historyBody').innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="6" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;let on=done.filter(x=>x.on_time).length,late=done.length-on;$('kOn').textContent=on;$('kLate').textContent=late;$('kDone').textContent=done.length;$('kActive').textContent=active.length;let routes=[...new Set(done.map(x=>x.route).filter(Boolean))].sort(),pr=$('effRoute').value;$('effRoute').innerHTML='<option value="ALL">Todas as rotas</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');$('effRoute').value=pr==='ALL'||routes.includes(pr)?pr:'ALL';let q=quinzenalRange(),rs=$('effRoute').value,qd=done.filter(x=>{let d=new Date(x.real_arrival);return d>=q.start&&d<=q.end&&(rs==='ALL'||x.route===rs)}),qo=qd.filter(x=>x.on_time).length,qe=qd.length?Math.round(qo/qd.length*100):null;$('efficiency').textContent=qe===null?'—':qe+'%';$('effText').textContent=qe===null?'Sem chegadas concluídas nesta quinzena.':`${qo} de ${qd.length} chegadas no prazo nesta quinzena.`;$('effRange').textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')}`;$('effRouteLabel').textContent=rs==='ALL'?'Todas as rotas':`Rota: ${rs}`;$('nextCountdown').textContent=active.length?countdownText(active[0].arrival):'—';function ds(k){let a=done.filter(x=>dayKey(x.real_arrival)===k),o=a.filter(x=>x.on_time).length;return{o,l:a.length-o,t:a.length,p:a.length?Math.round(o/a.length*100):null}}let A=ds($('dateA').value),B=ds($('dateB').value);$('labelA').textContent=new Date($('dateA').value+'T12:00').toLocaleDateString('pt-BR');$('labelB').textContent=new Date($('dateB').value+'T12:00').toLocaleDateString('pt-BR');$('onA').textContent=A.o;$('lateA').textContent=A.l;$('totA').textContent=A.t;$('onB').textContent=B.o;$('lateB').textContent=B.l;$('totB').textContent=B.t;if(A.p===null||B.p===null){$('delta').textContent='—';$('deltaTxt').textContent='Sem dados nos dois dias'}else{let d=B.p-A.p;$('delta').textContent=(d>0?'+':'')+d+' p.p.';$('deltaTxt').textContent=d>0?'Melhora':d<0?'Queda':'Estável'}renderFiscal();renderDelays();renderExecutive();renderDepartureAlerts();$('updated').textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V9'}
 
 document.querySelectorAll('.tabBtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.view).classList.add('active');render();if(b.dataset.view==='programmingView')renderProgramming()}));
 ['dateA','dateB','effRoute','fiscalDateFilter','performanceFortnight','driverPerfFilter','companyPerfFilter','queueNameFilter','historyNameFilter','delayPeriod','delayDriverFilter','delayCompanyFilter','delayRouteFilter','delayReasonFilter','execPeriod','execCompany'].forEach(id=>{let el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',render)});
@@ -363,4 +467,4 @@ setInterval(()=>{load();loadProgramming()},30000);
 load();loadProgramming();
 </script>
 </body>
-                                                                                                                                                         </html>
+  </html>
