@@ -581,9 +581,391 @@ setInterval(()=>{load();loadProgramming()},30000);
 load();loadProgramming();
 </script>
 <!-- =========================================================
-     TRANSLEK • PERF-V14
-     CADASTRO DE MOTORISTAS + AUTOCOMPLETE
-     COLE ESTE BLOCO IMEDIATAMENTE ANTES DE 
+     TRANSLEK • PERF-V14.1
+     CADASTRO DE MOTORISTAS
+========================================================= -->
+<style>
+.driverRegistryPage{max-width:1600px;margin:auto;padding:16px}
+.driverRegistryGrid{display:grid;grid-template-columns:380px 1fr;gap:14px}
+.driverRegistryForm{padding:16px}
+.driverRegistryStats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.driverRegistryStat{padding:15px}
+.driverRegistryStat b{display:block;font-size:25px;color:#0b3b8e}
+.driverRegistryStat span{display:block;margin-top:5px;font-size:9px;color:var(--muted)}
+.driverRegistryToolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}
+.driverRegistryToolbar>div{min-width:240px;flex:1}
+.driverRegistryToolbar label{margin:0 0 5px}
+.driverEditBtn{border:0;border-radius:8px;background:#6a35c5;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}
+.driverDeleteBtn{border:0;border-radius:8px;background:#e01c2b;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}
+.driverHint{font-size:10px;color:var(--muted);margin-top:7px}
+.driverCompanySection{margin-top:14px;overflow:hidden}
+.driverCompanyGroups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px}
+.driverCompanyCard{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;min-width:0}
+.driverCompanyHead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;background:#f6f9fe;border-bottom:1px solid var(--line)}
+.driverCompanyHead b{color:#0b3b8e;font-size:13px;overflow-wrap:anywhere}
+.driverCompanyCount{font-size:9px;font-weight:900;background:#eaf3ff;color:#0b4fb7;border-radius:999px;padding:5px 8px;white-space:nowrap}
+.driverCompanyList{display:grid}
+.driverCompanyPerson{padding:11px 14px;border-bottom:1px solid #edf1f5}
+.driverCompanyPerson:last-child{border-bottom:0}
+.driverCompanyPerson strong{display:block;font-size:12px;color:var(--ink);margin-bottom:5px}
+.driverCompanyPerson span{display:block;font-size:10px;color:var(--muted);line-height:1.55}
+.driverCompanyEmpty{padding:28px;text-align:center;color:var(--muted);font-size:11px}
+@media(max-width:750px){
+  .driverRegistryPage{padding:10px}
+  .driverRegistryGrid{grid-template-columns:1fr}
+  .driverRegistryStats{grid-template-columns:1fr 1fr}
+  .driverCompanyGroups{grid-template-columns:1fr}
+}
+</style>
+
+<script>
+/* ===================== PERF-V14 • MOTORISTAS ===================== */
+let driversCache=[];
+
+function normalizeDriverName(v){
+  return String(v||'').trim().replace(/\s+/g,' ');
+}
+function normalizeTextV11(v){
+  return String(v||'').trim().toLocaleLowerCase('pt-BR');
+}
+function formatPhoneV11(value){
+  let v=String(value||'').replace(/\D/g,'').slice(0,11);
+  if(v.length>10)return v.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');
+  if(v.length>6)return v.replace(/(\d{2})(\d{4})(\d{1,4})/,'($1) $2-$3');
+  if(v.length>2)return v.replace(/(\d{2})(\d{1,5})/,'($1) $2');
+  return v;
+}
+function maskedCpfV11(value){
+  let v=cpfDigits(value);
+  if(v.length!==11)return esc(value||'—');
+  return `***.***.${v.slice(6,9)}-${v.slice(9)}`;
+}
+function driverCompaniesV11(){
+  const base=['WDS','TUBARÃO','TJA','TRANSRATO','DUKA','EMERSON','TÂNIA','MARCOS','GIOVANE','ADILSON','EDIVAN','LUCAS','RICARDO','TRANSLEK','OSMAR','ALEX','ALEXIA','ACACIO','TRANSBURAN','WILLIAM'];
+  return [...new Set(base.concat(driversCache.map(d=>d.company).filter(Boolean)))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+function createDriverRegistryUI(){
+  if(document.querySelector('[data-view="driversView"]'))return;
+
+  const btn=document.createElement('button');
+  btn.className='tabBtn';
+  btn.dataset.view='driversView';
+  btn.innerHTML='👤 Cadastro de Motoristas';
+  document.querySelector('.tabs').appendChild(btn);
+
+  const view=document.createElement('div');
+  view.id='driversView';
+  view.className='view';
+  view.innerHTML=`
+    <div class="driverRegistryPage">
+      <div class="driverRegistryStats">
+        <div class="card driverRegistryStat"><b id="driverRegTotal">0</b><span>MOTORISTAS CADASTRADOS</span></div>
+        <div class="card driverRegistryStat"><b id="driverRegCompanies">0</b><span>AGREGADOS / EMPRESAS</span></div>
+        <div class="card driverRegistryStat"><b id="driverRegFiltered">0</b><span>RESULTADOS NO FILTRO</span></div>
+      </div>
+
+      <div class="driverRegistryGrid">
+        <div class="card driverRegistryForm">
+          <div class="sectionTitle"><span>👤</span><h2>Cadastro de Motorista</h2></div>
+          <input type="hidden" id="driverRegEditId">
+
+          <label>Nome do motorista</label>
+          <input id="driverRegName" placeholder="Nome completo">
+
+          <label>CPF</label>
+          <input id="driverRegCpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+
+          <label>Telefone</label>
+          <input id="driverRegPhone" placeholder="(11) 99999-9999" inputmode="tel" maxlength="15">
+
+          <label>Agregado / Empresa</label>
+          <select id="driverRegCompany"></select>
+
+          <button id="driverRegSaveBtn" class="primary" type="button" onclick="saveDriverRegistry()">＋ Cadastrar motorista</button>
+          <button id="driverRegCancelBtn" class="secondaryBtn" type="button" onclick="cancelDriverRegistryEdit()" style="width:100%;margin-top:8px;display:none">Cancelar edição</button>
+
+          <div class="driverHint">O motorista ficará disponível automaticamente na Nova Viagem e na Programação de Viagens.</div>
+        </div>
+
+        <div class="card sectionCard">
+          <div class="sectionHead">
+            <div><h2>👥 Motoristas cadastrados</h2><p>Cadastro compartilhado com a equipe pelo Supabase.</p></div>
+            <span id="driverRegBadge" class="tag">0 CADASTRADOS</span>
+          </div>
+          <div class="driverRegistryToolbar">
+            <div>
+              <label>Buscar motorista, CPF, telefone ou agregado</label>
+              <input id="driverRegSearch" placeholder="Digite para buscar">
+            </div>
+          </div>
+          <div class="tableScroll driverRegistryScroll">
+            <table>
+              <thead><tr><th>MOTORISTA</th><th>CPF</th><th>TELEFONE</th><th>AGREGADO / EMPRESA</th><th>AÇÕES</th></tr></thead>
+              <tbody id="driverRegBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card driverCompanySection">
+        <div class="sectionHead">
+          <div><h2>🏢 Cadastros por Agregado</h2><p>Motoristas separados automaticamente por agregado / empresa.</p></div>
+          <span id="driverCompanyGroupsBadge" class="tag">0 AGREGADOS</span>
+        </div>
+        <div id="driverCompanyGroups" class="driverCompanyGroups"></div>
+      </div>
+    </div>`;
+  document.body.insertBefore(view,document.getElementById('justifyModal'));
+
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    view.classList.add('active');
+    renderDriverRegistry();
+  });
+
+  $('driverRegCpf').addEventListener('input',function(){this.value=formatCPFValue(this.value)});
+  $('driverRegPhone').addEventListener('input',function(){this.value=formatPhoneV11(this.value)});
+  $('driverRegSearch').addEventListener('input',renderDriverRegistry);
+}
+function fillDriverCompanySelect(){
+  const el=$('driverRegCompany');
+  if(!el)return;
+  const current=el.value;
+  el.innerHTML='<option value="">Selecione o agregado / empresa</option>'+
+    driverCompaniesV11().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if(driverCompaniesV11().includes(current))el.value=current;
+}
+async function loadDriversRegistry(){
+  try{
+    driversCache=await api('drivers?select=*&order=name.asc');
+    createDriverRegistryUI();
+    fillDriverCompanySelect();
+    renderDriverRegistry();
+    refreshDriverSuggestionsV11();
+  }catch(e){
+    console.error('Erro ao carregar motoristas:',e);
+  }
+}
+function renderDriverRegistry(){
+  if(!$('driverRegBody'))return;
+  fillDriverCompanySelect();
+  const term=normalizeTextV11($('driverRegSearch').value);
+  const items=driversCache.filter(d=>{
+    const hay=[d.name,d.cpf,d.phone,d.company].map(normalizeTextV11).join(' ');
+    return !term||hay.includes(term);
+  });
+  $('driverRegTotal').textContent=driversCache.length;
+  $('driverRegCompanies').textContent=new Set(driversCache.map(d=>d.company).filter(Boolean)).size;
+  $('driverRegFiltered').textContent=items.length;
+  $('driverRegBadge').textContent=`${driversCache.length} CADASTRADOS`;
+  $('driverRegBody').innerHTML=items.length?items.map(d=>`
+    <tr>
+      <td><b>${esc(d.name)}</b></td>
+      <td>${esc(formatCPFValue(d.cpf)||'—')}</td>
+      <td>${esc(d.phone||'—')}</td>
+      <td><b>${esc(d.company||'—')}</b></td>
+      <td><div class="historyActions">
+        <button class="driverEditBtn" onclick="editDriverRegistry(${d.id})">Editar</button>
+        <button class="driverDeleteBtn" onclick="deleteDriverRegistry(${d.id})">Excluir</button>
+      </div></td>
+    </tr>`).join(''):
+    `<tr><td colspan="5" class="empty">Nenhum motorista encontrado.</td></tr>`;
+
+  renderDriversByCompanyV12();
+}
+function renderDriversByCompanyV12(){
+  const wrap=$('driverCompanyGroups');
+  if(!wrap)return;
+
+  const groups={};
+  driversCache.forEach(d=>{
+    const company=String(d.company||'SEM AGREGADO').trim()||'SEM AGREGADO';
+    (groups[company]??=[]).push(d);
+  });
+
+  const entries=Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0],'pt-BR'));
+  const badge=$('driverCompanyGroupsBadge');
+  if(badge)badge.textContent=`${entries.length} AGREGADOS`;
+
+  wrap.innerHTML=entries.length?entries.map(([company,drivers])=>{
+    const sorted=[...drivers].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR'));
+    return `<div class="driverCompanyCard">
+      <div class="driverCompanyHead">
+        <b>${esc(company)}</b>
+        <span class="driverCompanyCount">${sorted.length} MOTORISTA${sorted.length===1?'':'S'}</span>
+      </div>
+      <div class="driverCompanyList">
+        ${sorted.map(d=>`<div class="driverCompanyPerson">
+          <strong>${esc(d.name||'—')}</strong>
+          <span><b>CPF:</b> ${esc(formatCPFValue(d.cpf)||'—')}</span>
+          <span><b>Telefone:</b> ${esc(d.phone||'—')}</span>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join(''):`<div class="driverCompanyEmpty">Nenhum motorista cadastrado.</div>`;
+}
+async function saveDriverRegistry(){
+  const id=$('driverRegEditId').value;
+  const name=normalizeDriverName($('driverRegName').value);
+  const cpf=formatCPFValue($('driverRegCpf').value);
+  const phone=formatPhoneV11($('driverRegPhone').value);
+  const company=$('driverRegCompany').value;
+
+  if(!name||!cpf||!phone||!company)
+    return alert('Preencha nome, CPF, telefone e agregado/empresa.');
+  if(cpfDigits(cpf).length!==11)
+    return alert('O CPF deve possuir 11 números.');
+
+  const duplicate=driversCache.find(d=>cpfDigits(d.cpf)===cpfDigits(cpf)&&String(d.id)!==String(id));
+  if(duplicate)return alert('Já existe um motorista cadastrado com este CPF.');
+
+  try{
+    if(id){
+      await api('drivers?id=eq.'+id,{
+        method:'PATCH',
+        headers:{Prefer:'return=minimal'},
+        body:JSON.stringify({name,cpf,phone,company,updated_at:new Date().toISOString()})
+      });
+    }else{
+      await api('drivers',{
+        method:'POST',
+        headers:{Prefer:'return=minimal'},
+        body:JSON.stringify({name,cpf,phone,company})
+      });
+    }
+    cancelDriverRegistryEdit();
+    await loadDriversRegistry();
+    alert(id?'Cadastro atualizado com sucesso.':'Motorista cadastrado com sucesso.');
+  }catch(e){
+    console.error(e);
+    alert('Não foi possível salvar o motorista. Verifique se o CPF já está cadastrado.');
+  }
+}
+function editDriverRegistry(id){
+  const d=driversCache.find(x=>String(x.id)===String(id));
+  if(!d)return;
+  $('driverRegEditId').value=d.id;
+  $('driverRegName').value=d.name||'';
+  $('driverRegCpf').value=formatCPFValue(d.cpf||'');
+  $('driverRegPhone').value=formatPhoneV11(d.phone||'');
+  fillDriverCompanySelect();
+  $('driverRegCompany').value=d.company||'';
+  $('driverRegSaveBtn').textContent='✓ Salvar alterações';
+  $('driverRegCancelBtn').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function cancelDriverRegistryEdit(){
+  if(!$('driverRegEditId'))return;
+  $('driverRegEditId').value='';
+  $('driverRegName').value='';
+  $('driverRegCpf').value='';
+  $('driverRegPhone').value='';
+  $('driverRegCompany').value='';
+  $('driverRegSaveBtn').textContent='＋ Cadastrar motorista';
+  $('driverRegCancelBtn').style.display='none';
+}
+async function deleteDriverRegistry(id){
+  const d=driversCache.find(x=>String(x.id)===String(id));
+  if(!d)return;
+  if(!confirm(`Excluir o cadastro de ${d.name}?`))return;
+  try{
+    await api('drivers?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});
+    await loadDriversRegistry();
+  }catch(e){
+    console.error(e);
+    alert('Não foi possível excluir o motorista.');
+  }
+}
+function findDriverV11(value){
+  const n=normalizeTextV11(value);
+  return driversCache.find(d=>normalizeTextV11(d.name)===n);
+}
+function ensureDriverDatalistV11(){
+  let dl=document.getElementById('registeredDriversV11');
+  if(!dl){
+    dl=document.createElement('datalist');
+    dl.id='registeredDriversV11';
+    document.body.appendChild(dl);
+  }
+  dl.innerHTML=driversCache.map(d=>`<option value="${esc(d.name)}">${esc(d.company||'')} • ${esc(d.phone||'')}</option>`).join('');
+  ['driver','programDriver','programDriver2'].forEach(id=>{
+    const el=$(id);
+    if(el)el.setAttribute('list','registeredDriversV11');
+  });
+}
+function refreshDriverSuggestionsV11(){
+  ensureDriverDatalistV11();
+}
+function selectOperationalDriverV11(){
+  const d=findDriverV11($('driver').value);
+  if(!d)return;
+  $('driver').value=d.name;
+  const company=$('company');
+  if(company){
+    let opt=[...company.options].find(o=>o.value===d.company);
+    if(!opt&&d.company){
+      opt=document.createElement('option');
+      opt.value=d.company; opt.textContent=d.company;
+      company.appendChild(opt);
+    }
+    company.value=d.company||'';
+  }
+}
+function selectProgrammingDriverV11(which){
+  const driverId=which===2?'programDriver2':'programDriver';
+  const cpfId=which===2?'programCpf2':'programCpf';
+  const d=findDriverV11($(driverId).value);
+  if(!d)return;
+  $(driverId).value=d.name;
+  $(cpfId).value=formatCPFValue(d.cpf||'');
+
+  if(which===1&&$('programCompany')){
+    let opt=[...$('programCompany').options].find(o=>o.value===d.company);
+    if(!opt&&d.company){
+      opt=document.createElement('option');
+      opt.value=d.company; opt.textContent=d.company;
+      $('programCompany').appendChild(opt);
+    }
+    $('programCompany').value=d.company||'';
+  }
+}
+function bindDriverAutocompleteV11(){
+  const op=$('driver'),p1=$('programDriver'),p2=$('programDriver2');
+  if(op&&!op.dataset.v11){
+    op.dataset.v11='1';
+    op.addEventListener('input',selectOperationalDriverV11);
+    op.addEventListener('change',selectOperationalDriverV11);
+  }
+  if(p1&&!p1.dataset.v11){
+    p1.dataset.v11='1';
+    p1.addEventListener('input',()=>selectProgrammingDriverV11(1));
+    p1.addEventListener('change',()=>selectProgrammingDriverV11(1));
+  }
+  if(p2&&!p2.dataset.v11){
+    p2.dataset.v11='1';
+    p2.addEventListener('input',()=>selectProgrammingDriverV11(2));
+    p2.addEventListener('change',()=>selectProgrammingDriverV11(2));
+  }
+}
+
+/* Inicialização PERF-V14 */
+createDriverRegistryUI();
+bindDriverAutocompleteV11();
+loadDriversRegistry();
+
+/* Atualiza cadastro junto com o painel a cada 30 segundos */
+setInterval(loadDriversRegistry,30000);
+
+/* Atualiza identificação da versão */
+setTimeout(()=>{
+  const u=$('updated');
+  if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V14.1';
+},1200);
+</script>
+<!-- =================== FIM PERF-V14 =================== -->
+
 <!-- =========================================================
      TRANSLEK • PERF-V14
      EMPRESAS + SELEÇÃO OBRIGATÓRIA DE MOTORISTAS
@@ -1076,392 +1458,8 @@ setInterval(loadCompaniesV14,30000);
 
 setTimeout(()=>{
   const u=$('updated');
-  if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V14';
+  if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V14.1';
 },1400);
-</script>
-<!-- =================== FIM PERF-V14 =================== -->
-
-</body>
-========================================================= -->
-<style>
-.driverRegistryPage{max-width:1600px;margin:auto;padding:16px}
-.driverRegistryGrid{display:grid;grid-template-columns:380px 1fr;gap:14px}
-.driverRegistryForm{padding:16px}
-.driverRegistryStats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
-.driverRegistryStat{padding:15px}
-.driverRegistryStat b{display:block;font-size:25px;color:#0b3b8e}
-.driverRegistryStat span{display:block;margin-top:5px;font-size:9px;color:var(--muted)}
-.driverRegistryToolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}
-.driverRegistryToolbar>div{min-width:240px;flex:1}
-.driverRegistryToolbar label{margin:0 0 5px}
-.driverEditBtn{border:0;border-radius:8px;background:#6a35c5;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}
-.driverDeleteBtn{border:0;border-radius:8px;background:#e01c2b;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}
-.driverHint{font-size:10px;color:var(--muted);margin-top:7px}
-.driverCompanySection{margin-top:14px;overflow:hidden}
-.driverCompanyGroups{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:16px}
-.driverCompanyCard{border:1px solid var(--line);border-radius:12px;background:#fff;overflow:hidden;min-width:0}
-.driverCompanyHead{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;background:#f6f9fe;border-bottom:1px solid var(--line)}
-.driverCompanyHead b{color:#0b3b8e;font-size:13px;overflow-wrap:anywhere}
-.driverCompanyCount{font-size:9px;font-weight:900;background:#eaf3ff;color:#0b4fb7;border-radius:999px;padding:5px 8px;white-space:nowrap}
-.driverCompanyList{display:grid}
-.driverCompanyPerson{padding:11px 14px;border-bottom:1px solid #edf1f5}
-.driverCompanyPerson:last-child{border-bottom:0}
-.driverCompanyPerson strong{display:block;font-size:12px;color:var(--ink);margin-bottom:5px}
-.driverCompanyPerson span{display:block;font-size:10px;color:var(--muted);line-height:1.55}
-.driverCompanyEmpty{padding:28px;text-align:center;color:var(--muted);font-size:11px}
-@media(max-width:750px){
-  .driverRegistryPage{padding:10px}
-  .driverRegistryGrid{grid-template-columns:1fr}
-  .driverRegistryStats{grid-template-columns:1fr 1fr}
-  .driverCompanyGroups{grid-template-columns:1fr}
-}
-</style>
-
-<script>
-/* ===================== PERF-V14 • MOTORISTAS ===================== */
-let driversCache=[];
-
-function normalizeDriverName(v){
-  return String(v||'').trim().replace(/\s+/g,' ');
-}
-function normalizeTextV11(v){
-  return String(v||'').trim().toLocaleLowerCase('pt-BR');
-}
-function formatPhoneV11(value){
-  let v=String(value||'').replace(/\D/g,'').slice(0,11);
-  if(v.length>10)return v.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');
-  if(v.length>6)return v.replace(/(\d{2})(\d{4})(\d{1,4})/,'($1) $2-$3');
-  if(v.length>2)return v.replace(/(\d{2})(\d{1,5})/,'($1) $2');
-  return v;
-}
-function maskedCpfV11(value){
-  let v=cpfDigits(value);
-  if(v.length!==11)return esc(value||'—');
-  return `***.***.${v.slice(6,9)}-${v.slice(9)}`;
-}
-function driverCompaniesV11(){
-  const base=['WDS','TUBARÃO','TJA','TRANSRATO','DUKA','EMERSON','TÂNIA','MARCOS','GIOVANE','ADILSON','EDIVAN','LUCAS','RICARDO','TRANSLEK','OSMAR','ALEX','ALEXIA','ACACIO','TRANSBURAN','WILLIAM'];
-  return [...new Set(base.concat(driversCache.map(d=>d.company).filter(Boolean)))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
-}
-function createDriverRegistryUI(){
-  if(document.querySelector('[data-view="driversView"]'))return;
-
-  const btn=document.createElement('button');
-  btn.className='tabBtn';
-  btn.dataset.view='driversView';
-  btn.innerHTML='👤 Cadastro de Motoristas';
-  document.querySelector('.tabs').appendChild(btn);
-
-  const view=document.createElement('div');
-  view.id='driversView';
-  view.className='view';
-  view.innerHTML=`
-    <div class="driverRegistryPage">
-      <div class="driverRegistryStats">
-        <div class="card driverRegistryStat"><b id="driverRegTotal">0</b><span>MOTORISTAS CADASTRADOS</span></div>
-        <div class="card driverRegistryStat"><b id="driverRegCompanies">0</b><span>AGREGADOS / EMPRESAS</span></div>
-        <div class="card driverRegistryStat"><b id="driverRegFiltered">0</b><span>RESULTADOS NO FILTRO</span></div>
-      </div>
-
-      <div class="driverRegistryGrid">
-        <div class="card driverRegistryForm">
-          <div class="sectionTitle"><span>👤</span><h2>Cadastro de Motorista</h2></div>
-          <input type="hidden" id="driverRegEditId">
-
-          <label>Nome do motorista</label>
-          <input id="driverRegName" placeholder="Nome completo">
-
-          <label>CPF</label>
-          <input id="driverRegCpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
-
-          <label>Telefone</label>
-          <input id="driverRegPhone" placeholder="(11) 99999-9999" inputmode="tel" maxlength="15">
-
-          <label>Agregado / Empresa</label>
-          <select id="driverRegCompany"></select>
-
-          <button id="driverRegSaveBtn" class="primary" type="button" onclick="saveDriverRegistry()">＋ Cadastrar motorista</button>
-          <button id="driverRegCancelBtn" class="secondaryBtn" type="button" onclick="cancelDriverRegistryEdit()" style="width:100%;margin-top:8px;display:none">Cancelar edição</button>
-
-          <div class="driverHint">O motorista ficará disponível automaticamente na Nova Viagem e na Programação de Viagens.</div>
-        </div>
-
-        <div class="card sectionCard">
-          <div class="sectionHead">
-            <div><h2>👥 Motoristas cadastrados</h2><p>Cadastro compartilhado com a equipe pelo Supabase.</p></div>
-            <span id="driverRegBadge" class="tag">0 CADASTRADOS</span>
-          </div>
-          <div class="driverRegistryToolbar">
-            <div>
-              <label>Buscar motorista, CPF, telefone ou agregado</label>
-              <input id="driverRegSearch" placeholder="Digite para buscar">
-            </div>
-          </div>
-          <div class="tableScroll driverRegistryScroll">
-            <table>
-              <thead><tr><th>MOTORISTA</th><th>CPF</th><th>TELEFONE</th><th>AGREGADO / EMPRESA</th><th>AÇÕES</th></tr></thead>
-              <tbody id="driverRegBody"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div class="card driverCompanySection">
-        <div class="sectionHead">
-          <div><h2>🏢 Cadastros por Agregado</h2><p>Motoristas separados automaticamente por agregado / empresa.</p></div>
-          <span id="driverCompanyGroupsBadge" class="tag">0 AGREGADOS</span>
-        </div>
-        <div id="driverCompanyGroups" class="driverCompanyGroups"></div>
-      </div>
-    </div>`;
-  document.body.insertBefore(view,document.getElementById('justifyModal'));
-
-  btn.addEventListener('click',()=>{
-    document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));
-    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
-    btn.classList.add('active');
-    view.classList.add('active');
-    renderDriverRegistry();
-  });
-
-  $('driverRegCpf').addEventListener('input',function(){this.value=formatCPFValue(this.value)});
-  $('driverRegPhone').addEventListener('input',function(){this.value=formatPhoneV11(this.value)});
-  $('driverRegSearch').addEventListener('input',renderDriverRegistry);
-}
-function fillDriverCompanySelect(){
-  const el=$('driverRegCompany');
-  if(!el)return;
-  const current=el.value;
-  el.innerHTML='<option value="">Selecione o agregado / empresa</option>'+
-    driverCompaniesV11().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-  if(driverCompaniesV11().includes(current))el.value=current;
-}
-async function loadDriversRegistry(){
-  try{
-    driversCache=await api('drivers?select=*&order=name.asc');
-    createDriverRegistryUI();
-    fillDriverCompanySelect();
-    renderDriverRegistry();
-    refreshDriverSuggestionsV11();
-  }catch(e){
-    console.error('Erro ao carregar motoristas:',e);
-  }
-}
-function renderDriverRegistry(){
-  if(!$('driverRegBody'))return;
-  fillDriverCompanySelect();
-  const term=normalizeTextV11($('driverRegSearch').value);
-  const items=driversCache.filter(d=>{
-    const hay=[d.name,d.cpf,d.phone,d.company].map(normalizeTextV11).join(' ');
-    return !term||hay.includes(term);
-  });
-  $('driverRegTotal').textContent=driversCache.length;
-  $('driverRegCompanies').textContent=new Set(driversCache.map(d=>d.company).filter(Boolean)).size;
-  $('driverRegFiltered').textContent=items.length;
-  $('driverRegBadge').textContent=`${driversCache.length} CADASTRADOS`;
-  $('driverRegBody').innerHTML=items.length?items.map(d=>`
-    <tr>
-      <td><b>${esc(d.name)}</b></td>
-      <td>${esc(formatCPFValue(d.cpf)||'—')}</td>
-      <td>${esc(d.phone||'—')}</td>
-      <td><b>${esc(d.company||'—')}</b></td>
-      <td><div class="historyActions">
-        <button class="driverEditBtn" onclick="editDriverRegistry(${d.id})">Editar</button>
-        <button class="driverDeleteBtn" onclick="deleteDriverRegistry(${d.id})">Excluir</button>
-      </div></td>
-    </tr>`).join(''):
-    `<tr><td colspan="5" class="empty">Nenhum motorista encontrado.</td></tr>`;
-
-  renderDriversByCompanyV12();
-}
-function renderDriversByCompanyV12(){
-  const wrap=$('driverCompanyGroups');
-  if(!wrap)return;
-
-  const groups={};
-  driversCache.forEach(d=>{
-    const company=String(d.company||'SEM AGREGADO').trim()||'SEM AGREGADO';
-    (groups[company]??=[]).push(d);
-  });
-
-  const entries=Object.entries(groups).sort((a,b)=>a[0].localeCompare(b[0],'pt-BR'));
-  const badge=$('driverCompanyGroupsBadge');
-  if(badge)badge.textContent=`${entries.length} AGREGADOS`;
-
-  wrap.innerHTML=entries.length?entries.map(([company,drivers])=>{
-    const sorted=[...drivers].sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR'));
-    return `<div class="driverCompanyCard">
-      <div class="driverCompanyHead">
-        <b>${esc(company)}</b>
-        <span class="driverCompanyCount">${sorted.length} MOTORISTA${sorted.length===1?'':'S'}</span>
-      </div>
-      <div class="driverCompanyList">
-        ${sorted.map(d=>`<div class="driverCompanyPerson">
-          <strong>${esc(d.name||'—')}</strong>
-          <span><b>CPF:</b> ${esc(formatCPFValue(d.cpf)||'—')}</span>
-          <span><b>Telefone:</b> ${esc(d.phone||'—')}</span>
-        </div>`).join('')}
-      </div>
-    </div>`;
-  }).join(''):`<div class="driverCompanyEmpty">Nenhum motorista cadastrado.</div>`;
-}
-async function saveDriverRegistry(){
-  const id=$('driverRegEditId').value;
-  const name=normalizeDriverName($('driverRegName').value);
-  const cpf=formatCPFValue($('driverRegCpf').value);
-  const phone=formatPhoneV11($('driverRegPhone').value);
-  const company=$('driverRegCompany').value;
-
-  if(!name||!cpf||!phone||!company)
-    return alert('Preencha nome, CPF, telefone e agregado/empresa.');
-  if(cpfDigits(cpf).length!==11)
-    return alert('O CPF deve possuir 11 números.');
-
-  const duplicate=driversCache.find(d=>cpfDigits(d.cpf)===cpfDigits(cpf)&&String(d.id)!==String(id));
-  if(duplicate)return alert('Já existe um motorista cadastrado com este CPF.');
-
-  try{
-    if(id){
-      await api('drivers?id=eq.'+id,{
-        method:'PATCH',
-        headers:{Prefer:'return=minimal'},
-        body:JSON.stringify({name,cpf,phone,company,updated_at:new Date().toISOString()})
-      });
-    }else{
-      await api('drivers',{
-        method:'POST',
-        headers:{Prefer:'return=minimal'},
-        body:JSON.stringify({name,cpf,phone,company})
-      });
-    }
-    cancelDriverRegistryEdit();
-    await loadDriversRegistry();
-    alert(id?'Cadastro atualizado com sucesso.':'Motorista cadastrado com sucesso.');
-  }catch(e){
-    console.error(e);
-    alert('Não foi possível salvar o motorista. Verifique se o CPF já está cadastrado.');
-  }
-}
-function editDriverRegistry(id){
-  const d=driversCache.find(x=>String(x.id)===String(id));
-  if(!d)return;
-  $('driverRegEditId').value=d.id;
-  $('driverRegName').value=d.name||'';
-  $('driverRegCpf').value=formatCPFValue(d.cpf||'');
-  $('driverRegPhone').value=formatPhoneV11(d.phone||'');
-  fillDriverCompanySelect();
-  $('driverRegCompany').value=d.company||'';
-  $('driverRegSaveBtn').textContent='✓ Salvar alterações';
-  $('driverRegCancelBtn').style.display='block';
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-function cancelDriverRegistryEdit(){
-  if(!$('driverRegEditId'))return;
-  $('driverRegEditId').value='';
-  $('driverRegName').value='';
-  $('driverRegCpf').value='';
-  $('driverRegPhone').value='';
-  $('driverRegCompany').value='';
-  $('driverRegSaveBtn').textContent='＋ Cadastrar motorista';
-  $('driverRegCancelBtn').style.display='none';
-}
-async function deleteDriverRegistry(id){
-  const d=driversCache.find(x=>String(x.id)===String(id));
-  if(!d)return;
-  if(!confirm(`Excluir o cadastro de ${d.name}?`))return;
-  try{
-    await api('drivers?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});
-    await loadDriversRegistry();
-  }catch(e){
-    console.error(e);
-    alert('Não foi possível excluir o motorista.');
-  }
-}
-function findDriverV11(value){
-  const n=normalizeTextV11(value);
-  return driversCache.find(d=>normalizeTextV11(d.name)===n);
-}
-function ensureDriverDatalistV11(){
-  let dl=document.getElementById('registeredDriversV11');
-  if(!dl){
-    dl=document.createElement('datalist');
-    dl.id='registeredDriversV11';
-    document.body.appendChild(dl);
-  }
-  dl.innerHTML=driversCache.map(d=>`<option value="${esc(d.name)}">${esc(d.company||'')} • ${esc(d.phone||'')}</option>`).join('');
-  ['driver','programDriver','programDriver2'].forEach(id=>{
-    const el=$(id);
-    if(el)el.setAttribute('list','registeredDriversV11');
-  });
-}
-function refreshDriverSuggestionsV11(){
-  ensureDriverDatalistV11();
-}
-function selectOperationalDriverV11(){
-  const d=findDriverV11($('driver').value);
-  if(!d)return;
-  $('driver').value=d.name;
-  const company=$('company');
-  if(company){
-    let opt=[...company.options].find(o=>o.value===d.company);
-    if(!opt&&d.company){
-      opt=document.createElement('option');
-      opt.value=d.company; opt.textContent=d.company;
-      company.appendChild(opt);
-    }
-    company.value=d.company||'';
-  }
-}
-function selectProgrammingDriverV11(which){
-  const driverId=which===2?'programDriver2':'programDriver';
-  const cpfId=which===2?'programCpf2':'programCpf';
-  const d=findDriverV11($(driverId).value);
-  if(!d)return;
-  $(driverId).value=d.name;
-  $(cpfId).value=formatCPFValue(d.cpf||'');
-
-  if(which===1&&$('programCompany')){
-    let opt=[...$('programCompany').options].find(o=>o.value===d.company);
-    if(!opt&&d.company){
-      opt=document.createElement('option');
-      opt.value=d.company; opt.textContent=d.company;
-      $('programCompany').appendChild(opt);
-    }
-    $('programCompany').value=d.company||'';
-  }
-}
-function bindDriverAutocompleteV11(){
-  const op=$('driver'),p1=$('programDriver'),p2=$('programDriver2');
-  if(op&&!op.dataset.v11){
-    op.dataset.v11='1';
-    op.addEventListener('input',selectOperationalDriverV11);
-    op.addEventListener('change',selectOperationalDriverV11);
-  }
-  if(p1&&!p1.dataset.v11){
-    p1.dataset.v11='1';
-    p1.addEventListener('input',()=>selectProgrammingDriverV11(1));
-    p1.addEventListener('change',()=>selectProgrammingDriverV11(1));
-  }
-  if(p2&&!p2.dataset.v11){
-    p2.dataset.v11='1';
-    p2.addEventListener('input',()=>selectProgrammingDriverV11(2));
-    p2.addEventListener('change',()=>selectProgrammingDriverV11(2));
-  }
-}
-
-/* Inicialização PERF-V14 */
-createDriverRegistryUI();
-bindDriverAutocompleteV11();
-loadDriversRegistry();
-
-/* Atualiza cadastro junto com o painel a cada 30 segundos */
-setInterval(loadDriversRegistry,30000);
-
-/* Atualiza identificação da versão */
-setTimeout(()=>{
-  const u=$('updated');
-  if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V14';
-},1200);
 </script>
 <!-- =================== FIM PERF-V14 =================== -->
 
