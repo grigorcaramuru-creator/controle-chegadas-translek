@@ -104,7 +104,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 <body>
 <header>
   <div class="brand"><div class="logo">TRANS<span class="lek">LEK</span></div><div class="vline"></div><div class="title"><h1>Controle de Chegadas</h1><p>Transit-Time • SLA • Performance</p></div></div>
-  <div class="headright"><div id="updated">Atualizado: — • PERF-V13</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
+  <div class="headright"><div id="updated">Atualizado: — • PERF-V14</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
 </header>
 <nav class="tabs">
   <button class="tabBtn active" data-view="operationView">🚚 Operação</button>
@@ -566,7 +566,7 @@ function renderProgramming(){
 async function loadProgramming(){try{programmingCache=await api('trip_programming?select=*&order=program_date.asc,departure_time.asc');renderProgramming()}catch(e){console.error('Erro programação:',e)}}
 
 function setDefaultDates(){let b=new Date(),a=new Date();a.setDate(b.getDate()-1);$('dateA').value=dayKey(a);$('dateB').value=dayKey(b)}setDefaultDates();
-function render(){const queueTerm=$('queueNameFilter').value.trim().toLowerCase(),historyTerm=$('historyNameFilter').value.trim().toLowerCase(),allDone=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));renderPerformance(allDone);let active=tripsCache.filter(x=>!x.done&&(!queueTerm||(x.driver||'').toLowerCase().includes(queueTerm))).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival)),done=allDone.filter(x=>!historyTerm||(x.driver||'').toLowerCase().includes(historyTerm));$('queueBadge').textContent=`#${active.length} NA FILA`;$('queueBody').innerHTML=active.length?active.map((t,i)=>`<tr><td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${esc(t.transit||'—')}</td><td>${countdownText(t.arrival)}</td><td><div class="historyActions"><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button><button class="deleteBtn" onclick="deleteActiveTrip(${t.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">Nenhuma viagem ativa.</td></tr>`;let grouped=[],last='';for(let t of done){let key=dayKey(t.real_arrival);if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="6">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}grouped.push(`<tr><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${fmtDT(t.arrival)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)}$('historyBody').innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="6" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;let on=done.filter(x=>x.on_time).length,late=done.length-on;$('kOn').textContent=on;$('kLate').textContent=late;$('kDone').textContent=done.length;$('kActive').textContent=active.length;let routes=[...new Set(done.map(x=>x.route).filter(Boolean))].sort(),pr=$('effRoute').value;$('effRoute').innerHTML='<option value="ALL">Todas as rotas</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');$('effRoute').value=pr==='ALL'||routes.includes(pr)?pr:'ALL';let q=quinzenalRange(),rs=$('effRoute').value,qd=done.filter(x=>{let d=new Date(x.real_arrival);return d>=q.start&&d<=q.end&&(rs==='ALL'||x.route===rs)}),qo=qd.filter(x=>x.on_time).length,qe=qd.length?Math.round(qo/qd.length*100):null;$('efficiency').textContent=qe===null?'—':qe+'%';$('effText').textContent=qe===null?'Sem chegadas concluídas nesta quinzena.':`${qo} de ${qd.length} chegadas no prazo nesta quinzena.`;$('effRange').textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')}`;$('effRouteLabel').textContent=rs==='ALL'?'Todas as rotas':`Rota: ${rs}`;$('nextCountdown').textContent=active.length?countdownText(active[0].arrival):'—';function ds(k){let a=done.filter(x=>dayKey(x.real_arrival)===k),o=a.filter(x=>x.on_time).length;return{o,l:a.length-o,t:a.length,p:a.length?Math.round(o/a.length*100):null}}let A=ds($('dateA').value),B=ds($('dateB').value);$('labelA').textContent=new Date($('dateA').value+'T12:00').toLocaleDateString('pt-BR');$('labelB').textContent=new Date($('dateB').value+'T12:00').toLocaleDateString('pt-BR');$('onA').textContent=A.o;$('lateA').textContent=A.l;$('totA').textContent=A.t;$('onB').textContent=B.o;$('lateB').textContent=B.l;$('totB').textContent=B.t;if(A.p===null||B.p===null){$('delta').textContent='—';$('deltaTxt').textContent='Sem dados nos dois dias'}else{let d=B.p-A.p;$('delta').textContent=(d>0?'+':'')+d+' p.p.';$('deltaTxt').textContent=d>0?'Melhora':d<0?'Queda':'Estável'}renderFiscal();renderDelays();renderExecutive();renderDepartureAlerts();$('updated').textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V13'}
+function render(){const queueTerm=$('queueNameFilter').value.trim().toLowerCase(),historyTerm=$('historyNameFilter').value.trim().toLowerCase(),allDone=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));renderPerformance(allDone);let active=tripsCache.filter(x=>!x.done&&(!queueTerm||(x.driver||'').toLowerCase().includes(queueTerm))).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival)),done=allDone.filter(x=>!historyTerm||(x.driver||'').toLowerCase().includes(historyTerm));$('queueBadge').textContent=`#${active.length} NA FILA`;$('queueBody').innerHTML=active.length?active.map((t,i)=>`<tr><td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${esc(t.transit||'—')}</td><td>${countdownText(t.arrival)}</td><td><div class="historyActions"><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button><button class="deleteBtn" onclick="deleteActiveTrip(${t.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">Nenhuma viagem ativa.</td></tr>`;let grouped=[],last='';for(let t of done){let key=dayKey(t.real_arrival);if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="6">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}grouped.push(`<tr><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${fmtDT(t.arrival)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)}$('historyBody').innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="6" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;let on=done.filter(x=>x.on_time).length,late=done.length-on;$('kOn').textContent=on;$('kLate').textContent=late;$('kDone').textContent=done.length;$('kActive').textContent=active.length;let routes=[...new Set(done.map(x=>x.route).filter(Boolean))].sort(),pr=$('effRoute').value;$('effRoute').innerHTML='<option value="ALL">Todas as rotas</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');$('effRoute').value=pr==='ALL'||routes.includes(pr)?pr:'ALL';let q=quinzenalRange(),rs=$('effRoute').value,qd=done.filter(x=>{let d=new Date(x.real_arrival);return d>=q.start&&d<=q.end&&(rs==='ALL'||x.route===rs)}),qo=qd.filter(x=>x.on_time).length,qe=qd.length?Math.round(qo/qd.length*100):null;$('efficiency').textContent=qe===null?'—':qe+'%';$('effText').textContent=qe===null?'Sem chegadas concluídas nesta quinzena.':`${qo} de ${qd.length} chegadas no prazo nesta quinzena.`;$('effRange').textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')}`;$('effRouteLabel').textContent=rs==='ALL'?'Todas as rotas':`Rota: ${rs}`;$('nextCountdown').textContent=active.length?countdownText(active[0].arrival):'—';function ds(k){let a=done.filter(x=>dayKey(x.real_arrival)===k),o=a.filter(x=>x.on_time).length;return{o,l:a.length-o,t:a.length,p:a.length?Math.round(o/a.length*100):null}}let A=ds($('dateA').value),B=ds($('dateB').value);$('labelA').textContent=new Date($('dateA').value+'T12:00').toLocaleDateString('pt-BR');$('labelB').textContent=new Date($('dateB').value+'T12:00').toLocaleDateString('pt-BR');$('onA').textContent=A.o;$('lateA').textContent=A.l;$('totA').textContent=A.t;$('onB').textContent=B.o;$('lateB').textContent=B.l;$('totB').textContent=B.t;if(A.p===null||B.p===null){$('delta').textContent='—';$('deltaTxt').textContent='Sem dados nos dois dias'}else{let d=B.p-A.p;$('delta').textContent=(d>0?'+':'')+d+' p.p.';$('deltaTxt').textContent=d>0?'Melhora':d<0?'Queda':'Estável'}renderFiscal();renderDelays();renderExecutive();renderDepartureAlerts();$('updated').textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V14'}
 
 document.querySelectorAll('.tabBtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.view).classList.add('active');render();if(b.dataset.view==='programmingView')renderProgramming()}));
 ['dateA','dateB','effRoute','fiscalDateFilter','performanceFortnight','driverPerfFilter','companyPerfFilter','queueNameFilter','historyNameFilter','delayPeriod','delayDriverFilter','delayCompanyFilter','delayRouteFilter','delayReasonFilter','execPeriod','execCompany'].forEach(id=>{let el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',render)});
@@ -581,9 +581,507 @@ setInterval(()=>{load();loadProgramming()},30000);
 load();loadProgramming();
 </script>
 <!-- =========================================================
-     TRANSLEK • PERF-V13
+     TRANSLEK • PERF-V14
      CADASTRO DE MOTORISTAS + AUTOCOMPLETE
-     COLE ESTE BLOCO IMEDIATAMENTE ANTES DE </body>
+     COLE ESTE BLOCO IMEDIATAMENTE ANTES DE 
+<!-- =========================================================
+     TRANSLEK • PERF-V14
+     EMPRESAS + SELEÇÃO OBRIGATÓRIA DE MOTORISTAS
+========================================================= -->
+<style>
+.companyRegistryPage{max-width:1600px;margin:auto;padding:16px}
+.companyRegistryGrid{display:grid;grid-template-columns:380px 1fr;gap:14px}
+.companyRegistryForm{padding:16px}
+.companyRegistryStats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.companyRegistryStat{padding:15px}
+.companyRegistryStat b{display:block;font-size:25px;color:#0b3b8e}
+.companyRegistryStat span{display:block;margin-top:5px;font-size:9px;color:var(--muted)}
+.companyRegistryToolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}
+.companyRegistryToolbar>div{min-width:240px;flex:1}
+.companyRegistryToolbar label{margin:0 0 5px}
+.companyRegistryScroll{max-height:535px;overflow-y:auto;overflow-x:auto}
+.companyRegistryScroll thead th{position:sticky;top:0;z-index:3;background:#f7f9fc;box-shadow:0 1px 0 var(--line)}
+.companyRegistryScroll tbody tr{height:49px}
+.companyEditBtn{border:0;border-radius:8px;background:#6a35c5;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}
+.companyDeleteBtn{border:0;border-radius:8px;background:#e01c2b;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}
+.lockedField{background:#f1f4f8!important;color:#4d596b}
+.editNotice{display:none;margin:0 0 12px;padding:10px;border-radius:10px;background:#fff4d8;border:1px solid #f2d58b;color:#805700;font-size:11px;font-weight:700}
+@media(max-width:750px){
+  .companyRegistryPage{padding:10px}
+  .companyRegistryGrid{grid-template-columns:1fr}
+  .companyRegistryStats{grid-template-columns:1fr 1fr}
+}
+</style>
+
+<script>
+/* ===================== PERF-V14 ===================== */
+let companiesCache=[];
+let programmingEditIdV14=null;
+
+function normV14(v){return String(v||'').trim().replace(/\s+/g,' ')}
+function normKeyV14(v){return normV14(v).toLocaleLowerCase('pt-BR')}
+
+function findDriverV14(value){
+  const key=normKeyV14(value);
+  return driversCache.find(d=>normKeyV14(d.name)===key);
+}
+function findCompanyV14(value){
+  const key=normKeyV14(value);
+  return companiesCache.find(c=>normKeyV14(c.name)===key);
+}
+function optionHtmlV14(value,label){
+  return `<option value="${esc(value)}">${esc(label==null?value:label)}</option>`;
+}
+function replaceInputWithSelectV14(id,placeholder){
+  const old=$(id);
+  if(!old || old.tagName==='SELECT')return old;
+  const sel=document.createElement('select');
+  sel.id=id;
+  sel.className=old.className||'';
+  sel.innerHTML=`<option value="">${esc(placeholder)}</option>`;
+  old.replaceWith(sel);
+  return sel;
+}
+function fillCompanySelectV14(id,placeholder='Selecione a empresa'){
+  const el=$(id);
+  if(!el)return;
+  const current=el.value;
+  el.innerHTML=`<option value="">${esc(placeholder)}</option>`+
+    companiesCache.map(c=>optionHtmlV14(c.name,c.name)).join('');
+  const found=companiesCache.find(c=>c.name===current);
+  if(found)el.value=found.name;
+}
+function fillDriverSelectV14(id,placeholder,allowEmpty=true){
+  const el=$(id);
+  if(!el)return;
+  const current=el.value;
+  el.innerHTML=(allowEmpty?`<option value="">${esc(placeholder)}</option>`:'')+
+    [...driversCache]
+      .sort((a,b)=>String(a.name||'').localeCompare(String(b.name||''),'pt-BR'))
+      .map(d=>optionHtmlV14(d.name,`${d.name}${d.company?' • '+d.company:''}`)).join('');
+  if(driversCache.some(d=>d.name===current))el.value=current;
+}
+function refreshRegistrySelectorsV14(){
+  replaceInputWithSelectV14('driver','Selecione um motorista cadastrado');
+  replaceInputWithSelectV14('programDriver','Selecione o Motorista 1');
+  replaceInputWithSelectV14('programDriver2','Motorista 2 (opcional)');
+
+  fillDriverSelectV14('driver','Selecione um motorista cadastrado');
+  fillDriverSelectV14('programDriver','Selecione o Motorista 1');
+  fillDriverSelectV14('programDriver2','Motorista 2 (opcional)');
+
+  fillCompanySelectV14('company');
+  fillCompanySelectV14('programCompany');
+  fillCompanySelectV14('driverRegCompany','Selecione o agregado / empresa');
+
+  if($('programCpf')){$('programCpf').readOnly=true;$('programCpf').classList.add('lockedField')}
+  if($('programCpf2')){$('programCpf2').readOnly=true;$('programCpf2').classList.add('lockedField')}
+
+  bindStrictDriverSelectorsV14();
+}
+function bindStrictDriverSelectorsV14(){
+  const op=$('driver'),p1=$('programDriver'),p2=$('programDriver2');
+  if(op&&!op.dataset.v14){
+    op.dataset.v14='1';
+    op.addEventListener('change',()=>{
+      const d=findDriverV14(op.value);
+      $('company').value=d?.company||'';
+    });
+  }
+  if(p1&&!p1.dataset.v14){
+    p1.dataset.v14='1';
+    p1.addEventListener('change',()=>{
+      const d=findDriverV14(p1.value);
+      $('programCpf').value=d?formatCPFValue(d.cpf||''):'';
+      if(d)$('programCompany').value=d.company||'';
+      validateSecondDriverCompanyV14();
+    });
+  }
+  if(p2&&!p2.dataset.v14){
+    p2.dataset.v14='1';
+    p2.addEventListener('change',()=>{
+      const d=findDriverV14(p2.value);
+      $('programCpf2').value=d?formatCPFValue(d.cpf||''):'';
+      validateSecondDriverCompanyV14();
+    });
+  }
+}
+function validateSecondDriverCompanyV14(){
+  const d1=findDriverV14($('programDriver')?.value);
+  const d2=findDriverV14($('programDriver2')?.value);
+  if(d1&&d2&&normKeyV14(d1.company)!==normKeyV14(d2.company)){
+    alert(`O Motorista 2 pertence à empresa ${d2.company}. Selecione um motorista da mesma empresa de ${d1.name}.`);
+    $('programDriver2').value='';
+    $('programCpf2').value='';
+  }
+}
+
+/* ---------- NOVA VIAGEM: SOMENTE MOTORISTA CADASTRADO ---------- */
+window.saveTrip=async function(){
+  const d=findDriverV14($('driver').value);
+  if(!d)return alert('Selecione um motorista cadastrado em Cadastro de Motoristas.');
+  if(!$('departure').value)return alert('Preencha a previsão de saída.');
+  const route=$('route').value;
+  const h=TIMES[route];
+  if(!route||h==null)return alert('Selecione o trecho.');
+  const dep=new Date($('departure').value);
+  const arr=new Date(dep.getTime()+h*3600000);
+  $('company').value=d.company||'';
+  const dname=d.name+(d.company?' • '+d.company:'')+($('tripid').value?' • ID '+$('tripid').value:'');
+  await api('trips',{
+    method:'POST',
+    headers:{Prefer:'return=minimal'},
+    body:JSON.stringify({
+      driver:dname,
+      plate:$('plate').value,
+      route:route.replace('-', ' → '),
+      transit:fmtTransit(h),
+      departure:dep.toISOString(),
+      arrival:arr.toISOString(),
+      done:false
+    })
+  });
+  $('driver').value='';
+  $('company').value='';
+  $('tripid').value='';
+  $('plate').value='';
+  load();
+};
+
+/* ---------- PROGRAMAÇÃO: EDIÇÃO PELO FORMULÁRIO ---------- */
+function ensureProgrammingEditControlsV14(){
+  const btn=$('programmingSaveBtnV14');
+  if(btn)return;
+  const original=[...document.querySelectorAll('.scheduleForm .primary')].find(b=>String(b.getAttribute('onclick')||'').includes('saveProgramming'));
+  if(!original)return;
+  original.id='programmingSaveBtnV14';
+  original.textContent='＋ Salvar programação';
+  const cancel=document.createElement('button');
+  cancel.id='programmingCancelBtnV14';
+  cancel.type='button';
+  cancel.className='secondaryBtn';
+  cancel.style.cssText='width:100%;margin-top:8px;display:none';
+  cancel.textContent='Cancelar edição';
+  cancel.onclick=cancelProgrammingEditV14;
+  original.insertAdjacentElement('afterend',cancel);
+
+  const notice=document.createElement('div');
+  notice.id='programmingEditNoticeV14';
+  notice.className='editNotice';
+  notice.textContent='✎ Editando programação existente';
+  document.querySelector('.scheduleForm .sectionTitle').insertAdjacentElement('afterend',notice);
+}
+function resetProgrammingFormV14(){
+  programmingEditIdV14=null;
+  $('programTime').value='';
+  $('programCompany').value='';
+  $('programDriver').value='';
+  $('programCpf').value='';
+  $('programDriver2').value='';
+  $('programCpf2').value='';
+  $('programPlate').value='';
+  $('programTrailerPlate').value='';
+  $('programTripId').value='';
+  $('programObservation').value='';
+  if($('programmingSaveBtnV14'))$('programmingSaveBtnV14').textContent='＋ Salvar programação';
+  if($('programmingCancelBtnV14'))$('programmingCancelBtnV14').style.display='none';
+  if($('programmingEditNoticeV14'))$('programmingEditNoticeV14').style.display='none';
+}
+function cancelProgrammingEditV14(){resetProgrammingFormV14()}
+window.saveProgramming=async function(){
+  const date=$('programDate').value;
+  const time=$('programTime').value;
+  const r=$('programRoute').value;
+  const d1=findDriverV14($('programDriver').value);
+  const d2=$('programDriver2').value?findDriverV14($('programDriver2').value):null;
+
+  if(!date||!time||!r||!d1)
+    return alert('Preencha data, horário, trecho e selecione o Motorista 1 cadastrado.');
+
+  if($('programDriver2').value&&!d2)
+    return alert('Selecione um Motorista 2 cadastrado.');
+
+  if(d2&&normKeyV14(d1.company)!==normKeyV14(d2.company))
+    return alert('Os dois motoristas precisam pertencer à mesma empresa.');
+
+  const cpf1=formatCPFValue(d1.cpf||'');
+  const cpf2=d2?formatCPFValue(d2.cpf||''):'';
+  if(cpfDigits(cpf1).length!==11)
+    return alert(`O cadastro de ${d1.name} está sem um CPF válido. Corrija em Cadastro de Motoristas.`);
+  if(d2&&cpfDigits(cpf2).length!==11)
+    return alert(`O cadastro de ${d2.name} está sem um CPF válido. Corrija em Cadastro de Motoristas.`);
+
+  $('programCompany').value=d1.company||'';
+  const current=programmingEditIdV14
+    ? programmingCache.find(x=>String(x.id)===String(programmingEditIdV14))
+    : null;
+  const oldObs=current?parseProgramObservation(current.observation):{real:''};
+
+  const payload={
+    program_date:date,
+    departure_time:time,
+    route:r.replace('-', ' → '),
+    company:d1.company||'',
+    driver:joinProgramDrivers(d1.name,d2?.name||''),
+    plate:joinProgramPlates($('programPlate').value,$('programTrailerPlate').value),
+    trip_id:$('programTripId').value.trim(),
+    observation:joinProgramObservation($('programObservation').value.trim(),oldObs.real||'',cpf1,cpf2),
+    updated_at:new Date().toISOString()
+  };
+
+  if(programmingEditIdV14){
+    await api('trip_programming?id=eq.'+programmingEditIdV14,{
+      method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(payload)
+    });
+  }else{
+    payload.status='PROGRAMADA';
+    delete payload.updated_at;
+    await api('trip_programming',{
+      method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(payload)
+    });
+  }
+  resetProgrammingFormV14();
+  await loadProgramming();
+};
+window.editProgramming=function(id){
+  const p=programmingCache.find(x=>String(x.id)===String(id));
+  if(!p)return;
+  const drv=splitProgramDrivers(p.driver);
+  const plates=splitProgramPlates(p.plate);
+  const obs=parseProgramObservation(p.observation);
+  const route=String(p.route||'').replace(/\s*→\s*/g,'-');
+
+  const d1=findDriverV14(drv.driver1);
+  const d2=drv.driver2?findDriverV14(drv.driver2):null;
+  if(!d1)return alert(`O motorista "${drv.driver1}" desta programação não está no Cadastro de Motoristas. Cadastre-o antes de editar.`);
+
+  programmingEditIdV14=p.id;
+  $('programDate').value=p.program_date||'';
+  $('programTime').value=String(p.departure_time||'').slice(0,5);
+  $('programRoute').value=route;
+  $('programDriver').value=d1.name;
+  $('programCpf').value=formatCPFValue(d1.cpf||obs.cpf1||'');
+  $('programCompany').value=d1.company||p.company||'';
+  $('programDriver2').value=d2?.name||'';
+  $('programCpf2').value=d2?formatCPFValue(d2.cpf||obs.cpf2||''):'';
+  $('programPlate').value=plates.tractor||'';
+  $('programTrailerPlate').value=plates.trailer||'';
+  $('programTripId').value=p.trip_id||'';
+  $('programObservation').value=obs.text||'';
+
+  $('programmingSaveBtnV14').textContent='✓ Salvar alterações';
+  $('programmingCancelBtnV14').style.display='block';
+  $('programmingEditNoticeV14').style.display='block';
+  document.querySelector('.scheduleForm').scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+/* ---------- CADASTRO DE EMPRESAS ---------- */
+function createCompanyRegistryUIV14(){
+  if(document.querySelector('[data-view="companiesView"]'))return;
+  const btn=document.createElement('button');
+  btn.className='tabBtn';
+  btn.dataset.view='companiesView';
+  btn.innerHTML='🏢 Cadastro de Empresas';
+  document.querySelector('.tabs').appendChild(btn);
+
+  const view=document.createElement('div');
+  view.id='companiesView';
+  view.className='view';
+  view.innerHTML=`
+  <div class="companyRegistryPage">
+    <div class="companyRegistryStats">
+      <div class="card companyRegistryStat"><b id="companyRegTotal">0</b><span>EMPRESAS CADASTRADAS</span></div>
+      <div class="card companyRegistryStat"><b id="companyRegDrivers">0</b><span>MOTORISTAS VINCULADOS</span></div>
+      <div class="card companyRegistryStat"><b id="companyRegFiltered">0</b><span>RESULTADOS NO FILTRO</span></div>
+    </div>
+    <div class="companyRegistryGrid">
+      <div class="card companyRegistryForm">
+        <div class="sectionTitle"><span>🏢</span><h2>Cadastro de Empresa</h2></div>
+        <input type="hidden" id="companyRegEditId">
+        <input type="hidden" id="companyRegOldName">
+        <label>Nome da empresa / agregado</label>
+        <input id="companyRegName" placeholder="Nome da empresa">
+        <button id="companyRegSaveBtn" class="primary" type="button" onclick="saveCompanyRegistryV14()">＋ Cadastrar empresa</button>
+        <button id="companyRegCancelBtn" class="secondaryBtn" type="button" onclick="cancelCompanyRegistryEditV14()" style="width:100%;margin-top:8px;display:none">Cancelar edição</button>
+        <div class="driverHint">As empresas cadastradas aparecem automaticamente na Nova Viagem, Programação e Cadastro de Motoristas.</div>
+      </div>
+      <div class="card sectionCard">
+        <div class="sectionHead">
+          <div><h2>🏢 Empresas cadastradas</h2><p>Lista oficial de agregados / empresas do painel.</p></div>
+          <span id="companyRegBadge" class="tag">0 CADASTRADAS</span>
+        </div>
+        <div class="companyRegistryToolbar">
+          <div><label>Buscar empresa</label><input id="companyRegSearch" placeholder="Digite o nome da empresa"></div>
+        </div>
+        <div class="companyRegistryScroll">
+          <table>
+            <thead><tr><th>EMPRESA / AGREGADO</th><th>MOTORISTAS</th><th>PROGRAMAÇÕES</th><th>AÇÕES</th></tr></thead>
+            <tbody id="companyRegBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertBefore(view,document.getElementById('justifyModal'));
+
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    view.classList.add('active');
+    renderCompanyRegistryV14();
+  });
+  $('companyRegSearch').addEventListener('input',renderCompanyRegistryV14);
+}
+function renderCompanyRegistryV14(){
+  if(!$('companyRegBody'))return;
+  const term=normKeyV14($('companyRegSearch').value);
+  const items=companiesCache.filter(c=>!term||normKeyV14(c.name).includes(term));
+  $('companyRegTotal').textContent=companiesCache.length;
+  $('companyRegDrivers').textContent=driversCache.filter(d=>findCompanyV14(d.company)).length;
+  $('companyRegFiltered').textContent=items.length;
+  $('companyRegBadge').textContent=`${companiesCache.length} CADASTRADAS`;
+  $('companyRegBody').innerHTML=items.length?items.map(c=>{
+    const dc=driversCache.filter(d=>normKeyV14(d.company)===normKeyV14(c.name)).length;
+    const pc=programmingCache.filter(p=>normKeyV14(p.company)===normKeyV14(c.name)).length;
+    return `<tr>
+      <td><b>${esc(c.name)}</b></td>
+      <td>${dc}</td>
+      <td>${pc}</td>
+      <td><div class="historyActions">
+        <button class="companyEditBtn" onclick="editCompanyRegistryV14(${c.id})">Editar</button>
+        <button class="companyDeleteBtn" onclick="deleteCompanyRegistryV14(${c.id})">Excluir</button>
+      </div></td>
+    </tr>`;
+  }).join(''):`<tr><td colspan="4" class="empty">Nenhuma empresa encontrada.</td></tr>`;
+}
+async function saveCompanyRegistryV14(){
+  const id=$('companyRegEditId').value;
+  const oldName=$('companyRegOldName').value;
+  const name=normV14($('companyRegName').value).toUpperCase();
+  if(!name)return alert('Digite o nome da empresa.');
+
+  const dup=companiesCache.find(c=>normKeyV14(c.name)===normKeyV14(name)&&String(c.id)!==String(id));
+  if(dup)return alert('Esta empresa já está cadastrada.');
+
+  try{
+    if(id){
+      await api('companies?id=eq.'+id,{
+        method:'PATCH',headers:{Prefer:'return=minimal'},
+        body:JSON.stringify({name,updated_at:new Date().toISOString()})
+      });
+      if(oldName&&normKeyV14(oldName)!==normKeyV14(name)){
+        await api('drivers?company=eq.'+encodeURIComponent(oldName),{
+          method:'PATCH',headers:{Prefer:'return=minimal'},
+          body:JSON.stringify({company:name,updated_at:new Date().toISOString()})
+        });
+        await api('trip_programming?company=eq.'+encodeURIComponent(oldName),{
+          method:'PATCH',headers:{Prefer:'return=minimal'},
+          body:JSON.stringify({company:name,updated_at:new Date().toISOString()})
+        });
+      }
+    }else{
+      await api('companies',{
+        method:'POST',headers:{Prefer:'return=minimal'},
+        body:JSON.stringify({name})
+      });
+    }
+    cancelCompanyRegistryEditV14();
+    await Promise.all([loadCompaniesV14(),loadDriversRegistry(),loadProgramming()]);
+    alert(id?'Empresa atualizada com sucesso.':'Empresa cadastrada com sucesso.');
+  }catch(e){
+    console.error(e);
+    alert('Não foi possível salvar a empresa. Verifique se o nome já está cadastrado.');
+  }
+}
+function editCompanyRegistryV14(id){
+  const c=companiesCache.find(x=>String(x.id)===String(id));
+  if(!c)return;
+  $('companyRegEditId').value=c.id;
+  $('companyRegOldName').value=c.name;
+  $('companyRegName').value=c.name;
+  $('companyRegSaveBtn').textContent='✓ Salvar alterações';
+  $('companyRegCancelBtn').style.display='block';
+  document.querySelector('.companyRegistryForm').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function cancelCompanyRegistryEditV14(){
+  if(!$('companyRegEditId'))return;
+  $('companyRegEditId').value='';
+  $('companyRegOldName').value='';
+  $('companyRegName').value='';
+  $('companyRegSaveBtn').textContent='＋ Cadastrar empresa';
+  $('companyRegCancelBtn').style.display='none';
+}
+async function deleteCompanyRegistryV14(id){
+  const c=companiesCache.find(x=>String(x.id)===String(id));
+  if(!c)return;
+  const linkedDrivers=driversCache.filter(d=>normKeyV14(d.company)===normKeyV14(c.name));
+  const linkedPrograms=programmingCache.filter(p=>normKeyV14(p.company)===normKeyV14(c.name));
+  if(linkedDrivers.length)
+    return alert(`A empresa ${c.name} possui ${linkedDrivers.length} motorista(s) cadastrado(s). Altere esses motoristas antes de excluir.`);
+  if(linkedPrograms.length)
+    return alert(`A empresa ${c.name} possui ${linkedPrograms.length} programação(ões) vinculada(s). Altere ou exclua essas programações antes de excluir.`);
+  if(!confirm(`Excluir a empresa ${c.name}?`))return;
+  try{
+    await api('companies?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});
+    await loadCompaniesV14();
+  }catch(e){
+    console.error(e);
+    alert('Não foi possível excluir a empresa.');
+  }
+}
+async function loadCompaniesV14(){
+  try{
+    companiesCache=await api('companies?select=*&order=name.asc');
+    refreshRegistrySelectorsV14();
+    renderCompanyRegistryV14();
+    renderDriverRegistry();
+  }catch(e){
+    console.error('Erro ao carregar empresas:',e);
+  }
+}
+
+/* Substitui a lista fixa do cadastro de motorista pela tabela companies. */
+window.driverCompaniesV11=function(){
+  return companiesCache.map(c=>c.name).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+};
+window.fillDriverCompanySelect=function(){
+  fillCompanySelectV14('driverRegCompany','Selecione o agregado / empresa');
+};
+
+/* Reforça validação: motorista só pode usar empresa cadastrada. */
+const saveDriverRegistryOriginalV14=window.saveDriverRegistry;
+window.saveDriverRegistry=async function(){
+  const company=$('driverRegCompany')?.value||'';
+  if(!findCompanyV14(company))
+    return alert('Selecione uma empresa cadastrada em Cadastro de Empresas.');
+  return saveDriverRegistryOriginalV14();
+};
+
+/* Atualiza seletores sempre que os motoristas forem recarregados. */
+const loadDriversRegistryOriginalV14=window.loadDriversRegistry;
+window.loadDriversRegistry=async function(){
+  await loadDriversRegistryOriginalV14();
+  refreshRegistrySelectorsV14();
+  renderCompanyRegistryV14();
+};
+
+/* Inicialização PERF-V14 */
+createCompanyRegistryUIV14();
+ensureProgrammingEditControlsV14();
+refreshRegistrySelectorsV14();
+loadCompaniesV14().then(()=>loadDriversRegistry());
+
+setInterval(loadCompaniesV14,30000);
+
+setTimeout(()=>{
+  const u=$('updated');
+  if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V14';
+},1400);
+</script>
+<!-- =================== FIM PERF-V14 =================== -->
+
+</body>
 ========================================================= -->
 <style>
 .driverRegistryPage{max-width:1600px;margin:auto;padding:16px}
@@ -620,7 +1118,7 @@ load();loadProgramming();
 </style>
 
 <script>
-/* ===================== PERF-V13 • MOTORISTAS ===================== */
+/* ===================== PERF-V14 • MOTORISTAS ===================== */
 let driversCache=[];
 
 function normalizeDriverName(v){
@@ -951,7 +1449,7 @@ function bindDriverAutocompleteV11(){
   }
 }
 
-/* Inicialização PERF-V13 */
+/* Inicialização PERF-V14 */
 createDriverRegistryUI();
 bindDriverAutocompleteV11();
 loadDriversRegistry();
@@ -962,10 +1460,10 @@ setInterval(loadDriversRegistry,30000);
 /* Atualiza identificação da versão */
 setTimeout(()=>{
   const u=$('updated');
-  if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V13';
+  if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V14';
 },1200);
 </script>
-<!-- =================== FIM PERF-V13 =================== -->
+<!-- =================== FIM PERF-V14 =================== -->
 
 </body>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         </html>
+  </html>
