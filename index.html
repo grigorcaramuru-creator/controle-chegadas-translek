@@ -99,7 +99,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 <body>
 <header>
   <div class="brand"><div class="logo">TRANS<span class="lek">LEK</span></div><div class="vline"></div><div class="title"><h1>Controle de Chegadas</h1><p>Transit-Time • SLA • Performance</p></div></div>
-  <div class="headright"><div id="updated">Atualizado: — • PERF-V10</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
+  <div class="headright"><div id="updated">Atualizado: — • PERF-V11</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
 </header>
 <nav class="tabs">
   <button class="tabBtn active" data-view="operationView">🚚 Operação</button>
@@ -561,7 +561,7 @@ function renderProgramming(){
 async function loadProgramming(){try{programmingCache=await api('trip_programming?select=*&order=program_date.asc,departure_time.asc');renderProgramming()}catch(e){console.error('Erro programação:',e)}}
 
 function setDefaultDates(){let b=new Date(),a=new Date();a.setDate(b.getDate()-1);$('dateA').value=dayKey(a);$('dateB').value=dayKey(b)}setDefaultDates();
-function render(){const queueTerm=$('queueNameFilter').value.trim().toLowerCase(),historyTerm=$('historyNameFilter').value.trim().toLowerCase(),allDone=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));renderPerformance(allDone);let active=tripsCache.filter(x=>!x.done&&(!queueTerm||(x.driver||'').toLowerCase().includes(queueTerm))).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival)),done=allDone.filter(x=>!historyTerm||(x.driver||'').toLowerCase().includes(historyTerm));$('queueBadge').textContent=`#${active.length} NA FILA`;$('queueBody').innerHTML=active.length?active.map((t,i)=>`<tr><td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${esc(t.transit||'—')}</td><td>${countdownText(t.arrival)}</td><td><div class="historyActions"><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button><button class="deleteBtn" onclick="deleteActiveTrip(${t.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">Nenhuma viagem ativa.</td></tr>`;let grouped=[],last='';for(let t of done){let key=dayKey(t.real_arrival);if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="6">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}grouped.push(`<tr><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${fmtDT(t.arrival)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)}$('historyBody').innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="6" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;let on=done.filter(x=>x.on_time).length,late=done.length-on;$('kOn').textContent=on;$('kLate').textContent=late;$('kDone').textContent=done.length;$('kActive').textContent=active.length;let routes=[...new Set(done.map(x=>x.route).filter(Boolean))].sort(),pr=$('effRoute').value;$('effRoute').innerHTML='<option value="ALL">Todas as rotas</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');$('effRoute').value=pr==='ALL'||routes.includes(pr)?pr:'ALL';let q=quinzenalRange(),rs=$('effRoute').value,qd=done.filter(x=>{let d=new Date(x.real_arrival);return d>=q.start&&d<=q.end&&(rs==='ALL'||x.route===rs)}),qo=qd.filter(x=>x.on_time).length,qe=qd.length?Math.round(qo/qd.length*100):null;$('efficiency').textContent=qe===null?'—':qe+'%';$('effText').textContent=qe===null?'Sem chegadas concluídas nesta quinzena.':`${qo} de ${qd.length} chegadas no prazo nesta quinzena.`;$('effRange').textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')}`;$('effRouteLabel').textContent=rs==='ALL'?'Todas as rotas':`Rota: ${rs}`;$('nextCountdown').textContent=active.length?countdownText(active[0].arrival):'—';function ds(k){let a=done.filter(x=>dayKey(x.real_arrival)===k),o=a.filter(x=>x.on_time).length;return{o,l:a.length-o,t:a.length,p:a.length?Math.round(o/a.length*100):null}}let A=ds($('dateA').value),B=ds($('dateB').value);$('labelA').textContent=new Date($('dateA').value+'T12:00').toLocaleDateString('pt-BR');$('labelB').textContent=new Date($('dateB').value+'T12:00').toLocaleDateString('pt-BR');$('onA').textContent=A.o;$('lateA').textContent=A.l;$('totA').textContent=A.t;$('onB').textContent=B.o;$('lateB').textContent=B.l;$('totB').textContent=B.t;if(A.p===null||B.p===null){$('delta').textContent='—';$('deltaTxt').textContent='Sem dados nos dois dias'}else{let d=B.p-A.p;$('delta').textContent=(d>0?'+':'')+d+' p.p.';$('deltaTxt').textContent=d>0?'Melhora':d<0?'Queda':'Estável'}renderFiscal();renderDelays();renderExecutive();renderDepartureAlerts();$('updated').textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V10'}
+function render(){const queueTerm=$('queueNameFilter').value.trim().toLowerCase(),historyTerm=$('historyNameFilter').value.trim().toLowerCase(),allDone=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));renderPerformance(allDone);let active=tripsCache.filter(x=>!x.done&&(!queueTerm||(x.driver||'').toLowerCase().includes(queueTerm))).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival)),done=allDone.filter(x=>!historyTerm||(x.driver||'').toLowerCase().includes(historyTerm));$('queueBadge').textContent=`#${active.length} NA FILA`;$('queueBody').innerHTML=active.length?active.map((t,i)=>`<tr><td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${esc(t.transit||'—')}</td><td>${countdownText(t.arrival)}</td><td><div class="historyActions"><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button><button class="deleteBtn" onclick="deleteActiveTrip(${t.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">Nenhuma viagem ativa.</td></tr>`;let grouped=[],last='';for(let t of done){let key=dayKey(t.real_arrival);if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="6">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}grouped.push(`<tr><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${fmtDT(t.arrival)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)}$('historyBody').innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="6" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;let on=done.filter(x=>x.on_time).length,late=done.length-on;$('kOn').textContent=on;$('kLate').textContent=late;$('kDone').textContent=done.length;$('kActive').textContent=active.length;let routes=[...new Set(done.map(x=>x.route).filter(Boolean))].sort(),pr=$('effRoute').value;$('effRoute').innerHTML='<option value="ALL">Todas as rotas</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');$('effRoute').value=pr==='ALL'||routes.includes(pr)?pr:'ALL';let q=quinzenalRange(),rs=$('effRoute').value,qd=done.filter(x=>{let d=new Date(x.real_arrival);return d>=q.start&&d<=q.end&&(rs==='ALL'||x.route===rs)}),qo=qd.filter(x=>x.on_time).length,qe=qd.length?Math.round(qo/qd.length*100):null;$('efficiency').textContent=qe===null?'—':qe+'%';$('effText').textContent=qe===null?'Sem chegadas concluídas nesta quinzena.':`${qo} de ${qd.length} chegadas no prazo nesta quinzena.`;$('effRange').textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')}`;$('effRouteLabel').textContent=rs==='ALL'?'Todas as rotas':`Rota: ${rs}`;$('nextCountdown').textContent=active.length?countdownText(active[0].arrival):'—';function ds(k){let a=done.filter(x=>dayKey(x.real_arrival)===k),o=a.filter(x=>x.on_time).length;return{o,l:a.length-o,t:a.length,p:a.length?Math.round(o/a.length*100):null}}let A=ds($('dateA').value),B=ds($('dateB').value);$('labelA').textContent=new Date($('dateA').value+'T12:00').toLocaleDateString('pt-BR');$('labelB').textContent=new Date($('dateB').value+'T12:00').toLocaleDateString('pt-BR');$('onA').textContent=A.o;$('lateA').textContent=A.l;$('totA').textContent=A.t;$('onB').textContent=B.o;$('lateB').textContent=B.l;$('totB').textContent=B.t;if(A.p===null||B.p===null){$('delta').textContent='—';$('deltaTxt').textContent='Sem dados nos dois dias'}else{let d=B.p-A.p;$('delta').textContent=(d>0?'+':'')+d+' p.p.';$('deltaTxt').textContent=d>0?'Melhora':d<0?'Queda':'Estável'}renderFiscal();renderDelays();renderExecutive();renderDepartureAlerts();$('updated').textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V11'}
 
 document.querySelectorAll('.tabBtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.view).classList.add('active');render();if(b.dataset.view==='programmingView')renderProgramming()}));
 ['dateA','dateB','effRoute','fiscalDateFilter','performanceFortnight','driverPerfFilter','companyPerfFilter','queueNameFilter','historyNameFilter','delayPeriod','delayDriverFilter','delayCompanyFilter','delayRouteFilter','delayReasonFilter','execPeriod','execCompany'].forEach(id=>{let el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',render)});
@@ -575,5 +575,338 @@ setInterval(()=>{updatePreview();render();renderProgramming()},1000);
 setInterval(()=>{load();loadProgramming()},30000);
 load();loadProgramming();
 </script>
+<!-- =========================================================
+     TRANSLEK • PERF-V11
+     CADASTRO DE MOTORISTAS + AUTOCOMPLETE
+     COLE ESTE BLOCO IMEDIATAMENTE ANTES DE </body>
+========================================================= -->
+<style>
+.driverRegistryPage{max-width:1600px;margin:auto;padding:16px}
+.driverRegistryGrid{display:grid;grid-template-columns:380px 1fr;gap:14px}
+.driverRegistryForm{padding:16px}
+.driverRegistryStats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.driverRegistryStat{padding:15px}
+.driverRegistryStat b{display:block;font-size:25px;color:#0b3b8e}
+.driverRegistryStat span{display:block;margin-top:5px;font-size:9px;color:var(--muted)}
+.driverRegistryToolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}
+.driverRegistryToolbar>div{min-width:240px;flex:1}
+.driverRegistryToolbar label{margin:0 0 5px}
+.driverEditBtn{border:0;border-radius:8px;background:#6a35c5;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}
+.driverDeleteBtn{border:0;border-radius:8px;background:#e01c2b;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}
+.driverHint{font-size:10px;color:var(--muted);margin-top:7px}
+@media(max-width:750px){
+  .driverRegistryPage{padding:10px}
+  .driverRegistryGrid{grid-template-columns:1fr}
+  .driverRegistryStats{grid-template-columns:1fr 1fr}
+}
+</style>
+
+<script>
+/* ===================== PERF-V11 • MOTORISTAS ===================== */
+let driversCache=[];
+
+function normalizeDriverName(v){
+  return String(v||'').trim().replace(/\s+/g,' ');
+}
+function normalizeTextV11(v){
+  return String(v||'').trim().toLocaleLowerCase('pt-BR');
+}
+function formatPhoneV11(value){
+  let v=String(value||'').replace(/\D/g,'').slice(0,11);
+  if(v.length>10)return v.replace(/(\d{2})(\d{5})(\d{4})/,'($1) $2-$3');
+  if(v.length>6)return v.replace(/(\d{2})(\d{4})(\d{1,4})/,'($1) $2-$3');
+  if(v.length>2)return v.replace(/(\d{2})(\d{1,5})/,'($1) $2');
+  return v;
+}
+function maskedCpfV11(value){
+  let v=cpfDigits(value);
+  if(v.length!==11)return esc(value||'—');
+  return `***.***.${v.slice(6,9)}-${v.slice(9)}`;
+}
+function driverCompaniesV11(){
+  const base=['WDS','TUBARÃO','TJA','TRANSRATO','DUKA','EMERSON','TÂNIA','MARCOS','GIOVANE','ADILSON','EDIVAN','LUCAS','RICARDO','TRANSLEK','OSMAR','ALEX','ALEXIA','ACACIO','TRANSBURAN','WILLIAM'];
+  return [...new Set(base.concat(driversCache.map(d=>d.company).filter(Boolean)))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+}
+function createDriverRegistryUI(){
+  if(document.querySelector('[data-view="driversView"]'))return;
+
+  const btn=document.createElement('button');
+  btn.className='tabBtn';
+  btn.dataset.view='driversView';
+  btn.innerHTML='👤 Cadastro de Motoristas';
+  document.querySelector('.tabs').appendChild(btn);
+
+  const view=document.createElement('div');
+  view.id='driversView';
+  view.className='view';
+  view.innerHTML=`
+    <div class="driverRegistryPage">
+      <div class="driverRegistryStats">
+        <div class="card driverRegistryStat"><b id="driverRegTotal">0</b><span>MOTORISTAS CADASTRADOS</span></div>
+        <div class="card driverRegistryStat"><b id="driverRegCompanies">0</b><span>AGREGADOS / EMPRESAS</span></div>
+        <div class="card driverRegistryStat"><b id="driverRegFiltered">0</b><span>RESULTADOS NO FILTRO</span></div>
+      </div>
+
+      <div class="driverRegistryGrid">
+        <div class="card driverRegistryForm">
+          <div class="sectionTitle"><span>👤</span><h2>Cadastro de Motorista</h2></div>
+          <input type="hidden" id="driverRegEditId">
+
+          <label>Nome do motorista</label>
+          <input id="driverRegName" placeholder="Nome completo">
+
+          <label>CPF</label>
+          <input id="driverRegCpf" placeholder="000.000.000-00" inputmode="numeric" maxlength="14">
+
+          <label>Telefone</label>
+          <input id="driverRegPhone" placeholder="(11) 99999-9999" inputmode="tel" maxlength="15">
+
+          <label>Agregado / Empresa</label>
+          <select id="driverRegCompany"></select>
+
+          <button id="driverRegSaveBtn" class="primary" type="button" onclick="saveDriverRegistry()">＋ Cadastrar motorista</button>
+          <button id="driverRegCancelBtn" class="secondaryBtn" type="button" onclick="cancelDriverRegistryEdit()" style="width:100%;margin-top:8px;display:none">Cancelar edição</button>
+
+          <div class="driverHint">O motorista ficará disponível automaticamente na Nova Viagem e na Programação de Viagens.</div>
+        </div>
+
+        <div class="card sectionCard">
+          <div class="sectionHead">
+            <div><h2>👥 Motoristas cadastrados</h2><p>Cadastro compartilhado com a equipe pelo Supabase.</p></div>
+            <span id="driverRegBadge" class="tag">0 CADASTRADOS</span>
+          </div>
+          <div class="driverRegistryToolbar">
+            <div>
+              <label>Buscar motorista, CPF, telefone ou agregado</label>
+              <input id="driverRegSearch" placeholder="Digite para buscar">
+            </div>
+          </div>
+          <div class="tableScroll">
+            <table>
+              <thead><tr><th>MOTORISTA</th><th>CPF</th><th>TELEFONE</th><th>AGREGADO / EMPRESA</th><th>AÇÕES</th></tr></thead>
+              <tbody id="driverRegBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertBefore(view,document.getElementById('justifyModal'));
+
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    view.classList.add('active');
+    renderDriverRegistry();
+  });
+
+  $('driverRegCpf').addEventListener('input',function(){this.value=formatCPFValue(this.value)});
+  $('driverRegPhone').addEventListener('input',function(){this.value=formatPhoneV11(this.value)});
+  $('driverRegSearch').addEventListener('input',renderDriverRegistry);
+}
+function fillDriverCompanySelect(){
+  const el=$('driverRegCompany');
+  if(!el)return;
+  const current=el.value;
+  el.innerHTML='<option value="">Selecione o agregado / empresa</option>'+
+    driverCompaniesV11().map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+  if(driverCompaniesV11().includes(current))el.value=current;
+}
+async function loadDriversRegistry(){
+  try{
+    driversCache=await api('drivers?select=*&order=name.asc');
+    createDriverRegistryUI();
+    fillDriverCompanySelect();
+    renderDriverRegistry();
+    refreshDriverSuggestionsV11();
+  }catch(e){
+    console.error('Erro ao carregar motoristas:',e);
+  }
+}
+function renderDriverRegistry(){
+  if(!$('driverRegBody'))return;
+  fillDriverCompanySelect();
+  const term=normalizeTextV11($('driverRegSearch').value);
+  const items=driversCache.filter(d=>{
+    const hay=[d.name,d.cpf,d.phone,d.company].map(normalizeTextV11).join(' ');
+    return !term||hay.includes(term);
+  });
+  $('driverRegTotal').textContent=driversCache.length;
+  $('driverRegCompanies').textContent=new Set(driversCache.map(d=>d.company).filter(Boolean)).size;
+  $('driverRegFiltered').textContent=items.length;
+  $('driverRegBadge').textContent=`${driversCache.length} CADASTRADOS`;
+  $('driverRegBody').innerHTML=items.length?items.map(d=>`
+    <tr>
+      <td><b>${esc(d.name)}</b></td>
+      <td>${maskedCpfV11(d.cpf)}</td>
+      <td>${esc(d.phone||'—')}</td>
+      <td><b>${esc(d.company||'—')}</b></td>
+      <td><div class="historyActions">
+        <button class="driverEditBtn" onclick="editDriverRegistry(${d.id})">Editar</button>
+        <button class="driverDeleteBtn" onclick="deleteDriverRegistry(${d.id})">Excluir</button>
+      </div></td>
+    </tr>`).join(''):
+    `<tr><td colspan="5" class="empty">Nenhum motorista encontrado.</td></tr>`;
+}
+async function saveDriverRegistry(){
+  const id=$('driverRegEditId').value;
+  const name=normalizeDriverName($('driverRegName').value);
+  const cpf=formatCPFValue($('driverRegCpf').value);
+  const phone=formatPhoneV11($('driverRegPhone').value);
+  const company=$('driverRegCompany').value;
+
+  if(!name||!cpf||!phone||!company)
+    return alert('Preencha nome, CPF, telefone e agregado/empresa.');
+  if(cpfDigits(cpf).length!==11)
+    return alert('O CPF deve possuir 11 números.');
+
+  const duplicate=driversCache.find(d=>cpfDigits(d.cpf)===cpfDigits(cpf)&&String(d.id)!==String(id));
+  if(duplicate)return alert('Já existe um motorista cadastrado com este CPF.');
+
+  try{
+    if(id){
+      await api('drivers?id=eq.'+id,{
+        method:'PATCH',
+        headers:{Prefer:'return=minimal'},
+        body:JSON.stringify({name,cpf,phone,company,updated_at:new Date().toISOString()})
+      });
+    }else{
+      await api('drivers',{
+        method:'POST',
+        headers:{Prefer:'return=minimal'},
+        body:JSON.stringify({name,cpf,phone,company})
+      });
+    }
+    cancelDriverRegistryEdit();
+    await loadDriversRegistry();
+    alert(id?'Cadastro atualizado com sucesso.':'Motorista cadastrado com sucesso.');
+  }catch(e){
+    console.error(e);
+    alert('Não foi possível salvar o motorista. Verifique se o CPF já está cadastrado.');
+  }
+}
+function editDriverRegistry(id){
+  const d=driversCache.find(x=>String(x.id)===String(id));
+  if(!d)return;
+  $('driverRegEditId').value=d.id;
+  $('driverRegName').value=d.name||'';
+  $('driverRegCpf').value=formatCPFValue(d.cpf||'');
+  $('driverRegPhone').value=formatPhoneV11(d.phone||'');
+  fillDriverCompanySelect();
+  $('driverRegCompany').value=d.company||'';
+  $('driverRegSaveBtn').textContent='✓ Salvar alterações';
+  $('driverRegCancelBtn').style.display='block';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function cancelDriverRegistryEdit(){
+  if(!$('driverRegEditId'))return;
+  $('driverRegEditId').value='';
+  $('driverRegName').value='';
+  $('driverRegCpf').value='';
+  $('driverRegPhone').value='';
+  $('driverRegCompany').value='';
+  $('driverRegSaveBtn').textContent='＋ Cadastrar motorista';
+  $('driverRegCancelBtn').style.display='none';
+}
+async function deleteDriverRegistry(id){
+  const d=driversCache.find(x=>String(x.id)===String(id));
+  if(!d)return;
+  if(!confirm(`Excluir o cadastro de ${d.name}?`))return;
+  try{
+    await api('drivers?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});
+    await loadDriversRegistry();
+  }catch(e){
+    console.error(e);
+    alert('Não foi possível excluir o motorista.');
+  }
+}
+function findDriverV11(value){
+  const n=normalizeTextV11(value);
+  return driversCache.find(d=>normalizeTextV11(d.name)===n);
+}
+function ensureDriverDatalistV11(){
+  let dl=document.getElementById('registeredDriversV11');
+  if(!dl){
+    dl=document.createElement('datalist');
+    dl.id='registeredDriversV11';
+    document.body.appendChild(dl);
+  }
+  dl.innerHTML=driversCache.map(d=>`<option value="${esc(d.name)}">${esc(d.company||'')} • ${esc(d.phone||'')}</option>`).join('');
+  ['driver','programDriver','programDriver2'].forEach(id=>{
+    const el=$(id);
+    if(el)el.setAttribute('list','registeredDriversV11');
+  });
+}
+function refreshDriverSuggestionsV11(){
+  ensureDriverDatalistV11();
+}
+function selectOperationalDriverV11(){
+  const d=findDriverV11($('driver').value);
+  if(!d)return;
+  $('driver').value=d.name;
+  const company=$('company');
+  if(company){
+    let opt=[...company.options].find(o=>o.value===d.company);
+    if(!opt&&d.company){
+      opt=document.createElement('option');
+      opt.value=d.company; opt.textContent=d.company;
+      company.appendChild(opt);
+    }
+    company.value=d.company||'';
+  }
+}
+function selectProgrammingDriverV11(which){
+  const driverId=which===2?'programDriver2':'programDriver';
+  const cpfId=which===2?'programCpf2':'programCpf';
+  const d=findDriverV11($(driverId).value);
+  if(!d)return;
+  $(driverId).value=d.name;
+  $(cpfId).value=formatCPFValue(d.cpf||'');
+
+  if(which===1&&$('programCompany')){
+    let opt=[...$('programCompany').options].find(o=>o.value===d.company);
+    if(!opt&&d.company){
+      opt=document.createElement('option');
+      opt.value=d.company; opt.textContent=d.company;
+      $('programCompany').appendChild(opt);
+    }
+    $('programCompany').value=d.company||'';
+  }
+}
+function bindDriverAutocompleteV11(){
+  const op=$('driver'),p1=$('programDriver'),p2=$('programDriver2');
+  if(op&&!op.dataset.v11){
+    op.dataset.v11='1';
+    op.addEventListener('input',selectOperationalDriverV11);
+    op.addEventListener('change',selectOperationalDriverV11);
+  }
+  if(p1&&!p1.dataset.v11){
+    p1.dataset.v11='1';
+    p1.addEventListener('input',()=>selectProgrammingDriverV11(1));
+    p1.addEventListener('change',()=>selectProgrammingDriverV11(1));
+  }
+  if(p2&&!p2.dataset.v11){
+    p2.dataset.v11='1';
+    p2.addEventListener('input',()=>selectProgrammingDriverV11(2));
+    p2.addEventListener('change',()=>selectProgrammingDriverV11(2));
+  }
+}
+
+/* Inicialização PERF-V11 */
+createDriverRegistryUI();
+bindDriverAutocompleteV11();
+loadDriversRegistry();
+
+/* Atualiza cadastro junto com o painel a cada 30 segundos */
+setInterval(loadDriversRegistry,30000);
+
+/* Atualiza identificação da versão */
+setTimeout(()=>{
+  const u=$('updated');
+  if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V11';
+},1200);
+</script>
+<!-- =================== FIM PERF-V11 =================== -->
+
 </body>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              </html>
+  </html>
