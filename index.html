@@ -1553,5 +1553,144 @@ setTimeout(()=>{
 </script>
 <!-- =================== FIM PERF-V14 =================== -->
 
+
+<!-- ===================== PERF-V15 • PLACAS ===================== -->
+<style>
+.plateQuick{padding:14px 16px}.plateQuickTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.plateQuickTop h2{font-size:15px}.plateQuickResult{margin-top:8px;min-height:48px;border:1px solid var(--line);background:#f8fbff;border-radius:10px;padding:9px 11px;font-size:11px}.plateQuickResult b{display:block;color:#0b3b8e;font-size:14px;margin-bottom:3px}.plateQuickMatches{display:grid;gap:6px}.plateQuickMatch{border:0;background:#fff;border-radius:8px;padding:7px 8px;text-align:left;cursor:pointer;border:1px solid #e2eaf4}.plateQuickMatch:hover{background:#edf5ff}.plateRegistryPage{max-width:1600px;margin:auto;padding:16px}.plateRegistryStats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.plateRegistryStat{padding:16px}.plateRegistryStat b{display:block;font-size:27px;color:#0b3b8e}.plateRegistryStat span{font-size:9px;color:var(--muted)}.plateRegistryGrid{display:grid;grid-template-columns:360px 1fr;gap:14px}.plateRegistryForm{padding:16px}.plateRegistryToolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}.plateRegistryToolbar>div{min-width:260px;flex:1}.plateRegistryScroll{max-height:535px;overflow:auto}.plateRegistryScroll thead th{position:sticky;top:0;z-index:3;background:#f7f9fc}.plateEditBtn{border:0;border-radius:8px;background:#6a35c5;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}.plateDeleteBtn{border:0;border-radius:8px;background:#e01c2b;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}.plateHint{margin-top:10px;font-size:10px;color:var(--muted);line-height:1.45}.plateLookupEmpty{color:var(--muted)}
+@media(max-width:750px){.plateRegistryPage{padding:10px}.plateRegistryGrid{grid-template-columns:1fr}.plateRegistryStats{grid-template-columns:1fr 1fr}.plateQuick{padding:12px}}
+</style>
+<script>
+/* ===================== PERF-V15 • CADASTRO / BUSCA DE PLACAS ===================== */
+let vehiclePlatesCache=[];
+function plateKeyV15(v){return String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7)}
+function formatPlateV15(v){
+  const k=plateKeyV15(v);
+  if(k.length<=3)return k;
+  return k.slice(0,3)+'-'+k.slice(3);
+}
+function createPlateUIV15(){
+  if(document.querySelector('[data-view="platesView"]'))return;
+
+  const btn=document.createElement('button');
+  btn.className='tabBtn'; btn.dataset.view='platesView'; btn.innerHTML='🚛 Cadastro de Placas';
+  document.querySelector('.tabs').appendChild(btn);
+
+  const view=document.createElement('div');
+  view.id='platesView'; view.className='view';
+  view.innerHTML=`<div class="plateRegistryPage">
+    <div class="plateRegistryStats">
+      <div class="card plateRegistryStat"><b id="plateRegTotal">0</b><span>PLACAS CADASTRADAS</span></div>
+      <div class="card plateRegistryStat"><b id="plateRegOwners">0</b><span>PROPRIETÁRIOS / DONOS</span></div>
+      <div class="card plateRegistryStat"><b id="plateRegFiltered">0</b><span>RESULTADOS NO FILTRO</span></div>
+    </div>
+    <div class="plateRegistryGrid">
+      <div class="card plateRegistryForm">
+        <div class="sectionTitle"><span>🚛</span><h2>Cadastro de Placa</h2></div>
+        <input type="hidden" id="plateRegEditId">
+        <label>Placa</label><input id="plateRegPlate" placeholder="ABC-1D23" maxlength="8" autocomplete="off">
+        <label>Nome do dono / proprietário</label><input id="plateRegOwner" placeholder="Nome do proprietário" list="registeredDriversV11">
+        <label>Empresa / agregado <span style="font-weight:400;color:var(--muted)">(opcional)</span></label><select id="plateRegCompany"><option value="">Sem empresa</option></select>
+        <button id="plateRegSaveBtn" class="primary" type="button" onclick="saveVehiclePlateV15()">＋ Cadastrar placa</button>
+        <button id="plateRegCancelBtn" class="secondaryBtn" type="button" onclick="cancelVehiclePlateEditV15()" style="width:100%;margin-top:8px;display:none">Cancelar edição</button>
+        <div class="plateHint">Cadastro compartilhado com a equipe. A busca rápida da Operação consulta esta lista automaticamente.</div>
+      </div>
+      <div class="card sectionCard">
+        <div class="sectionHead"><div><h2>🚛 Placas cadastradas</h2><p>Consulte, edite ou exclua placas e seus proprietários.</p></div><span id="plateRegBadge" class="tag">0 CADASTRADAS</span></div>
+        <div class="plateRegistryToolbar"><div><label>Buscar placa, dono ou empresa</label><input id="plateRegSearch" placeholder="Digite qualquer informação"></div></div>
+        <div class="plateRegistryScroll"><table><thead><tr><th>PLACA</th><th>DONO / PROPRIETÁRIO</th><th>EMPRESA / AGREGADO</th><th>AÇÕES</th></tr></thead><tbody id="plateRegBody"></tbody></table></div>
+      </div>
+    </div>
+  </div>`;
+  document.body.insertBefore(view,document.getElementById('justifyModal'));
+
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active'); view.classList.add('active'); renderVehiclePlatesV15();
+  });
+  $('plateRegPlate').addEventListener('input',function(){this.value=formatPlateV15(this.value)});
+  $('plateRegSearch').addEventListener('input',renderVehiclePlatesV15);
+  $('plateRegOwner').addEventListener('change',syncPlateOwnerCompanyV15);
+  fillPlateCompanySelectV15();
+}
+function createQuickPlateSearchV15(){
+  if($('plateQuickSearch'))return;
+  const right=document.querySelector('#operationView .right');
+  if(!right)return;
+  const box=document.createElement('div'); box.className='card plateQuick'; box.id='plateQuickSearch';
+  box.innerHTML=`<div class="plateQuickTop"><h2>🔎 Busca rápida de placa</h2><span class="small">Placa → dono</span></div><input id="plateQuickInput" placeholder="Digite qualquer placa" autocomplete="off"><div id="plateQuickResult" class="plateQuickResult"><span class="plateLookupEmpty">Digite a placa para localizar o dono.</span></div>`;
+  const compare=right.querySelector('.compare'); right.insertBefore(box,compare||right.firstChild);
+  $('plateQuickInput').addEventListener('input',renderQuickPlateSearchV15);
+}
+function fillPlateCompanySelectV15(){
+  const el=$('plateRegCompany'); if(!el)return;
+  const cur=el.value;
+  const names=(typeof companiesCache!=='undefined'?companiesCache:[]).map(c=>c.name).filter(Boolean).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  el.innerHTML='<option value="">Sem empresa</option>'+names.map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('');
+  if(names.includes(cur))el.value=cur;
+}
+function syncPlateOwnerCompanyV15(){
+  const owner=$('plateRegOwner')?.value||'';
+  const d=(typeof driversCache!=='undefined'?driversCache:[]).find(x=>normalizeTextV11(x.name)===normalizeTextV11(owner));
+  if(d&&$('plateRegCompany')){$('plateRegCompany').value=d.company||'';}
+}
+async function loadVehiclePlatesV15(){
+  try{vehiclePlatesCache=await api('vehicle_plates?select=*&order=plate.asc');renderVehiclePlatesV15();renderQuickPlateSearchV15();}
+  catch(e){console.error('Erro ao carregar placas:',e);}
+}
+function renderVehiclePlatesV15(){
+  if(!$('plateRegBody'))return;
+  fillPlateCompanySelectV15();
+  const term=normalizeTextV11($('plateRegSearch').value);
+  const compact=plateKeyV15($('plateRegSearch').value);
+  const items=vehiclePlatesCache.filter(x=>{
+    const hay=normalizeTextV11([x.plate,x.owner_name,x.company].join(' '));
+    return !term||hay.includes(term)||(compact&&plateKeyV15(x.plate).includes(compact));
+  });
+  $('plateRegTotal').textContent=vehiclePlatesCache.length;
+  $('plateRegOwners').textContent=new Set(vehiclePlatesCache.map(x=>normalizeTextV11(x.owner_name)).filter(Boolean)).size;
+  $('plateRegFiltered').textContent=items.length;
+  $('plateRegBadge').textContent=`${vehiclePlatesCache.length} CADASTRADAS`;
+  $('plateRegBody').innerHTML=items.length?items.map(x=>`<tr><td><b>${esc(formatPlateV15(x.plate))}</b></td><td><b>${esc(x.owner_name||'—')}</b></td><td>${esc(x.company||'—')}</td><td><div class="historyActions"><button class="plateEditBtn" onclick="editVehiclePlateV15(${x.id})">Editar</button><button class="plateDeleteBtn" onclick="deleteVehiclePlateV15(${x.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="4" class="empty">Nenhuma placa encontrada.</td></tr>`;
+}
+function renderQuickPlateSearchV15(){
+  if(!$('plateQuickResult')||!$('plateQuickInput'))return;
+  const q=plateKeyV15($('plateQuickInput').value);
+  if(!q){$('plateQuickResult').innerHTML='<span class="plateLookupEmpty">Digite a placa para localizar o dono.</span>';return;}
+  const matches=vehiclePlatesCache.filter(x=>plateKeyV15(x.plate).includes(q)).slice(0,6);
+  if(!matches.length){$('plateQuickResult').innerHTML='<b>Nenhuma placa encontrada</b><span class="plateLookupEmpty">Confira a placa ou cadastre na aba Cadastro de Placas.</span>';return;}
+  if(matches.length===1){const x=matches[0];$('plateQuickResult').innerHTML=`<b>${esc(formatPlateV15(x.plate))} • ${esc(x.owner_name)}</b><span>${esc(x.company||'Sem empresa / agregado')}</span>`;return;}
+  $('plateQuickResult').innerHTML='<div class="plateQuickMatches">'+matches.map(x=>`<button class="plateQuickMatch" type="button" onclick="selectQuickPlateV15('${esc(formatPlateV15(x.plate))}')"><b>${esc(formatPlateV15(x.plate))}</b>${esc(x.owner_name)}${x.company?' • '+esc(x.company):''}</button>`).join('')+'</div>';
+}
+function selectQuickPlateV15(plate){$('plateQuickInput').value=plate;renderQuickPlateSearchV15()}
+async function saveVehiclePlateV15(){
+  const id=$('plateRegEditId').value;
+  const plate=formatPlateV15($('plateRegPlate').value);
+  const owner=String($('plateRegOwner').value||'').trim().replace(/\s+/g,' ');
+  const company=$('plateRegCompany').value||'';
+  if(plateKeyV15(plate).length!==7)return alert('Digite uma placa válida com 7 caracteres.');
+  if(!owner)return alert('Digite o nome do dono / proprietário.');
+  const dup=vehiclePlatesCache.find(x=>plateKeyV15(x.plate)===plateKeyV15(plate)&&String(x.id)!==String(id));
+  if(dup)return alert(`A placa ${formatPlateV15(plate)} já está cadastrada para ${dup.owner_name}.`);
+  try{
+    const payload={plate,owner_name:owner,company:company||null,updated_at:new Date().toISOString()};
+    if(id)await api('vehicle_plates?id=eq.'+id,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify(payload)});
+    else{delete payload.updated_at;await api('vehicle_plates',{method:'POST',headers:{Prefer:'return=minimal'},body:JSON.stringify(payload)});}
+    cancelVehiclePlateEditV15(); await loadVehiclePlatesV15(); alert(id?'Placa atualizada com sucesso.':'Placa cadastrada com sucesso.');
+  }catch(e){console.error(e);alert('Não foi possível salvar a placa. Verifique se ela já está cadastrada.');}
+}
+function editVehiclePlateV15(id){
+  const x=vehiclePlatesCache.find(v=>String(v.id)===String(id));if(!x)return;
+  $('plateRegEditId').value=x.id;$('plateRegPlate').value=formatPlateV15(x.plate);$('plateRegOwner').value=x.owner_name||'';fillPlateCompanySelectV15();$('plateRegCompany').value=x.company||'';$('plateRegSaveBtn').textContent='✓ Salvar alterações';$('plateRegCancelBtn').style.display='block';document.querySelector('.plateRegistryForm').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function cancelVehiclePlateEditV15(){if(!$('plateRegEditId'))return;$('plateRegEditId').value='';$('plateRegPlate').value='';$('plateRegOwner').value='';$('plateRegCompany').value='';$('plateRegSaveBtn').textContent='＋ Cadastrar placa';$('plateRegCancelBtn').style.display='none'}
+async function deleteVehiclePlateV15(id){const x=vehiclePlatesCache.find(v=>String(v.id)===String(id));if(!x)return;if(!confirm(`Excluir a placa ${formatPlateV15(x.plate)} de ${x.owner_name}?`))return;try{await api('vehicle_plates?id=eq.'+id,{method:'DELETE',headers:{Prefer:'return=minimal'}});await loadVehiclePlatesV15()}catch(e){console.error(e);alert('Não foi possível excluir a placa.')}}
+
+createPlateUIV15();createQuickPlateSearchV15();loadVehiclePlatesV15();
+setInterval(loadVehiclePlatesV15,30000);
+setTimeout(()=>{const u=$('updated');if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V15';},1800);
+</script>
+<!-- =================== FIM PERF-V15 =================== -->
+
 </body>
-  </html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                              </html>
