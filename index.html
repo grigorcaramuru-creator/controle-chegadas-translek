@@ -99,12 +99,19 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 .driverRegistryScroll thead th{position:sticky;top:0;z-index:3;background:#f7f9fc;box-shadow:0 1px 0 var(--line)}
 .driverRegistryScroll tbody tr{height:49px}
 
+
+/* PERF-V16 • VIAGEM EXTRA */
+.scheduleExtraRow{background:linear-gradient(90deg,#fff4d6 0,#fffaf0 58%,#fff 100%)!important;box-shadow:inset 5px 0 0 #f26b00}
+.scheduleExtraRow td{background:transparent!important}
+.extraBadge{display:inline-block;margin-top:5px;padding:5px 8px;border-radius:999px;background:#f26b00;color:#fff;font-size:9px;font-weight:900;white-space:nowrap;box-shadow:0 2px 7px #f26b0040}
+.extraSelect{border:2px solid #f2b34d;background:#fffaf0;font-weight:800;color:#9a5200}
+
 </style>
 </head>
 <body>
 <header>
   <div class="brand"><div class="logo">TRANS<span class="lek">LEK</span></div><div class="vline"></div><div class="title"><h1>Controle de Chegadas</h1><p>Transit-Time • SLA • Performance</p></div></div>
-  <div class="headright"><div id="updated">Atualizado: — • PERF-V14</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
+  <div class="headright"><div id="updated">Atualizado: — • PERF-V16</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
 </header>
 <nav class="tabs">
   <button class="tabBtn active" data-view="operationView">🚚 Operação</button>
@@ -179,6 +186,11 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 
 <div class="row2"><div><label>Placa do cavalo</label><input id="programPlate" placeholder="ABC-1D23"></div><div><label>Placa da carreta</label><input id="programTrailerPlate" placeholder="ABC-1D23"></div></div>
 <label>ID / Viagem</label><input id="programTripId" placeholder="ID">
+<label>Viagem extra?</label>
+<select id="programExtra" class="extraSelect">
+  <option value="NAO">Não • Viagem normal</option>
+  <option value="SIM">⚡ Sim • Viagem extra</option>
+</select>
 <label>Observação</label><textarea id="programObservation" placeholder="Informações adicionais..."></textarea>
 <button class="primary" onclick="saveProgramming()">＋ Salvar programação</button>
 <div class="small" style="margin-top:8px">A programação é independente. Você pode cadastrar 1 ou 2 motoristas, CPF, placa do cavalo e da carreta, editar a programação e confirmar a saída real. O lançamento de viagens na Operação continua exatamente como hoje.</div>
@@ -389,30 +401,32 @@ function cpfDigits(value){return String(value||'').replace(/\D/g,'')}
 
 function parseProgramObservation(value){
   let raw=String(value||'');
-  let real='',cpf1='',cpf2='';
+  let real='',cpf1='',cpf2='',extra='NAO';
   let found=true;
 
   while(found){
     found=false;
-    const match=raw.match(/^\[\[(REAL_DEPARTURE|CPF1|CPF2)=(.*?)\]\]\n?/);
+    const match=raw.match(/^\[\[(REAL_DEPARTURE|CPF1|CPF2|EXTRA)=(.*?)\]\]\n?/);
     if(match){
       found=true;
       if(match[1]==='REAL_DEPARTURE')real=match[2];
       if(match[1]==='CPF1')cpf1=match[2];
       if(match[1]==='CPF2')cpf2=match[2];
+      if(match[1]==='EXTRA')extra=String(match[2]||'').toUpperCase()==='SIM'?'SIM':'NAO';
       raw=raw.slice(match[0].length);
     }
   }
 
-  return{real,cpf1,cpf2,text:raw}
+  return{real,cpf1,cpf2,extra,text:raw}
 }
 
-function joinProgramObservation(text,real,cpf1,cpf2){
+function joinProgramObservation(text,real,cpf1,cpf2,extra='NAO'){
   text=String(text||'').trim();
   let meta=[];
   if(real)meta.push(`[[REAL_DEPARTURE=${real}]]`);
   if(cpf1)meta.push(`[[CPF1=${cpf1}]]`);
   if(cpf2)meta.push(`[[CPF2=${cpf2}]]`);
+  if(String(extra).toUpperCase()==='SIM')meta.push('[[EXTRA=SIM]]');
   return meta.join('\n')+(meta.length&&text?'\n':'')+text;
 }
 
@@ -504,7 +518,7 @@ async function confirmProgrammingDeparture(id){
     headers:{Prefer:'return=minimal'},
     body:JSON.stringify({
       status:'INICIADA',
-      observation:joinProgramObservation(obs.text,real.toISOString(),obs.cpf1,obs.cpf2),
+      observation:joinProgramObservation(obs.text,real.toISOString(),obs.cpf1,obs.cpf2,obs.extra),
       updated_at:new Date().toISOString()
     })
   });
@@ -592,7 +606,7 @@ async function editProgramming(id){
       driver:joinProgramDrivers(driver1,driver2),
       plate:joinProgramPlates(tractor,trailer),
       trip_id:tripId.trim(),
-      observation:joinProgramObservation(observation,obs.real,cpf1,cpf2),
+      observation:joinProgramObservation(observation,obs.real,cpf1,cpf2,obs.extra),
       updated_at:new Date().toISOString()
     })
   });
@@ -602,7 +616,7 @@ async function editProgramming(id){
 
 function clearProgrammingFilters(){$('programFilterDate').value=progToday();$('programFilterDriver').value='';$('programFilterCompany').value='';renderProgramming()}
 function openProgrammingFromAlert(id){document.querySelector('[data-view="programmingView"]').click();let p=programmingCache.find(x=>String(x.id)===String(id));if(p){$('programFilterDate').value=p.program_date;renderProgramming()}}
-function renderDepartureAlerts(){let area=$('departureAlertArea'),list=$('departureAlertList'),alerts=programmingCache.filter(p=>p.program_date===progToday()&&p.status!=='INICIADA'&&progMins(p)<=30).sort((a,b)=>progDT(a)-progDT(b));if(!alerts.length){area.classList.remove('show');list.innerHTML='';return}area.classList.add('show');list.innerHTML=alerts.map(p=>{let m=progMins(p);return`<button class="departureAlert ${m<0?'late':''}" onclick="openProgrammingFromAlert(${p.id})"><b>🔴 ${progTimeText(m)}</b><span>${esc(p.route||'—')} • ${String(p.departure_time||'').slice(0,5)}${p.driver?' • '+esc(p.driver).replace(' / ',' + '):''}${p.company?' • '+esc(p.company):''}</span></button>`}).join('')}
+function renderDepartureAlerts(){let area=$('departureAlertArea'),list=$('departureAlertList'),alerts=programmingCache.filter(p=>p.program_date===progToday()&&p.status!=='INICIADA'&&progMins(p)<=30).sort((a,b)=>progDT(a)-progDT(b));if(!alerts.length){area.classList.remove('show');list.innerHTML='';return}area.classList.add('show');list.innerHTML=alerts.map(p=>{let m=progMins(p);return`<button class="departureAlert ${m<0?'late':''}" onclick="openProgrammingFromAlert(${p.id})"><b>🔴 ${progTimeText(m)}</b><span>${parseProgramObservation(p.observation).extra==='SIM'?'⚡ VIAGEM EXTRA • ':''}${esc(p.route||'—')} • ${String(p.departure_time||'').slice(0,5)}${p.driver?' • '+esc(p.driver).replace(' / ',' + '):''}${p.company?' • '+esc(p.company):''}</span></button>`}).join('')}
 
 function renderProgramming(){
   let date=$('programFilterDate').value,
@@ -619,11 +633,13 @@ function renderProgramming(){
   $('programmingBody').innerHTML=items.length?items.map(p=>{
     let s=progStatus(p),
         plates=splitProgramPlates(p.plate),
-        real=programRealDeparture(p);
+        real=programRealDeparture(p),
+        obs=parseProgramObservation(p.observation),
+        isExtra=obs.extra==='SIM';
 
-    return `<tr>
+    return `<tr class="${isExtra?'scheduleExtraRow':''}">
       <td>${new Date(p.program_date+'T12:00').toLocaleDateString('pt-BR')}</td>
-      <td><b>${String(p.departure_time||'').slice(0,5)}</b></td>
+      <td><b>${String(p.departure_time||'').slice(0,5)}</b>${isExtra?'<br><span class="extraBadge">⚡ VIAGEM EXTRA</span>':''}</td>
       <td>${real?`<b style="color:#18a75b">${fmtDT(real)}</b>`:'—'}</td>
       <td>${esc(p.route||'—')}</td>
       <td>${formatProgramDrivers(p.driver)}</td>
@@ -1255,6 +1271,7 @@ function resetProgrammingFormV14(){
   $('programTrailerPlate').value='';
   $('programTripId').value='';
   $('programObservation').value='';
+  if($('programExtra'))$('programExtra').value='NAO';
   if($('programmingSaveBtnV14'))$('programmingSaveBtnV14').textContent='＋ Salvar programação';
   if($('programmingCancelBtnV14'))$('programmingCancelBtnV14').style.display='none';
   if($('programmingEditNoticeV14'))$('programmingEditNoticeV14').style.display='none';
@@ -1297,7 +1314,7 @@ window.saveProgramming=async function(){
     driver:joinProgramDrivers(d1.name,d2?.name||''),
     plate:joinProgramPlates($('programPlate').value,$('programTrailerPlate').value),
     trip_id:$('programTripId').value.trim(),
-    observation:joinProgramObservation($('programObservation').value.trim(),oldObs.real||'',cpf1,cpf2),
+    observation:joinProgramObservation($('programObservation').value.trim(),oldObs.real||'',cpf1,cpf2,$('programExtra')?.value||'NAO'),
     updated_at:new Date().toISOString()
   };
 
@@ -1340,6 +1357,7 @@ window.editProgramming=function(id){
   $('programTrailerPlate').value=plates.trailer||'';
   $('programTripId').value=p.trip_id||'';
   $('programObservation').value=obs.text||'';
+  if($('programExtra'))$('programExtra').value=obs.extra||'NAO';
 
   $('programmingSaveBtnV14').textContent='✓ Salvar alterações';
   $('programmingCancelBtnV14').style.display='block';
@@ -1554,13 +1572,13 @@ setTimeout(()=>{
 <!-- =================== FIM PERF-V14 =================== -->
 
 
-<!-- ===================== PERF-V15 • PLACAS ===================== -->
+<!-- ===================== PERF-V16 • PLACAS ===================== -->
 <style>
 .plateQuick{padding:14px 16px}.plateQuickTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.plateQuickTop h2{font-size:15px}.plateQuickResult{margin-top:8px;min-height:48px;border:1px solid var(--line);background:#f8fbff;border-radius:10px;padding:9px 11px;font-size:11px}.plateQuickResult b{display:block;color:#0b3b8e;font-size:14px;margin-bottom:3px}.plateQuickMatches{display:grid;gap:6px}.plateQuickMatch{border:0;background:#fff;border-radius:8px;padding:7px 8px;text-align:left;cursor:pointer;border:1px solid #e2eaf4}.plateQuickMatch:hover{background:#edf5ff}.plateRegistryPage{max-width:1600px;margin:auto;padding:16px}.plateRegistryStats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.plateRegistryStat{padding:16px}.plateRegistryStat b{display:block;font-size:27px;color:#0b3b8e}.plateRegistryStat span{font-size:9px;color:var(--muted)}.plateRegistryGrid{display:grid;grid-template-columns:360px 1fr;gap:14px}.plateRegistryForm{padding:16px}.plateRegistryToolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}.plateRegistryToolbar>div{min-width:260px;flex:1}.plateRegistryScroll{max-height:535px;overflow:auto}.plateRegistryScroll thead th{position:sticky;top:0;z-index:3;background:#f7f9fc}.plateEditBtn{border:0;border-radius:8px;background:#6a35c5;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}.plateDeleteBtn{border:0;border-radius:8px;background:#e01c2b;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}.plateHint{margin-top:10px;font-size:10px;color:var(--muted);line-height:1.45}.plateLookupEmpty{color:var(--muted)}.fleetSummary{margin-top:14px;padding:0;overflow:hidden}.fleetSummaryGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;padding:14px}.fleetCompanyCard{border:1px solid var(--line);border-radius:12px;background:#fbfdff;padding:12px}.fleetCompanyCard h3{margin:0 0 10px;color:#0b3b8e;font-size:14px}.fleetNumbers{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.fleetNumber{border:1px solid #e5ebf3;background:#fff;border-radius:9px;padding:9px;text-align:center}.fleetNumber b{display:block;font-size:20px;color:#0b3b8e}.fleetNumber span{font-size:8px;color:var(--muted)}.vehicleTypeTag{display:inline-block;padding:4px 7px;border-radius:999px;font-size:9px;font-weight:900;background:#edf4ff;color:#0b4fb7}
 @media(max-width:750px){.plateRegistryPage{padding:10px}.plateRegistryGrid{grid-template-columns:1fr}.plateRegistryStats{grid-template-columns:1fr 1fr}.plateQuick{padding:12px}}
 </style>
 <script>
-/* ===================== PERF-V15 • CADASTRO / BUSCA DE PLACAS ===================== */
+/* ===================== PERF-V16 • CADASTRO / BUSCA DE PLACAS ===================== */
 let vehiclePlatesCache=[];
 function plateKeyV15(v){return String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7)}
 function formatPlateV15(v){
@@ -1688,9 +1706,9 @@ async function deleteVehiclePlateV15(id){const x=vehiclePlatesCache.find(v=>Stri
 
 createPlateUIV15();createQuickPlateSearchV15();loadVehiclePlatesV15();
 setInterval(loadVehiclePlatesV15,30000);
-setTimeout(()=>{const u=$('updated');if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V15';},1800);
+setTimeout(()=>{const u=$('updated');if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V16';},1800);
 </script>
-<!-- =================== FIM PERF-V15 =================== -->
+<!-- =================== FIM PERF-V16 =================== -->
 
 </body>
-                                                                                                                                                                                                </html>
+  </html>
