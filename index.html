@@ -100,7 +100,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 .driverRegistryScroll tbody tr{height:49px}
 
 
-/* PERF-V16 • VIAGEM EXTRA */
+/* PERF-V17 • VIAGEM EXTRA */
 .scheduleExtraRow{background:linear-gradient(90deg,#fff4d6 0,#fffaf0 58%,#fff 100%)!important;box-shadow:inset 5px 0 0 #f26b00}
 .scheduleExtraRow td{background:transparent!important}
 .extraBadge{display:inline-block;margin-top:5px;padding:5px 8px;border-radius:999px;background:#f26b00;color:#fff;font-size:9px;font-weight:900;white-space:nowrap;box-shadow:0 2px 7px #f26b0040}
@@ -111,7 +111,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 <body>
 <header>
   <div class="brand"><div class="logo">TRANS<span class="lek">LEK</span></div><div class="vline"></div><div class="title"><h1>Controle de Chegadas</h1><p>Transit-Time • SLA • Performance</p></div></div>
-  <div class="headright"><div id="updated">Atualizado: — • PERF-V16</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
+  <div class="headright"><div id="updated">Atualizado: — • PERF-V17</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
 </header>
 <nav class="tabs">
   <button class="tabBtn active" data-view="operationView">🚚 Operação</button>
@@ -1572,13 +1572,13 @@ setTimeout(()=>{
 <!-- =================== FIM PERF-V14 =================== -->
 
 
-<!-- ===================== PERF-V16 • PLACAS ===================== -->
+<!-- ===================== PERF-V17 • PLACAS ===================== -->
 <style>
 .plateQuick{padding:14px 16px}.plateQuickTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.plateQuickTop h2{font-size:15px}.plateQuickResult{margin-top:8px;min-height:48px;border:1px solid var(--line);background:#f8fbff;border-radius:10px;padding:9px 11px;font-size:11px}.plateQuickResult b{display:block;color:#0b3b8e;font-size:14px;margin-bottom:3px}.plateQuickMatches{display:grid;gap:6px}.plateQuickMatch{border:0;background:#fff;border-radius:8px;padding:7px 8px;text-align:left;cursor:pointer;border:1px solid #e2eaf4}.plateQuickMatch:hover{background:#edf5ff}.plateRegistryPage{max-width:1600px;margin:auto;padding:16px}.plateRegistryStats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.plateRegistryStat{padding:16px}.plateRegistryStat b{display:block;font-size:27px;color:#0b3b8e}.plateRegistryStat span{font-size:9px;color:var(--muted)}.plateRegistryGrid{display:grid;grid-template-columns:360px 1fr;gap:14px}.plateRegistryForm{padding:16px}.plateRegistryToolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}.plateRegistryToolbar>div{min-width:260px;flex:1}.plateRegistryScroll{max-height:535px;overflow:auto}.plateRegistryScroll thead th{position:sticky;top:0;z-index:3;background:#f7f9fc}.plateEditBtn{border:0;border-radius:8px;background:#6a35c5;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}.plateDeleteBtn{border:0;border-radius:8px;background:#e01c2b;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}.plateHint{margin-top:10px;font-size:10px;color:var(--muted);line-height:1.45}.plateLookupEmpty{color:var(--muted)}.fleetSummary{margin-top:14px;padding:0;overflow:hidden}.fleetSummaryGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;padding:14px}.fleetCompanyCard{border:1px solid var(--line);border-radius:12px;background:#fbfdff;padding:12px}.fleetCompanyCard h3{margin:0 0 10px;color:#0b3b8e;font-size:14px}.fleetNumbers{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.fleetNumber{border:1px solid #e5ebf3;background:#fff;border-radius:9px;padding:9px;text-align:center}.fleetNumber b{display:block;font-size:20px;color:#0b3b8e}.fleetNumber span{font-size:8px;color:var(--muted)}.vehicleTypeTag{display:inline-block;padding:4px 7px;border-radius:999px;font-size:9px;font-weight:900;background:#edf4ff;color:#0b4fb7}
 @media(max-width:750px){.plateRegistryPage{padding:10px}.plateRegistryGrid{grid-template-columns:1fr}.plateRegistryStats{grid-template-columns:1fr 1fr}.plateQuick{padding:12px}}
 </style>
 <script>
-/* ===================== PERF-V16 • CADASTRO / BUSCA DE PLACAS ===================== */
+/* ===================== PERF-V17 • CADASTRO / BUSCA DE PLACAS ===================== */
 let vehiclePlatesCache=[];
 function plateKeyV15(v){return String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7)}
 function formatPlateV15(v){
@@ -1706,9 +1706,287 @@ async function deleteVehiclePlateV15(id){const x=vehiclePlatesCache.find(v=>Stri
 
 createPlateUIV15();createQuickPlateSearchV15();loadVehiclePlatesV15();
 setInterval(loadVehiclePlatesV15,30000);
-setTimeout(()=>{const u=$('updated');if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V16';},1800);
+setTimeout(()=>{const u=$('updated');if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V17';},1800);
 </script>
-<!-- =================== FIM PERF-V16 =================== -->
+<!-- =================== FIM PERF-V17 =================== -->
+
+
+<!-- =================== PERF-V17 • CADASTRO DE ROTAS =================== -->
+<style>
+.routeRegistryPage{max-width:1600px;margin:auto;padding:16px}
+.routeRegistryGrid{display:grid;grid-template-columns:380px 1fr;gap:14px}
+.routeRegistryForm{padding:16px}
+.routeRegistryStats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.routeRegistryStat{padding:15px}
+.routeRegistryStat b{display:block;font-size:25px;color:#0b3b8e}
+.routeRegistryStat span{display:block;margin-top:5px;font-size:9px;color:var(--muted)}
+.routeRegistryToolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}
+.routeRegistryToolbar>div{min-width:240px;flex:1}
+.routeRegistryToolbar label{margin:0 0 5px}
+.routeTimePreview{margin-top:12px;background:#f0f6ff;border:1px solid #cfe0f8;border-radius:10px;padding:12px}
+.routeTimePreview b{display:block;color:#0b3b8e;font-size:13px}
+.routeTimePreview span{display:block;color:var(--muted);font-size:10px;margin-top:4px}
+.routeBuiltIn{display:inline-block;padding:4px 7px;border-radius:999px;background:#edf4ff;color:#0b4fb7;font-size:9px;font-weight:900}
+.routeCustom{display:inline-block;padding:4px 7px;border-radius:999px;background:#e8f8ef;color:#087a3d;font-size:9px;font-weight:900}
+.routeActions{display:flex;gap:6px}
+.routeEditBtn{border:0;border-radius:8px;background:#6a35c5;color:#fff;padding:7px 9px;font-weight:800;font-size:10px;cursor:pointer}
+.routeDeleteBtn{border:0;border-radius:8px;background:#e01c2b;color:#fff;padding:7px 9px;font-weight:800;font-size:10px;cursor:pointer}
+.routeCancelBtn{display:none;border:0;border-radius:10px;background:#6d7787;color:#fff;padding:12px;margin-top:8px;width:100%;font-weight:800;cursor:pointer}
+@media(max-width:750px){
+  .routeRegistryPage{padding:10px}
+  .routeRegistryGrid{grid-template-columns:1fr}
+  .routeRegistryStats{grid-template-columns:1fr 1fr 1fr}
+}
+</style>
+
+<script>
+/* PERF-V17 • Cadastro de rotas e Transit-Time
+   As rotas personalizadas ficam salvas no navegador e entram imediatamente
+   nos seletores de Operação e Programação de Viagens. */
+const ROUTES_STORAGE_V17='translek_custom_routes_v17';
+let customRoutesV17=[];
+let editingRouteV17=null;
+
+function normRouteCodeV17(v){
+  return String(v||'').trim().toUpperCase().replace(/[^A-Z0-9]/g,'');
+}
+function routeKeyV17(origin,destination){
+  return normRouteCodeV17(origin)+'-'+normRouteCodeV17(destination);
+}
+function loadCustomRoutesV17(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(ROUTES_STORAGE_V17)||'[]');
+    customRoutesV17=Array.isArray(raw)?raw:[];
+  }catch(e){ customRoutesV17=[]; }
+  customRoutesV17.forEach(r=>{
+    const h=Number(r.hours||0)+(Number(r.minutes||0)/60);
+    if(r.key && h>0) TIMES[r.key]=h;
+  });
+}
+function saveCustomRoutesStorageV17(){
+  localStorage.setItem(ROUTES_STORAGE_V17,JSON.stringify(customRoutesV17));
+}
+function routeTimePartsV17(total){
+  const mins=Math.round(Number(total||0)*60);
+  return {hours:Math.floor(mins/60),minutes:mins%60};
+}
+function refreshRouteSelectsV17(){
+  const currentRoute=$('route')?$('route').value:'';
+  const currentProgram=$('programRoute')?$('programRoute').value:'';
+  const keys=Object.keys(TIMES).sort((a,b)=>a.localeCompare(b,'pt-BR'));
+
+  if($('route')){
+    $('route').innerHTML=keys.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+    if(keys.includes(currentRoute)) $('route').value=currentRoute;
+  }
+  if($('programRoute')){
+    $('programRoute').innerHTML='<option value="">Selecione o trecho</option>'+
+      keys.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');
+    if(keys.includes(currentProgram)) $('programRoute').value=currentProgram;
+  }
+  if($('effRoute')){
+    const cur=$('effRoute').value||'ALL';
+    $('effRoute').innerHTML='<option value="ALL">Todas as rotas</option>'+
+      keys.map(r=>`<option value="${esc(r.replace('-',' → '))}">${esc(r)}</option>`).join('');
+    if([...$('effRoute').options].some(o=>o.value===cur)) $('effRoute').value=cur;
+  }
+  if(typeof updatePreview==='function' && $('route') && $('route').value) updatePreview();
+}
+function createRoutesUIV17(){
+  const tabs=document.querySelector('.tabs');
+  if(!tabs || $('routesView')) return;
+
+  const btn=document.createElement('button');
+  btn.className='tabBtn';
+  btn.dataset.view='routesView';
+  btn.textContent='🛣 Cadastro de Rotas';
+  btn.onclick=()=>{
+    document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    $('routesView').classList.add('active');
+    renderRoutesV17();
+  };
+  tabs.appendChild(btn);
+
+  const view=document.createElement('div');
+  view.id='routesView';
+  view.className='view';
+  view.innerHTML=`
+    <div class="routeRegistryPage">
+      <div class="routeRegistryStats">
+        <div class="card routeRegistryStat"><b id="routeTotalV17">0</b><span>TOTAL DE ROTAS DISPONÍVEIS</span></div>
+        <div class="card routeRegistryStat"><b id="routeCustomTotalV17" style="color:#18a75b">0</b><span>ROTAS CADASTRADAS POR VOCÊ</span></div>
+        <div class="card routeRegistryStat"><b id="routeHoursTotalV17" style="color:#6a35c5">0h</b><span>MAIOR TRANSIT-TIME</span></div>
+      </div>
+
+      <div class="routeRegistryGrid">
+        <div class="card routeRegistryForm">
+          <div class="sectionTitle"><span>🛣</span><h2 id="routeFormTitleV17">Nova rota</h2></div>
+          <input id="routeEditKeyV17" type="hidden">
+
+          <div class="row2">
+            <div><label>Origem / Sigla</label><input id="routeOriginV17" placeholder="Ex.: BRE" maxlength="10"></div>
+            <div><label>Destino / Sigla</label><input id="routeDestinationV17" placeholder="Ex.: FOR" maxlength="10"></div>
+          </div>
+
+          <label>Transit-Time</label>
+          <div class="row2">
+            <div><label style="margin-top:0">Horas</label><input id="routeHoursV17" type="number" min="0" max="999" step="1" placeholder="75"></div>
+            <div><label style="margin-top:0">Minutos</label><input id="routeMinutesV17" type="number" min="0" max="59" step="1" placeholder="20"></div>
+          </div>
+
+          <div class="routeTimePreview">
+            <b id="routePreviewV17">Digite origem, destino e tempo</b>
+            <span>A rota aparecerá automaticamente em Nova Viagem e Programação de Viagens.</span>
+          </div>
+
+          <button id="routeSaveBtnV17" class="primary" type="button" onclick="saveRouteV17()">＋ Cadastrar rota</button>
+          <button id="routeCancelBtnV17" class="routeCancelBtn" type="button" onclick="cancelRouteEditV17()">Cancelar edição</button>
+        </div>
+
+        <div class="card sectionCard">
+          <div class="sectionHead">
+            <div><h2>🛣 Rotas e Transit-Time</h2><p>Consulte as rotas atuais e cadastre novos trechos sem alterar o código.</p></div>
+            <span id="routeBadgeV17" class="tag">0 ROTAS</span>
+          </div>
+          <div class="routeRegistryToolbar">
+            <div><label>Buscar rota</label><input id="routeSearchV17" placeholder="Ex.: BRE, FOR ou BRE-FOR" oninput="renderRoutesV17()"></div>
+          </div>
+          <div class="tableScroll">
+            <table>
+              <thead><tr><th>ORIGEM</th><th>DESTINO</th><th>TRECHO</th><th>TRANSIT-TIME</th><th>TIPO</th><th>AÇÕES</th></tr></thead>
+              <tbody id="routesBodyV17"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  document.body.appendChild(view);
+
+  ['routeOriginV17','routeDestinationV17','routeHoursV17','routeMinutesV17'].forEach(id=>{
+    $(id).addEventListener('input',updateRoutePreviewV17);
+  });
+}
+function updateRoutePreviewV17(){
+  if(!$('routePreviewV17'))return;
+  const o=normRouteCodeV17($('routeOriginV17').value);
+  const d=normRouteCodeV17($('routeDestinationV17').value);
+  const h=Math.max(0,Number($('routeHoursV17').value||0));
+  const m=Math.max(0,Math.min(59,Number($('routeMinutesV17').value||0)));
+  if(!o||!d||(!h&&!m)){
+    $('routePreviewV17').textContent='Digite origem, destino e tempo';
+    return;
+  }
+  $('routePreviewV17').textContent=`${o} → ${d} • Transit-Time: ${fmtTransit(h+m/60)}`;
+}
+function saveRouteV17(){
+  const origin=normRouteCodeV17($('routeOriginV17').value);
+  const destination=normRouteCodeV17($('routeDestinationV17').value);
+  const hours=Math.max(0,parseInt($('routeHoursV17').value||'0',10)||0);
+  const minutes=Math.max(0,Math.min(59,parseInt($('routeMinutesV17').value||'0',10)||0));
+  if(!origin||!destination)return alert('Preencha a origem e o destino da rota.');
+  if(hours===0&&minutes===0)return alert('Informe o tempo de viagem.');
+  const key=routeKeyV17(origin,destination);
+  const oldKey=$('routeEditKeyV17').value;
+
+  const builtInExists=Object.prototype.hasOwnProperty.call(TIMES,key) &&
+    !customRoutesV17.some(r=>r.key===key);
+
+  if(!oldKey && builtInExists)
+    return alert('Essa rota já existe na lista original. Para preservar a configuração atual, cadastre somente uma rota nova.');
+
+  const duplicate=customRoutesV17.find(r=>r.key===key && r.key!==oldKey);
+  if(duplicate)return alert('Essa rota já está cadastrada.');
+
+  if(oldKey){
+    const idx=customRoutesV17.findIndex(r=>r.key===oldKey);
+    if(idx<0)return alert('Rota não encontrada para edição.');
+    if(oldKey!==key) delete TIMES[oldKey];
+    customRoutesV17[idx]={key,origin,destination,hours,minutes};
+  }else{
+    customRoutesV17.push({key,origin,destination,hours,minutes});
+  }
+
+  TIMES[key]=hours+minutes/60;
+  saveCustomRoutesStorageV17();
+  refreshRouteSelectsV17();
+  cancelRouteEditV17();
+  renderRoutesV17();
+  alert(oldKey?'Rota atualizada com sucesso.':'Rota cadastrada com sucesso.');
+}
+function editRouteV17(key){
+  const r=customRoutesV17.find(x=>x.key===key);
+  if(!r)return;
+  $('routeEditKeyV17').value=r.key;
+  $('routeOriginV17').value=r.origin;
+  $('routeDestinationV17').value=r.destination;
+  $('routeHoursV17').value=r.hours;
+  $('routeMinutesV17').value=r.minutes;
+  $('routeFormTitleV17').textContent='Editar rota';
+  $('routeSaveBtnV17').textContent='✓ Salvar alterações';
+  $('routeCancelBtnV17').style.display='block';
+  updateRoutePreviewV17();
+  document.querySelector('.routeRegistryForm').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function cancelRouteEditV17(){
+  if(!$('routeEditKeyV17'))return;
+  $('routeEditKeyV17').value='';
+  $('routeOriginV17').value='';
+  $('routeDestinationV17').value='';
+  $('routeHoursV17').value='';
+  $('routeMinutesV17').value='';
+  $('routeFormTitleV17').textContent='Nova rota';
+  $('routeSaveBtnV17').textContent='＋ Cadastrar rota';
+  $('routeCancelBtnV17').style.display='none';
+  updateRoutePreviewV17();
+}
+function deleteRouteV17(key){
+  const r=customRoutesV17.find(x=>x.key===key);
+  if(!r)return;
+  if(!confirm(`Excluir a rota ${key} (${fmtTransit(Number(r.hours)+Number(r.minutes)/60)})?`))return;
+  customRoutesV17=customRoutesV17.filter(x=>x.key!==key);
+  delete TIMES[key];
+  saveCustomRoutesStorageV17();
+  refreshRouteSelectsV17();
+  renderRoutesV17();
+}
+function renderRoutesV17(){
+  if(!$('routesBodyV17'))return;
+  const q=String($('routeSearchV17')?.value||'').trim().toUpperCase();
+  const customMap=new Map(customRoutesV17.map(r=>[r.key,r]));
+  const rows=Object.keys(TIMES).sort((a,b)=>a.localeCompare(b,'pt-BR')).filter(key=>!q||key.includes(q));
+  $('routeTotalV17').textContent=Object.keys(TIMES).length;
+  $('routeCustomTotalV17').textContent=customRoutesV17.length;
+  const maxTime=Math.max(0,...Object.values(TIMES).map(Number));
+  $('routeHoursTotalV17').textContent=maxTime?fmtTransit(maxTime):'0h';
+  $('routeBadgeV17').textContent=`${Object.keys(TIMES).length} ROTAS`;
+
+  $('routesBodyV17').innerHTML=rows.length?rows.map(key=>{
+    const parts=key.split('-');
+    const origin=parts[0]||'—',destination=parts.slice(1).join('-')||'—';
+    const custom=customMap.get(key);
+    return `<tr>
+      <td><b>${esc(origin)}</b></td>
+      <td><b>${esc(destination)}</b></td>
+      <td>${esc(key.replace('-',' → '))}</td>
+      <td><b>${fmtTransit(TIMES[key])}</b></td>
+      <td>${custom?'<span class="routeCustom">CADASTRADA</span>':'<span class="routeBuiltIn">ORIGINAL</span>'}</td>
+      <td>${custom?`<div class="routeActions"><button class="routeEditBtn" onclick="editRouteV17('${esc(key)}')">Editar</button><button class="routeDeleteBtn" onclick="deleteRouteV17('${esc(key)}')">Excluir</button></div>`:'—'}</td>
+    </tr>`;
+  }).join(''):'<tr><td colspan="6" class="empty">Nenhuma rota encontrada.</td></tr>';
+}
+
+loadCustomRoutesV17();
+refreshRouteSelectsV17();
+createRoutesUIV17();
+renderRoutesV17();
+setTimeout(()=>{
+  const u=$('updated');
+  if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V17';
+},2200);
+</script>
+<!-- =================== FIM PERF-V17 =================== -->
 
 </body>
   </html>
