@@ -100,14 +100,14 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 .driverRegistryScroll tbody tr{height:49px}
 
 
-/* PERF-V22 • VIAGEM EXTRA */
+/* PERF-V23 • VIAGEM EXTRA */
 .scheduleExtraRow{background:linear-gradient(90deg,#fff4d6 0,#fffaf0 58%,#fff 100%)!important;box-shadow:inset 5px 0 0 #f26b00}
 .scheduleExtraRow td{background:transparent!important}
 .extraBadge{display:inline-block;margin-top:5px;padding:5px 8px;border-radius:999px;background:#f26b00;color:#fff;font-size:9px;font-weight:900;white-space:nowrap;box-shadow:0 2px 7px #f26b0040}
 .extraSelect{border:2px solid #f2b34d;background:#fffaf0;font-weight:800;color:#9a5200}
 
 
-/* PERF-V22 • AÇÕES DA PROGRAMAÇÃO */
+/* PERF-V23 • AÇÕES DA PROGRAMAÇÃO */
 #programmingBody .historyActions{
   display:flex;
   flex-wrap:wrap;
@@ -124,7 +124,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 }
 
 
-/* ================= PERF-V22 • NOVO VISUAL PROGRAMAÇÃO ================= */
+/* ================= PERF-V23 • NOVO VISUAL PROGRAMAÇÃO ================= */
 #programmingView .schedulePage{max-width:1700px;padding-top:14px}
 .programmingHero{
   min-height:145px;border-radius:18px;margin-bottom:14px;padding:22px 28px;
@@ -178,7 +178,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 }
 
 
-/* ============ PERF-V22 • PROGRAMAÇÃO IGUAL À REFERÊNCIA ============ */
+/* ============ PERF-V23 • PROGRAMAÇÃO IGUAL À REFERÊNCIA ============ */
 .programmingHeroV22{
   height:175px;margin-bottom:14px;border-radius:18px;overflow:hidden;position:relative;
   display:grid;grid-template-columns:1fr 560px 1fr;align-items:center;padding:0 26px;
@@ -235,12 +235,71 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 @media(max-width:1200px){.programmingHeroV22{grid-template-columns:1fr 400px 1fr}.programmingBrandV22 h1{font-size:19px}.programmingMissionV22{font-size:13px}}
 @media(max-width:900px){.programmingHeroV22{grid-template-columns:1fr;height:auto;min-height:130px;padding:18px}.programmingTruckV22{display:none}.programmingMissionV22{display:none}#programmingView .scheduleGrid{grid-template-columns:1fr!important}}
 
+
+/* ========== PERF-V23 • TABELA CENTRALIZADA + AÇÕES NO PADRÃO ========== */
+#programmingView .tableScroll table{
+  font-size:12px!important;
+}
+#programmingView .tableScroll thead th{
+  text-align:center!important;
+  vertical-align:middle!important;
+  font-size:10px!important;
+  line-height:1.25!important;
+  padding:11px 7px!important;
+}
+#programmingView .tableScroll tbody td{
+  text-align:center!important;
+  vertical-align:middle!important;
+  font-size:11px!important;
+  line-height:1.3!important;
+  padding:10px 7px!important;
+}
+#programmingView #programmingBody .historyActions{
+  display:grid!important;
+  grid-template-columns:64px 92px 42px!important;
+  gap:6px!important;
+  justify-content:center!important;
+  align-items:stretch!important;
+  min-width:216px!important;
+}
+#programmingView #programmingBody .scheduleBtn{
+  min-height:38px!important;
+  border-radius:7px!important;
+  padding:6px 7px!important;
+  font-size:10px!important;
+  line-height:1.15!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  white-space:normal!important;
+  box-shadow:0 2px 5px #0002!important;
+}
+#programmingView #programmingBody .scheduleStart{background:linear-gradient(#19aa59,#0c8a43)!important}
+#programmingView #programmingBody .scheduleEdit{background:linear-gradient(#0878f3,#075bd0)!important}
+#programmingView #programmingBody .scheduleDelete{
+  background:linear-gradient(#ff3948,#e51627)!important;
+  min-width:42px!important;
+  font-size:0!important;
+}
+#programmingView #programmingBody .scheduleDelete:before{
+  content:"🗑";font-size:16px!important;
+}
+#programmingView #programmingBody td:nth-child(11){
+  min-width:135px!important;
+  white-space:normal!important;
+}
+#programmingView #programmingBody td:nth-child(5),
+#programmingView #programmingBody td:nth-child(6){
+  min-width:115px!important;
+}
+
 </style>
 </head>
 <body>
 <header>
   <div class="brand"><div class="logo">TRANS<span class="lek">LEK</span></div><div class="vline"></div><div class="title"><h1>Controle de Chegadas</h1><p>Transit-Time • SLA • Performance</p></div></div>
-  <div class="headright"><div id="updated">Atualizado: — • PERF-V22</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
+  <div class="headright"><div id="updated">Atualizado: — • PERF-V23</div><div class="online"><span class="dot"></span>Online</div><div class="share">↗ Compartilhar</div></div>
 </header>
 <nav class="tabs">
   <button class="tabBtn active" data-view="operationView">🚚 Operação</button>
@@ -810,7 +869,7 @@ function renderProgramming(){
 async function loadProgramming(){try{programmingCache=await api('trip_programming?select=*&order=program_date.asc,departure_time.asc');renderProgramming()}catch(e){console.error('Erro programação:',e)}}
 
 function setDefaultDates(){let b=new Date(),a=new Date();a.setDate(b.getDate()-1);$('dateA').value=dayKey(a);$('dateB').value=dayKey(b)}setDefaultDates();
-function render(){const queueTerm=$('queueNameFilter').value.trim().toLowerCase(),historyTerm=$('historyNameFilter').value.trim().toLowerCase(),allDone=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));renderPerformance(allDone);let active=tripsCache.filter(x=>!x.done&&(!queueTerm||(x.driver||'').toLowerCase().includes(queueTerm))).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival)),done=allDone.filter(x=>!historyTerm||(x.driver||'').toLowerCase().includes(historyTerm));$('queueBadge').textContent=`#${active.length} NA FILA`;$('queueBody').innerHTML=active.length?active.map((t,i)=>`<tr><td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${esc(t.transit||'—')}</td><td>${countdownText(t.arrival)}</td><td><div class="historyActions"><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button><button class="deleteBtn" onclick="deleteActiveTrip(${t.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">Nenhuma viagem ativa.</td></tr>`;let grouped=[],last='';for(let t of done){let key=dayKey(t.real_arrival);if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="6">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}grouped.push(`<tr><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${fmtDT(t.arrival)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)}$('historyBody').innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="6" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;let on=done.filter(x=>x.on_time).length,late=done.length-on;$('kOn').textContent=on;$('kLate').textContent=late;$('kDone').textContent=done.length;$('kActive').textContent=active.length;let routes=[...new Set(done.map(x=>x.route).filter(Boolean))].sort(),pr=$('effRoute').value;$('effRoute').innerHTML='<option value="ALL">Todas as rotas</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');$('effRoute').value=pr==='ALL'||routes.includes(pr)?pr:'ALL';let q=quinzenalRange(),rs=$('effRoute').value,qd=done.filter(x=>{let d=new Date(x.real_arrival);return d>=q.start&&d<=q.end&&(rs==='ALL'||x.route===rs)}),qo=qd.filter(x=>x.on_time).length,qe=qd.length?Math.round(qo/qd.length*100):null;$('efficiency').textContent=qe===null?'—':qe+'%';$('effText').textContent=qe===null?'Sem chegadas concluídas nesta quinzena.':`${qo} de ${qd.length} chegadas no prazo nesta quinzena.`;$('effRange').textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')}`;$('effRouteLabel').textContent=rs==='ALL'?'Todas as rotas':`Rota: ${rs}`;$('nextCountdown').textContent=active.length?countdownText(active[0].arrival):'—';function ds(k){let a=done.filter(x=>dayKey(x.real_arrival)===k),o=a.filter(x=>x.on_time).length;return{o,l:a.length-o,t:a.length,p:a.length?Math.round(o/a.length*100):null}}let A=ds($('dateA').value),B=ds($('dateB').value);$('labelA').textContent=new Date($('dateA').value+'T12:00').toLocaleDateString('pt-BR');$('labelB').textContent=new Date($('dateB').value+'T12:00').toLocaleDateString('pt-BR');$('onA').textContent=A.o;$('lateA').textContent=A.l;$('totA').textContent=A.t;$('onB').textContent=B.o;$('lateB').textContent=B.l;$('totB').textContent=B.t;if(A.p===null||B.p===null){$('delta').textContent='—';$('deltaTxt').textContent='Sem dados nos dois dias'}else{let d=B.p-A.p;$('delta').textContent=(d>0?'+':'')+d+' p.p.';$('deltaTxt').textContent=d>0?'Melhora':d<0?'Queda':'Estável'}renderFiscal();renderDelays();renderExecutive();renderDepartureAlerts();$('updated').textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V22'}
+function render(){const queueTerm=$('queueNameFilter').value.trim().toLowerCase(),historyTerm=$('historyNameFilter').value.trim().toLowerCase(),allDone=tripsCache.filter(x=>x.done&&x.real_arrival).sort((a,b)=>new Date(b.real_arrival)-new Date(a.real_arrival));renderPerformance(allDone);let active=tripsCache.filter(x=>!x.done&&(!queueTerm||(x.driver||'').toLowerCase().includes(queueTerm))).sort((a,b)=>new Date(a.arrival)-new Date(b.arrival)),done=allDone.filter(x=>!historyTerm||(x.driver||'').toLowerCase().includes(historyTerm));$('queueBadge').textContent=`#${active.length} NA FILA`;$('queueBody').innerHTML=active.length?active.map((t,i)=>`<tr><td><span class="tag">${i+1}</span></td><td>${fmtDT(t.arrival)}</td><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${esc(t.transit||'—')}</td><td>${countdownText(t.arrival)}</td><td><div class="historyActions"><button class="statusBtn" onclick="conclude(${t.id},'${t.arrival}')">Chegou</button><button class="deleteBtn" onclick="deleteActiveTrip(${t.id})">Excluir</button></div></td></tr>`).join(''):`<tr><td colspan="8" class="empty">Nenhuma viagem ativa.</td></tr>`;let grouped=[],last='';for(let t of done){let key=dayKey(t.real_arrival);if(key!==last){grouped.push(`<tr class="dayGroup"><td colspan="6">${new Date(key+'T12:00').toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'2-digit',year:'numeric'})}</td></tr>`);last=key}grouped.push(`<tr><td>${esc(t.driver)}</td><td><b>${esc(t.plate||'—')}</b></td><td>${esc(t.route)}</td><td>${fmtDT(t.arrival)}</td><td>${fmtDT(t.real_arrival)}</td><td><div class="historyActions"><button class="statusBtn" style="background:${t.on_time?'#18a75b':'#e01c2b'}" onclick="editArrival(${t.id},'${t.arrival}','${t.real_arrival}')">${t.on_time?'No prazo':'Atrasada'}</button><button class="deleteBtn" onclick="deleteTrip(${t.id})">Excluir</button></div></td></tr>`)}$('historyBody').innerHTML=grouped.length?grouped.join(''):`<tr><td colspan="6" class="empty">Nenhuma viagem concluída ainda.</td></tr>`;let on=done.filter(x=>x.on_time).length,late=done.length-on;$('kOn').textContent=on;$('kLate').textContent=late;$('kDone').textContent=done.length;$('kActive').textContent=active.length;let routes=[...new Set(done.map(x=>x.route).filter(Boolean))].sort(),pr=$('effRoute').value;$('effRoute').innerHTML='<option value="ALL">Todas as rotas</option>'+routes.map(r=>`<option value="${esc(r)}">${esc(r)}</option>`).join('');$('effRoute').value=pr==='ALL'||routes.includes(pr)?pr:'ALL';let q=quinzenalRange(),rs=$('effRoute').value,qd=done.filter(x=>{let d=new Date(x.real_arrival);return d>=q.start&&d<=q.end&&(rs==='ALL'||x.route===rs)}),qo=qd.filter(x=>x.on_time).length,qe=qd.length?Math.round(qo/qd.length*100):null;$('efficiency').textContent=qe===null?'—':qe+'%';$('effText').textContent=qe===null?'Sem chegadas concluídas nesta quinzena.':`${qo} de ${qd.length} chegadas no prazo nesta quinzena.`;$('effRange').textContent=`Período: ${q.start.toLocaleDateString('pt-BR')} a ${q.end.toLocaleDateString('pt-BR')}`;$('effRouteLabel').textContent=rs==='ALL'?'Todas as rotas':`Rota: ${rs}`;$('nextCountdown').textContent=active.length?countdownText(active[0].arrival):'—';function ds(k){let a=done.filter(x=>dayKey(x.real_arrival)===k),o=a.filter(x=>x.on_time).length;return{o,l:a.length-o,t:a.length,p:a.length?Math.round(o/a.length*100):null}}let A=ds($('dateA').value),B=ds($('dateB').value);$('labelA').textContent=new Date($('dateA').value+'T12:00').toLocaleDateString('pt-BR');$('labelB').textContent=new Date($('dateB').value+'T12:00').toLocaleDateString('pt-BR');$('onA').textContent=A.o;$('lateA').textContent=A.l;$('totA').textContent=A.t;$('onB').textContent=B.o;$('lateB').textContent=B.l;$('totB').textContent=B.t;if(A.p===null||B.p===null){$('delta').textContent='—';$('deltaTxt').textContent='Sem dados nos dois dias'}else{let d=B.p-A.p;$('delta').textContent=(d>0?'+':'')+d+' p.p.';$('deltaTxt').textContent=d>0?'Melhora':d<0?'Queda':'Estável'}renderFiscal();renderDelays();renderExecutive();renderDepartureAlerts();$('updated').textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V23'}
 
 document.querySelectorAll('.tabBtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tabBtn').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.view).classList.add('active');render();if(b.dataset.view==='programmingView')renderProgramming()}));
 ['dateA','dateB','effRoute','fiscalDateFilter','performanceFortnight','driverPerfFilter','companyPerfFilter','queueNameFilter','historyNameFilter','delayPeriod','delayDriverFilter','delayCompanyFilter','delayRouteFilter','delayReasonFilter','execPeriod','execCompany'].forEach(id=>{let el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',render)});
@@ -1711,13 +1770,13 @@ setTimeout(()=>{
 <!-- =================== FIM PERF-V14 =================== -->
 
 
-<!-- ===================== PERF-V22 • PLACAS ===================== -->
+<!-- ===================== PERF-V23 • PLACAS ===================== -->
 <style>
 .plateQuick{padding:14px 16px}.plateQuickTop{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}.plateQuickTop h2{font-size:15px}.plateQuickResult{margin-top:8px;min-height:48px;border:1px solid var(--line);background:#f8fbff;border-radius:10px;padding:9px 11px;font-size:11px}.plateQuickResult b{display:block;color:#0b3b8e;font-size:14px;margin-bottom:3px}.plateQuickMatches{display:grid;gap:6px}.plateQuickMatch{border:0;background:#fff;border-radius:8px;padding:7px 8px;text-align:left;cursor:pointer;border:1px solid #e2eaf4}.plateQuickMatch:hover{background:#edf5ff}.plateRegistryPage{max-width:1600px;margin:auto;padding:16px}.plateRegistryStats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}.plateRegistryStat{padding:16px}.plateRegistryStat b{display:block;font-size:27px;color:#0b3b8e}.plateRegistryStat span{font-size:9px;color:var(--muted)}.plateRegistryGrid{display:grid;grid-template-columns:360px 1fr;gap:14px}.plateRegistryForm{padding:16px}.plateRegistryToolbar{display:flex;gap:10px;align-items:end;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--line);background:#fbfcfe}.plateRegistryToolbar>div{min-width:260px;flex:1}.plateRegistryScroll{max-height:535px;overflow:auto}.plateRegistryScroll thead th{position:sticky;top:0;z-index:3;background:#f7f9fc}.plateEditBtn{border:0;border-radius:8px;background:#6a35c5;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}.plateDeleteBtn{border:0;border-radius:8px;background:#e01c2b;color:#fff;padding:7px 9px;font-weight:700;font-size:10px;cursor:pointer}.plateHint{margin-top:10px;font-size:10px;color:var(--muted);line-height:1.45}.plateLookupEmpty{color:var(--muted)}.fleetSummary{margin-top:14px;padding:0;overflow:hidden}.fleetSummaryGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;padding:14px}.fleetCompanyCard{border:1px solid var(--line);border-radius:12px;background:#fbfdff;padding:12px}.fleetCompanyCard h3{margin:0 0 10px;color:#0b3b8e;font-size:14px}.fleetNumbers{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}.fleetNumber{border:1px solid #e5ebf3;background:#fff;border-radius:9px;padding:9px;text-align:center}.fleetNumber b{display:block;font-size:20px;color:#0b3b8e}.fleetNumber span{font-size:8px;color:var(--muted)}.vehicleTypeTag{display:inline-block;padding:4px 7px;border-radius:999px;font-size:9px;font-weight:900;background:#edf4ff;color:#0b4fb7}
 @media(max-width:750px){.plateRegistryPage{padding:10px}.plateRegistryGrid{grid-template-columns:1fr}.plateRegistryStats{grid-template-columns:1fr 1fr}.plateQuick{padding:12px}}
 </style>
 <script>
-/* ===================== PERF-V22 • CADASTRO / BUSCA DE PLACAS ===================== */
+/* ===================== PERF-V23 • CADASTRO / BUSCA DE PLACAS ===================== */
 let vehiclePlatesCache=[];
 function plateKeyV15(v){return String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7)}
 function formatPlateV15(v){
@@ -1845,12 +1904,12 @@ async function deleteVehiclePlateV15(id){const x=vehiclePlatesCache.find(v=>Stri
 
 createPlateUIV15();createQuickPlateSearchV15();loadVehiclePlatesV15();
 setInterval(loadVehiclePlatesV15,30000);
-setTimeout(()=>{const u=$('updated');if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V22';},1800);
+setTimeout(()=>{const u=$('updated');if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V23';},1800);
 </script>
-<!-- =================== FIM PERF-V22 =================== -->
+<!-- =================== FIM PERF-V23 =================== -->
 
 
-<!-- =================== PERF-V22 • CADASTRO DE ROTAS =================== -->
+<!-- =================== PERF-V23 • CADASTRO DE ROTAS =================== -->
 <style>
 .routeRegistryPage{max-width:1600px;margin:auto;padding:16px}
 .routeRegistryGrid{display:grid;grid-template-columns:380px 1fr;gap:14px}
@@ -1879,7 +1938,7 @@ setTimeout(()=>{const u=$('updated');if(u)u.textContent='Atualizado: '+fmtDT(new
 </style>
 
 <script>
-/* PERF-V22 • Cadastro de rotas e Transit-Time
+/* PERF-V23 • Cadastro de rotas e Transit-Time
    As rotas personalizadas ficam salvas no navegador e entram imediatamente
    nos seletores de Operação e Programação de Viagens. */
 const ROUTES_STORAGE_V17='translek_custom_routes_v17';
@@ -2122,10 +2181,10 @@ createRoutesUIV17();
 renderRoutesV17();
 setTimeout(()=>{
   const u=$('updated');
-  if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V22';
+  if(u)u.textContent='Atualizado: '+fmtDT(new Date())+' • PERF-V23';
 },2200);
 </script>
-<!-- =================== FIM PERF-V22 =================== -->
+<!-- =================== FIM PERF-V23 =================== -->
 
 </body>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </html>
