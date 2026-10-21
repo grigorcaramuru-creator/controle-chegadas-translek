@@ -434,7 +434,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 <div class="card next"><h3>◷ Tempo restante para a próxima chegada</h3><div id="nextCountdown" class="countdown">—</div><div class="small">Baseado na viagem do topo da fila</div></div></div>
 <div class="kpis"><div class="card kpi"><div><b id="kOn" style="color:var(--green)">0</b><br><span>NO PRAZO</span></div><div class="icon" style="color:var(--green)">✓</div></div><div class="card kpi"><div><b id="kLate" style="color:var(--orange)">0</b><br><span>ATRASADAS</span></div><div class="icon" style="color:var(--orange)">△</div></div><div class="card kpi"><div><b id="kDone" style="color:var(--blue)">0</b><br><span>CONCLUÍDAS</span></div><div class="icon" style="color:var(--blue)">⚑</div></div><div class="card kpi"><div><b id="kActive" style="color:var(--purple)">0</b><br><span>ATIVAS</span></div><div class="icon" style="color:var(--purple)">▣</div></div></div>
 <div class="queueHistory">
-<div class="card sectionCard"><div class="sectionHead"><div><h2>▣ Fila de chegadas</h2><p>Ordenada automaticamente pela previsão de chegada</p></div><span id="queueBadge" class="tag">#0 NA FILA</span></div><div style="margin:10px 16px 12px"><label>Buscar motorista</label><input id="queueNameFilter" placeholder="Digite o nome do motorista"></div><div class="tableScroll"><table><thead><tr><th>ORDEM</th><th>PREVISÃO CHEGADA</th><th>MOTORISTA</th><th>PLACA</th><th>TRECHO</th><th>TRANSIT-TIME</th><th>TEMPO RESTANTE</th><th>AÇÕES</th></tr></thead><tbody id="queueBody"></tbody></table></div></div>
+<div class="card sectionCard"><div class="sectionHead"><div><h2>▣ Fila de chegadas</h2><p>Todas as viagens ativas, de qualquer data, ordenadas pela previsão de chegada</p></div><span id="queueBadge" class="tag">#0 NA FILA</span></div><div style="margin:10px 16px 12px"><label>Buscar motorista</label><input id="queueNameFilter" placeholder="Digite o nome do motorista"></div><div class="tableScroll"><table><thead><tr><th>ORDEM</th><th>PREVISÃO CHEGADA</th><th>MOTORISTA</th><th>PLACA</th><th>TRECHO</th><th>TRANSIT-TIME</th><th>TEMPO RESTANTE</th><th>AÇÕES</th></tr></thead><tbody id="queueBody"></tbody></table></div></div>
 <div class="card sectionCard"><div class="sectionHead"><div><h2>▣ Histórico por dia</h2><p>Viagens concluídas separadas pela data de chegada real</p></div></div><div style="margin:10px 16px 12px"><label>Buscar motorista no histórico</label><input id="historyNameFilter" placeholder="Digite o nome do motorista"></div><div class="historyWrap"><div class="tableScroll"><table><thead><tr><th>MOTORISTA</th><th>PLACA</th><th>TRECHO</th><th>PREVISÃO CHEGADA</th><th>CHEGADA REAL</th><th>STATUS / AÇÕES</th></tr></thead><tbody id="historyBody"></tbody></table></div></div></div>
 </div>
 <div class="card performanceSection"><div class="sectionHead"><div><h2>◎ Performance por motorista e empresa</h2><p>Indicadores calculados automaticamente pelas viagens concluídas.</p></div><span id="performanceBadge" class="tag">QUINZENA</span></div>
@@ -1016,7 +1016,29 @@ document.querySelectorAll('.tabBtn').forEach(b=>b.addEventListener('click',()=>{
 $('programCpf').addEventListener('input',function(){this.value=formatCPFValue(this.value)});
 $('programCpf2').addEventListener('input',function(){this.value=formatCPFValue(this.value)});
 
-async function load(){try{[tripsCache,fiscalCache]=await Promise.all([api('trips?select=*&order=arrival.asc'),api('fiscal_stops?select=*&order=started_at.desc')]);render()}catch(e){console.error(e);alert('Erro ao carregar dados: '+e.message)}}
+// PERF-V29: carrega TODAS as viagens em paginas para evitar o limite de 1000 registros do PostgREST.
+async function loadAllTrips(){
+  const pageSize=500;
+  const all=[];
+  for(let offset=0;offset<100000;offset+=pageSize){
+    const page=await api('trips?select=*&order=arrival.asc&limit='+pageSize+'&offset='+offset);
+    if(!Array.isArray(page))throw Error('Resposta inesperada ao consultar viagens.');
+    all.push(...page);
+    if(page.length<pageSize)return all;
+  }
+  throw Error('Limite de seguranca de consulta atingido.');
+}
+async function load(){
+  try{
+    const [allTrips,allFiscal]=await Promise.all([
+      loadAllTrips(),
+      api('fiscal_stops?select=*&order=started_at.desc')
+    ]);
+    tripsCache=allTrips;
+    fiscalCache=allFiscal;
+    render();
+  }catch(e){console.error(e);alert('Erro ao carregar dados: '+e.message)}
+}
 setInterval(()=>{updatePreview();render();renderProgramming()},1000);
 setInterval(()=>{load();loadProgramming()},30000);
 load();loadProgramming();
