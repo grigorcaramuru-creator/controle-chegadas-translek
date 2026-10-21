@@ -2375,5 +2375,30 @@ async function commCopyMessage(){const msg=document.getElementById('commMessage'
 setTimeout(commRenderDrivers,1800);
 </script>
 
+
+<script>
+/* PERF-V26 - Diagnóstico seguro de salvamento, sem alteração do banco */
+(function(){
+  function showSaveError(label,err){
+    console.error('[TRANSLEK] Falha ao salvar '+label,err);
+    var msg=(err&&err.message)?err.message:String(err||'Erro desconhecido');
+    var detail=msg;
+    try { var j=JSON.parse(msg); detail=j.message||msg; if(j.details)detail+=' | '+j.details; if(j.hint)detail+=' | '+j.hint; }catch(_e){}
+    alert('Não foi possível salvar '+label+'.\n\nMotivo: '+detail+'\n\nOs dados existentes não foram apagados. Tire um print desta mensagem e envie para corrigirmos a causa.');
+  }
+  function protect(name,label){
+    var fn=window[name]; if(typeof fn!=='function')return;
+    window[name]=async function(){
+      try { return await fn.apply(this,arguments); }
+      catch(err){showSaveError(label,err);return null;}
+    };
+  }
+  protect('saveTrip','a viagem na fila');
+  protect('saveProgramming','a programação da viagem');
+  window.addEventListener('unhandledrejection',function(event){
+    console.error('[TRANSLEK] Erro assíncrono:',event.reason);
+  });
+})();
+</script>
 </body>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </html>
