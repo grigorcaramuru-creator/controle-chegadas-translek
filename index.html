@@ -2543,5 +2543,51 @@ const mgQOriginalRender=mgRender;mgRender=function(){mgQOriginalRender();mgRende
 setInterval(()=>{if(document.getElementById('managementView')?.classList.contains('active'))mgRender()},60000);
 document.querySelector('[data-view="managementView"]').addEventListener('click',()=>mgRender());mgToggle();
 </script>
+
+<!-- PERF-V36: Bloqueio visual do Gerenciamento (não substitui autenticação no servidor) -->
+<style>
+#mgAccessOverlay{position:fixed;inset:0;z-index:200;background:#06172acc;display:none;align-items:center;justify-content:center;padding:18px}
+#mgAccessOverlay.open{display:flex}
+#mgAccessBox{background:#fff;border-radius:18px;padding:26px;width:min(410px,100%);box-shadow:0 25px 80px #0006;text-align:center}
+#mgAccessBox h2{margin:8px 0;color:#06296f}
+#mgAccessBox p{font-size:12px;color:#667085;line-height:1.5}
+#mgAccessError{color:#c91828;font-size:12px;min-height:18px;margin-top:8px}
+#mgLockButton{border:0;background:#d71920;color:#fff;border-radius:9px;padding:9px 12px;font-weight:800;cursor:pointer;margin-left:10px}
+</style>
+<div id="mgAccessOverlay" role="dialog" aria-modal="true" aria-labelledby="mgAccessTitle">
+ <div id="mgAccessBox"><div style="font-size:35px">🔐</div><h2 id="mgAccessTitle">Gerenciamento Translek</h2>
+ <p>Área restrita. Informe a senha para acessar os IDs, diárias e fechamento quinzenal.</p>
+ <form id="mgAccessForm"><label for="mgAccessPassword" style="text-align:left">Senha de acesso</label>
+ <input id="mgAccessPassword" type="password" autocomplete="off" required placeholder="Digite a senha">
+ <div id="mgAccessError" role="alert"></div><button class="primary" type="submit">🔓 Entrar no Gerenciamento</button></form>
+ <button type="button" class="secondaryBtn" id="mgAccessCancel" style="margin-top:10px">Cancelar</button></div></div>
+<script>
+/* Bloqueio de interface. A proteção efetiva dos dados exige controle de acesso no backend. */
+(()=>{
+const managementTab=document.querySelector('[data-view="managementView"]');
+const managementView=document.getElementById('managementView');
+const overlay=document.getElementById('mgAccessOverlay');
+if(!managementTab||!managementView||!overlay)return;
+const input=document.getElementById('mgAccessPassword');
+const error=document.getElementById('mgAccessError');
+let unlocked=false;
+const expected='340debe651206cdc446db18ee5c6312628215cb24c2a061d48e01986b83b1b2f';
+const enc=new TextEncoder();
+async function digestText(value){
+ const bytes=await crypto.subtle.digest('SHA-256',enc.encode(value));
+ return Array.from(new Uint8Array(bytes)).map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function openGate(){overlay.classList.add('open');input.value='';error.textContent='';input.focus();}
+function closeGate(){overlay.classList.remove('open');input.value='';error.textContent='';}
+function lock(){unlocked=false;const lockBtn=document.getElementById('mgLockButton');if(lockBtn)lockBtn.remove();}
+function enterManagement(){unlocked=true;closeGate();managementTab.click();if(!document.getElementById('mgLockButton')){const btn=document.createElement('button');btn.id='mgLockButton';btn.type='button';btn.textContent='🔒 Bloquear Gerenciamento';btn.addEventListener('click',()=>{lock();document.querySelector('[data-view="operationView"]').click();});const head=managementView.querySelector('h2');if(head)head.after(btn);}}
+managementTab.addEventListener('click',e=>{if(!unlocked){e.preventDefault();e.stopImmediatePropagation();openGate();}},true);
+document.querySelectorAll('.tabBtn').forEach(tab=>{if(tab!==managementTab)tab.addEventListener('click',()=>{if(unlocked)lock();closeGate();},true);});
+document.getElementById('mgAccessCancel').addEventListener('click',closeGate);
+document.getElementById('mgAccessForm').addEventListener('submit',async e=>{e.preventDefault();try{if(await digestText(input.value)===expected)enterManagement();else{error.textContent='Senha incorreta. Tente novamente.';input.select();}}catch(_e){error.textContent='Não foi possível validar a senha neste navegador.';}});
+window.addEventListener('pagehide',lock);
+})();
+</script>
+
 </body>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </html>
