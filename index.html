@@ -454,7 +454,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 <div id="managementView" class="view"><main class="mgPage">
 <div class="card pad"><h2>🚛 Gerenciamento de Viagens e Diárias</h2><p class="small">IDs por programação • chegada • tempo parado • diárias • destino final manual</p>
 <div class="mgStats"><div><b id="mgTotal">0</b><span>Programações</span></div><div><b id="mgMissing">0</b><span>IDs pendentes</span></div><div><b id="mgActive">0</b><span>Paradas abertas</span></div><div><b id="mgDaily">0</b><span>Diárias acumuladas</span></div></div>
-<div class="card pad" style="margin:14px 0;background:#f5f9ff"><h2>📅 Fechamento quinzenal — IDs e Diárias</h2><div class="row2"><div><label>Selecionar quinzena</label><select id="mgFortnight" onchange="mgRenderFortnight()"></select></div><div><label>Critério</label><div class="small" style="padding:12px">IDs pela data programada; diárias pela data em que cada diária é completada.</div></div></div><div class="mgStats" style="margin-top:12px"><div><b id="mgQIds">0</b><span>IDs registrados</span></div><div><b id="mgQExpected">0</b><span>IDs previstos</span></div><div><b id="mgQMissing">0</b><span>IDs faltantes</span></div><div><b id="mgQDays">0</b><span>Diárias na quinzena</span></div></div><div class="tableScroll"><table><thead><tr><th>Empresa</th><th>Programações</th><th>IDs registrados</th><th>IDs faltantes</th><th>Diárias</th></tr></thead><tbody id="mgQRows"></tbody></table></div></div>
+<div class="card pad" style="margin:14px 0;background:#f5f9ff"><h2>📅 Fechamento quinzenal — IDs e Diárias</h2><div class="row2"><div><label>Selecionar quinzena</label><select id="mgFortnight" onchange="mgRenderFortnight()"></select></div><div><label>Critério</label><div class="small" style="padding:12px">ID de ida pela saída; ID de volta pela chegada final manual. Cadastro dos IDs pode ocorrer depois. Diárias na quinzena em que são completadas.</div></div></div><div class="mgStats" style="margin-top:12px"><div><b id="mgQIds">0</b><span>IDs registrados</span></div><div><b id="mgQExpected">0</b><span>IDs previstos</span></div><div><b id="mgQMissing">0</b><span>IDs faltantes</span></div><div><b id="mgQDays">0</b><span>Diárias na quinzena</span></div></div><div class="tableScroll"><table><thead><tr><th>Empresa</th><th>Programações</th><th>IDs registrados</th><th>IDs faltantes</th><th>Diárias</th></tr></thead><tbody id="mgQRows"></tbody></table></div></div>
 <div class="row2"><div><label>Buscar motorista, placa ou ID</label><input id="mgSearch" oninput="mgRender()" placeholder="Pesquisar"></div><div><label>Situação</label><select id="mgFilter" onchange="mgRender()"><option value="">Todas</option><option value="PENDENTE">IDs pendentes</option><option value="PARADA">Paradas em andamento</option><option value="FINALIZADA">Destinos finalizados</option></select></div></div></div>
 <div class="card pad" style="margin-top:14px"><div class="tableScroll"><table><thead><tr><th>Motorista / Empresa</th><th>Trecho / Placa</th><th>Tipo</th><th>IDs</th><th>Parada atual</th><th>Diárias</th><th>Situação</th><th>Ações</th></tr></thead><tbody id="mgRows"></tbody></table></div></div>
 <p class="small">Diárias: 1 após 24h completas de parada, +1 a cada 10h completas adicionais. Encerramento manual interrompe a contagem definitivamente.</p>
@@ -491,8 +491,8 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 
 <div class="row2"><div><label>Placa do cavalo</label><input id="programPlate" placeholder="ABC-1D23"></div><div><label>Placa da carreta</label><input id="programTrailerPlate" placeholder="ABC-1D23"></div></div>
 <label>Tipo de viagem</label><select id="mgType" onchange="mgToggle()"><option value="NORMAL">Normal — ida e volta</option><option value="ONE_WAY">One Way — apenas ida</option></select>
-<label>ID da ida</label><input id="programTripId" placeholder="ID obrigatório da ida">
-<div id="mgReturnWrap"><label>ID da volta</label><input id="mgReturnId" placeholder="ID obrigatório da volta (diferente da ida)"></div>
+<label>ID da ida (preenchimento posterior no Gerenciamento)</label><input id="programTripId" placeholder="Opcional ao programar">
+<div id="mgReturnWrap"><label>ID da volta</label><input id="mgReturnId" placeholder="Opcional ao programar; pode preencher depois"></div>
 <label>Viagem extra?</label>
 <select id="programExtra" class="extraSelect">
   <option value="NAO">Não • Viagem normal</option>
@@ -2437,7 +2437,7 @@ setTimeout(commRenderDrivers,1800);
 .mgPage{max-width:1600px;margin:auto;padding:16px}.mgStats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.mgStats>div{background:#eff5ff;border-radius:12px;padding:16px;border-left:4px solid #0a4eb6}.mgStats b{display:block;color:#06296f;font-size:25px}.mgStats span{font-size:11px;color:#52637a}.mgBtn{border:0;background:#0d63e5;color:white;border-radius:7px;padding:7px 9px;margin:2px;font-size:11px;font-weight:700;cursor:pointer}.mgBtn.red{background:#e01c2b}.mgBtn.green{background:#18a75b}.mgBtn.gray{background:#6d7787}.mgPill{border-radius:8px;padding:4px 7px;font-size:10px;font-weight:bold;background:#eaf2ff;display:inline-block}.mgPill.warn{background:#fff0d6;color:#a35b00}.mgPill.ok{background:#e8f8ef;color:#087a3d}@media(max-width:750px){.mgStats{grid-template-columns:1fr 1fr}.mgPage{padding:10px}}
 </style>
 <script>
-/* PERF-V33 • GERENCIAMENTO. Metadados persistidos em observation no Supabase,
+/* PERF-V34 • GERENCIAMENTO. Metadados persistidos em observation no Supabase,
    sem alterar tabelas nem perder o histórico. */
 const MG_TAG='[TRANSLEK_MG_V30:';
 function mgExtract(p){
@@ -2462,6 +2462,15 @@ async function mgPatch(p,m,updates={}){
  await loadProgramming();mgRender();
 }
 function mgFind(id){return programmingCache.find(x=>String(x.id)===String(id))}
+async function mgEditIds(id){
+ const p=mgFind(id);if(!p)return;const m=mgExtract(p);
+ const ida=prompt('ID da ida (pode ser cadastrado depois)',p.trip_id||'');if(ida===null)return;
+ let volta=m.returnId||'';
+ if(m.type==='NORMAL'){const v=prompt('ID da volta (pode ser cadastrado depois)',volta);if(v===null)return;volta=v.trim()}
+ const a=ida.trim();if(a&&volta&&a===volta)return alert('Os IDs de ida e volta devem ser diferentes.');
+ m.returnId=m.type==='NORMAL'?volta:'';
+ try{await mgPatch(p,m,{trip_id:a})}catch(e){alert('Erro ao salvar IDs: '+e.message)}
+}
 async function mgArrival(id){const p=mgFind(id);if(!p)return;const m=mgExtract(p);if(m.finalAt)return alert('Destino final já encerrado.');if((m.stops||[]).some(x=>!x.end))return alert('Já existe uma parada em andamento.');const t=mgAskTime('Registrar chegada real ao destino');if(!t)return;
  m.stops=m.stops||[];m.stops.push({start:t,end:null});try{await mgPatch(p,m)}catch(e){alert('Erro ao salvar chegada: '+e.message)}}
 async function mgDeparture(id){const p=mgFind(id);if(!p)return;const m=mgExtract(p);if(m.finalAt)return alert('Destino final encerrado.');const st=(m.stops||[]).find(x=>!x.end);if(!st)return alert('Não existe parada aberta.');const t=mgAskTime('Registrar início da próxima viagem');if(!t)return;if(new Date(t)<new Date(st.start))return alert('Saída não pode ser anterior à chegada.');st.end=t;try{await mgPatch(p,m)}catch(e){alert('Erro ao salvar saída: '+e.message)}}
@@ -2471,11 +2480,11 @@ function mgRender(){const tbody=document.getElementById('mgRows');if(!tbody)retu
  const rows=(typeof programmingCache!=='undefined'?programmingCache:[]).filter(p=>mgExtract(p).type!=='LEGADO').map(p=>{const m=mgExtract(p),open=(m.stops||[]).find(x=>!x.end),n=mgSum(m),needed=m.type==='NORMAL'?2:m.type==='ONE_WAY'?1:0,have=Number(!!p.trip_id)+Number(!!m.returnId),pending=needed>0&&have<needed;missing+=Number(pending);active+=Number(!!open&&!m.finalAt);days+=n;return {p,m,open,n,pending,needed,have}});
  document.getElementById('mgTotal').textContent=rows.length;document.getElementById('mgMissing').textContent=missing;document.getElementById('mgActive').textContent=active;document.getElementById('mgDaily').textContent=days;
  const shown=rows.filter(({p,m,open,pending})=>(!q||[p.driver,p.company,p.plate,p.trip_id,m.returnId,p.route].some(x=>String(x||'').toLowerCase().includes(q)))&&(!f||(f==='PENDENTE'&&pending)||(f==='PARADA'&&open&&!m.finalAt)||(f==='FINALIZADA'&&m.finalAt)));
- tbody.innerHTML=shown.length?shown.map(({p,m,open,n,pending,needed,have})=>`<tr><td><b>${esc(p.driver||'—')}</b><br>${esc(p.company||'—')}</td><td>${esc(p.route||'—')}<br>${esc(p.plate||'—')}</td><td>${m.type==='NORMAL'?'Normal':m.type==='ONE_WAY'?'One Way':'Legado'}</td><td>${esc(p.trip_id||'—')} ${m.type==='NORMAL'?'<br>'+esc(m.returnId||'VOLTA PENDENTE'):''}<br><span class="mgPill ${pending?'warn':'ok'}">${needed?have+'/'+needed:'Legado'}</span></td><td>${open&&!m.finalAt?mgStamp(open.start)+'<br>'+Math.floor(mgHours(open.start,new Date().toISOString()))+'h parado':'—'}</td><td><b>${n}</b></td><td><span class="mgPill ${m.finalAt?'ok':pending?'warn':''}">${m.finalAt?'Destino finalizado':open?'Parado':pending?'ID pendente':'Em acompanhamento'}</span></td><td><button class="mgBtn" onclick="mgArrival('${p.id}')" ${m.finalAt?'disabled':''}>Registrar chegada</button><button class="mgBtn green" onclick="mgDeparture('${p.id}')" ${!open||m.finalAt?'disabled':''}>Iniciar viagem</button><button class="mgBtn red" onclick="mgFinalize('${p.id}')" ${m.finalAt?'disabled':''}>Destino final</button></td></tr>`).join(''):'<tr><td colspan="8">Nenhuma programação encontrada.</td></tr>';
+ tbody.innerHTML=shown.length?shown.map(({p,m,open,n,pending,needed,have})=>`<tr><td><b>${esc(p.driver||'—')}</b><br>${esc(p.company||'—')}</td><td>${esc(p.route||'—')}<br>${esc(p.plate||'—')}</td><td>${m.type==='NORMAL'?'Normal':m.type==='ONE_WAY'?'One Way':'Legado'}</td><td>${esc(p.trip_id||'—')} ${m.type==='NORMAL'?'<br>'+esc(m.returnId||'VOLTA PENDENTE'):''}<br><span class="mgPill ${pending?'warn':'ok'}">${needed?have+'/'+needed:'Legado'}</span></td><td>${open&&!m.finalAt?mgStamp(open.start)+'<br>'+Math.floor(mgHours(open.start,new Date().toISOString()))+'h parado':'—'}</td><td><b>${n}</b></td><td><span class="mgPill ${m.finalAt?'ok':pending?'warn':''}">${m.finalAt?'Destino finalizado':open?'Parado':pending?'ID pendente':'Em acompanhamento'}</span></td><td><button class="mgBtn" onclick="mgEditIds('${p.id}')">Preencher IDs</button><button class="mgBtn" onclick="mgArrival('${p.id}')" ${m.finalAt?'disabled':''}>Registrar chegada</button><button class="mgBtn green" onclick="mgDeparture('${p.id}')" ${!open||m.finalAt?'disabled':''}>Iniciar viagem</button><button class="mgBtn red" onclick="mgFinalize('${p.id}')" ${m.finalAt?'disabled':''}>Destino final</button></td></tr>`).join(''):'<tr><td colspan="8">Nenhuma programação encontrada.</td></tr>';
 }
 // Envolve a função de salvar já existente, preservando suas validações de cadastro.
 const mgOriginalSave=window.saveProgramming;
-window.saveProgramming=async function(){const type=document.getElementById('mgType').value,ida=document.getElementById('programTripId').value.trim(),volta=document.getElementById('mgReturnId').value.trim();if(!ida)return alert('Informe o ID de ida.');if(type==='NORMAL'&&(!volta||volta===ida))return alert('Viagem normal exige dois IDs diferentes: ida e volta.');
+window.saveProgramming=async function(){const type=document.getElementById('mgType').value,ida=document.getElementById('programTripId').value.trim(),volta=document.getElementById('mgReturnId').value.trim();if(ida&&volta&&ida===volta)return alert('Os IDs de ida e volta devem ser diferentes.');
  const oldId=typeof programmingEditIdV14!=='undefined'?programmingEditIdV14:null;const old=oldId?mgFind(oldId):null;const prev=old?mgExtract(old):{stops:[],finalAt:null};const raw=document.getElementById('programObservation').value;document.getElementById('programObservation').value=mgStrip(raw)+'\n'+mgEncode({...prev,type,returnId:type==='NORMAL'?volta:''});
  try{await mgOriginalSave();}finally{document.getElementById('programObservation').value=raw}mgRender();};
 const mgOriginalEdit=window.editProgramming;
@@ -2491,7 +2500,30 @@ window.confirmProgrammingDeparture=async function(id){const p=mgFind(id),m=p?mgE
 function mgQKey(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))return '';return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+(d.getDate()<=15?'1':'2')}
 function mgQLabel(key){const [y,m,n]=key.split('-');return (n==='1'?'01–15':'16–'+new Date(+y,+m,0).getDate())+'/'+m+'/'+y}
 function mgQAccrual(m){const events=[];for(const st of m.stops||[]){const start=mgDate(st.start),end=mgDate(st.end||m.finalAt)||new Date();if(!start||end<start)continue;for(let h=24;start.getTime()+h*3600000<=end.getTime();h+=10){events.push(new Date(start.getTime()+h*3600000))}}return events}
-function mgRenderFortnight(){const select=document.getElementById('mgFortnight');if(!select)return;const records=(typeof programmingCache!=='undefined'?programmingCache:[]).filter(p=>mgExtract(p).type!=='LEGADO');const keys=new Set([mgQKey(new Date())]);for(const p of records){if(p.program_date)keys.add(mgQKey(p.program_date+'T12:00:00'));for(const d of mgQAccrual(mgExtract(p)))keys.add(mgQKey(d))}const ordered=[...keys].filter(Boolean).sort().reverse(),prior=select.value;select.innerHTML=ordered.map(k=>'<option value="'+k+'">'+mgQLabel(k)+'</option>').join('');select.value=ordered.includes(prior)?prior:mgQKey(new Date());const chosen=select.value;let expected=0,ids=0,days=0;const groups={};for(const p of records){const m=mgExtract(p),company=p.company||'Sem empresa',row=groups[company]||(groups[company]={programs:0,expected:0,ids:0,days:0});if(mgQKey(p.program_date+'T12:00:00')===chosen&&m.type!=='LEGADO'){const needed=m.type==='NORMAL'?2:1,actual=Number(!!String(p.trip_id||'').trim())+Number(m.type==='NORMAL'&&!!String(m.returnId||'').trim());expected+=needed;ids+=actual;row.expected+=needed;row.ids+=actual;row.programs++}const count=mgQAccrual(m).filter(d=>mgQKey(d)===chosen).length;days+=count;row.days+=count}document.getElementById('mgQIds').textContent=ids;document.getElementById('mgQExpected').textContent=expected;document.getElementById('mgQMissing').textContent=expected-ids;document.getElementById('mgQDays').textContent=days;document.getElementById('mgQRows').innerHTML=Object.entries(groups).filter(([,r])=>r.programs||r.days).sort((a,b)=>a[0].localeCompare(b[0])).map(([name,r])=>'<tr><td>'+esc(name)+'</td><td>'+r.programs+'</td><td>'+r.ids+'</td><td>'+ (r.expected-r.ids)+'</td><td>'+r.days+'</td></tr>').join('')||'<tr><td colspan="5">Nenhum registro nesta quinzena.</td></tr>'}
+function mgStartDate(p){
+ const raw=String(p.program_date||'').slice(0,10),time=String(p.real_departure||p.departure_time||'00:00').slice(0,5);
+ return raw?raw+'T'+time+':00':null;
+}
+function mgRenderFortnight(){
+ const select=document.getElementById('mgFortnight');if(!select)return;
+ const records=(typeof programmingCache!=='undefined'?programmingCache:[]).filter(p=>mgExtract(p).type!=='LEGADO');
+ const keys=new Set([mgQKey(new Date())]);
+ for(const p of records){const m=mgExtract(p);if(mgStartDate(p))keys.add(mgQKey(mgStartDate(p)));if(m.finalAt)keys.add(mgQKey(m.finalAt));for(const d of mgQAccrual(m))keys.add(mgQKey(d))}
+ const ordered=[...keys].filter(Boolean).sort().reverse(),prior=select.value;
+ select.innerHTML=ordered.map(k=>'<option value="'+k+'">'+mgQLabel(k)+'</option>').join('');
+ select.value=ordered.includes(prior)?prior:mgQKey(new Date());const chosen=select.value;
+ let expected=0,ids=0,days=0;const groups={};
+ for(const p of records){
+  const m=mgExtract(p),company=p.company||'Sem empresa',row=groups[company]||(groups[company]={programs:0,expected:0,ids:0,days:0});
+  const idaQ=mgQKey(mgStartDate(p)),voltaQ=m.finalAt?mgQKey(m.finalAt):'';
+  if(idaQ===chosen){expected++;row.expected++;row.programs++;if(String(p.trip_id||'').trim()){ids++;row.ids++}}
+  if(m.type==='NORMAL'&&voltaQ===chosen){expected++;row.expected++;if(idaQ!==chosen)row.programs++;if(String(m.returnId||'').trim()){ids++;row.ids++}}
+  const count=mgQAccrual(m).filter(d=>mgQKey(d)===chosen).length;days+=count;row.days+=count;
+ }
+ document.getElementById('mgQIds').textContent=ids;document.getElementById('mgQExpected').textContent=expected;
+ document.getElementById('mgQMissing').textContent=expected-ids;document.getElementById('mgQDays').textContent=days;
+ document.getElementById('mgQRows').innerHTML=Object.entries(groups).filter(([,r])=>r.programs||r.days).sort((a,b)=>a[0].localeCompare(b[0])).map(([name,r])=>'<tr><td>'+esc(name)+'</td><td>'+r.programs+'</td><td>'+r.ids+'</td><td>'+(r.expected-r.ids)+'</td><td>'+r.days+'</td></tr>').join('')||'<tr><td colspan="5">Nenhum registro nesta quinzena.</td></tr>';
+}
 const mgQOriginalRender=mgRender;mgRender=function(){mgQOriginalRender();mgRenderFortnight()};
 // Atualização automática do contador visual.
 setInterval(()=>{if(document.getElementById('managementView')?.classList.contains('active'))mgRender()},60000);
