@@ -491,8 +491,8 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 
 <div class="row2"><div><label>Placa do cavalo</label><input id="programPlate" placeholder="ABC-1D23"></div><div><label>Placa da carreta</label><input id="programTrailerPlate" placeholder="ABC-1D23"></div></div>
 <label>Tipo de viagem</label><select id="mgType" onchange="mgToggle()"><option value="NORMAL">Normal — ida e volta</option><option value="ONE_WAY">One Way — apenas ida</option></select>
-<label>ID da ida (preenchimento posterior no Gerenciamento)</label><input id="programTripId" placeholder="Opcional ao programar">
-<div id="mgReturnWrap"><label>ID da volta</label><input id="mgReturnId" placeholder="Opcional ao programar; pode preencher depois"></div>
+<label>ID da ida (preenchimento posterior no Gerenciamento)</label><input id="programTripId" placeholder="Preencher depois no Gerenciamento" readonly style="background:#eef3fa">
+<div id="mgReturnWrap"><label>ID da volta</label><input id="mgReturnId" placeholder="Preencher depois no Gerenciamento" readonly style="background:#eef3fa"></div>
 <label>Viagem extra?</label>
 <select id="programExtra" class="extraSelect">
   <option value="NAO">Não • Viagem normal</option>
@@ -2437,7 +2437,7 @@ setTimeout(commRenderDrivers,1800);
 .mgPage{max-width:1600px;margin:auto;padding:16px}.mgStats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:16px 0}.mgStats>div{background:#eff5ff;border-radius:12px;padding:16px;border-left:4px solid #0a4eb6}.mgStats b{display:block;color:#06296f;font-size:25px}.mgStats span{font-size:11px;color:#52637a}.mgBtn{border:0;background:#0d63e5;color:white;border-radius:7px;padding:7px 9px;margin:2px;font-size:11px;font-weight:700;cursor:pointer}.mgBtn.red{background:#e01c2b}.mgBtn.green{background:#18a75b}.mgBtn.gray{background:#6d7787}.mgPill{border-radius:8px;padding:4px 7px;font-size:10px;font-weight:bold;background:#eaf2ff;display:inline-block}.mgPill.warn{background:#fff0d6;color:#a35b00}.mgPill.ok{background:#e8f8ef;color:#087a3d}@media(max-width:750px){.mgStats{grid-template-columns:1fr 1fr}.mgPage{padding:10px}}
 </style>
 <script>
-/* PERF-V34 • GERENCIAMENTO. Metadados persistidos em observation no Supabase,
+/* PERF-V35 • GERENCIAMENTO. Metadados persistidos em observation no Supabase,
    sem alterar tabelas nem perder o histórico. */
 const MG_TAG='[TRANSLEK_MG_V30:';
 function mgExtract(p){
@@ -2484,9 +2484,23 @@ function mgRender(){const tbody=document.getElementById('mgRows');if(!tbody)retu
 }
 // Envolve a função de salvar já existente, preservando suas validações de cadastro.
 const mgOriginalSave=window.saveProgramming;
-window.saveProgramming=async function(){const type=document.getElementById('mgType').value,ida=document.getElementById('programTripId').value.trim(),volta=document.getElementById('mgReturnId').value.trim();if(ida&&volta&&ida===volta)return alert('Os IDs de ida e volta devem ser diferentes.');
- const oldId=typeof programmingEditIdV14!=='undefined'?programmingEditIdV14:null;const old=oldId?mgFind(oldId):null;const prev=old?mgExtract(old):{stops:[],finalAt:null};const raw=document.getElementById('programObservation').value;document.getElementById('programObservation').value=mgStrip(raw)+'\n'+mgEncode({...prev,type,returnId:type==='NORMAL'?volta:''});
- try{await mgOriginalSave();}finally{document.getElementById('programObservation').value=raw}mgRender();};
+window.saveProgramming=async function(){
+ // PERF-V35: IDs não são obrigatórios para programar nem para iniciar viagem.
+ // IDs são preenchidos depois, exclusivamente pelo Gerenciamento.
+ const type=document.getElementById('mgType').value;
+ const oldId=typeof programmingEditIdV14!=='undefined'?programmingEditIdV14:null;
+ const old=oldId?mgFind(oldId):null;
+ const prev=old?mgExtract(old):{stops:[],finalAt:null};
+ const observation=document.getElementById('programObservation');
+ const idInput=document.getElementById('programTripId');
+ const oldObservation=observation.value, oldInput=idInput.value;
+ // Em edição, manter o ID previamente registrado. Em novas programações, deixar vazio.
+ idInput.value=old?String(old.trip_id||''):'';
+ observation.value=mgStrip(oldObservation)+'\n'+mgEncode({...prev,type,returnId:type==='NORMAL'?(prev.returnId||''):''});
+ try {await mgOriginalSave();}
+ finally {observation.value=oldObservation;idInput.value=oldInput;}
+ mgRender();
+};
 const mgOriginalEdit=window.editProgramming;
 window.editProgramming=function(id){mgOriginalEdit(id);const p=mgFind(id);if(!p)return;const m=mgExtract(p);document.getElementById('mgType').value=m.type==='ONE_WAY'?'ONE_WAY':'NORMAL';document.getElementById('mgReturnId').value=m.returnId||'';mgToggle();document.getElementById('programObservation').value=mgStrip(document.getElementById('programObservation').value)};
 const mgOriginalReset=window.resetProgrammingFormV14;
