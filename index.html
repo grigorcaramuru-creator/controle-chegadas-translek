@@ -455,6 +455,7 @@ table{width:100%;border-collapse:collapse;font-size:11px}th,td{padding:10px 8px;
 <div class="card pad"><h2>🚛 Gerenciamento de Viagens e Diárias</h2><p class="small">IDs por programação • chegada • tempo parado • diárias • destino final manual</p>
 <div class="mgStats"><div><b id="mgTotal">0</b><span>Programações</span></div><div><b id="mgMissing">0</b><span>IDs pendentes</span></div><div><b id="mgActive">0</b><span>Paradas abertas</span></div><div><b id="mgDaily">0</b><span>Diárias acumuladas</span></div></div>
 <div class="card pad" style="margin:14px 0;background:#f5f9ff"><h2>📅 Fechamento quinzenal — IDs e Diárias</h2><div class="row2"><div><label>Selecionar quinzena</label><select id="mgFortnight" onchange="mgRenderFortnight()"></select></div><div><label>Critério</label><div class="small" style="padding:12px">ID de ida pela saída; ID de volta pela chegada final manual. Cadastro dos IDs pode ocorrer depois. Diárias na quinzena em que são completadas.</div></div></div><div class="mgStats" style="margin-top:12px"><div><b id="mgQIds">0</b><span>IDs registrados</span></div><div><b id="mgQExpected">0</b><span>IDs previstos</span></div><div><b id="mgQMissing">0</b><span>IDs faltantes</span></div><div><b id="mgQDays">0</b><span>Diárias na quinzena</span></div></div><div class="tableScroll"><table><thead><tr><th>Empresa</th><th>Programações</th><th>IDs registrados</th><th>IDs faltantes</th><th>Diárias</th></tr></thead><tbody id="mgQRows"></tbody></table></div></div>
+<div style="display:flex;justify-content:flex-end;margin:12px 0"><button type="button" class="primary" style="width:auto;margin:0;background:#16834a" onclick="mgExportExcel()">📊 Exportar programação com IDs para Excel</button></div>
 <div class="row2"><div><label>Buscar motorista, placa ou ID</label><input id="mgSearch" oninput="mgRender()" placeholder="Pesquisar"></div><div><label>Situação</label><select id="mgFilter" onchange="mgRender()"><option value="">Todas</option><option value="PENDENTE">IDs pendentes</option><option value="PARADA">Paradas em andamento</option><option value="FINALIZADA">Destinos finalizados</option></select></div></div></div>
 <div class="card pad" style="margin-top:14px"><div class="tableScroll"><table><thead><tr><th>Motorista / Empresa</th><th>Trecho / Placa</th><th>Tipo</th><th>IDs</th><th>Parada atual</th><th>Diárias</th><th>Situação</th><th>Ações</th></tr></thead><tbody id="mgRows"></tbody></table></div></div>
 <p class="small">Diárias: 1 após 24h completas de parada, +1 a cada 10h completas adicionais. Encerramento manual interrompe a contagem definitivamente.</p>
@@ -2625,6 +2626,36 @@ window.addEventListener('pagehide',lock);
  setInterval(()=>{if($v('managementView')?.classList.contains('active'))render()},60000);
  render();
 })();
+</script>
+<script>
+/* TRANSLEK V38 — Exportação Excel compatível (CSV UTF-8, separador ;) */
+function mgExportExcel(){
+ try{
+  const key=document.getElementById('mgFortnight')?.value||'';
+  const records=(typeof programmingCache!=='undefined'?programmingCache:[]).filter(p=>mgExtract(p).type!=='LEGADO');
+  const cols=['Quinzena','Motorista','Empresa','Placa','Trecho','Tipo de viagem','Sentido','ID','Situação do ID','Saída programada','Saída real','Chegada final','Observação'];
+  const rows=[];
+  for(const p of records){
+   const m=mgExtract(p),start=mgStartDate(p),final=m.finalAt||null;
+   const common=[p.driver||'',p.company||'',p.plate||'',p.route||'',m.type==='NORMAL'?'Normal':'One Way'];
+   const obs=typeof mgStrip==='function'?mgStrip(p.observation||''):String(p.observation||'');
+   if(start&&mgQKey(start)===key){
+    const id=String(p.trip_id||'').trim();
+    rows.push([mgQLabel(key),...common,'Ida',id,id?'Registrado':'Pendente',p.program_date||'',start,final?mgStamp(final):'',obs]);
+   }
+   if(m.type==='NORMAL'&&final&&mgQKey(final)===key){
+    const id=String(m.returnId||'').trim();
+    rows.push([mgQLabel(key),...common,'Volta',id,id?'Registrado':'Pendente',p.program_date||'',start||'',mgStamp(final),obs]);
+   }
+  }
+  if(!rows.length){alert('Não há programação com IDs previstos para a quinzena selecionada.');return}
+  const escapeCSV=v=>{const str=String(v??'').replace(/^[=+@\-\t\r]/,'\u0027$&');return '"'+str.replace(/"/g,'""')+'"'};
+  const csv='\uFEFFsep=;\r\n'+[cols,...rows].map(r=>r.map(escapeCSV).join(';')).join('\r\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download='Translek_Programacao_IDs_'+key+'.csv';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ }catch(e){console.error('Exportação de IDs',e);alert('Erro ao exportar: '+e.message)}
+}
 </script>
 </body>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </html>
