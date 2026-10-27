@@ -2589,5 +2589,42 @@ window.addEventListener('pagehide',lock);
 })();
 </script>
 
+<style>
+.fiscalDailyBox{margin-top:14px}.fiscalDailyBox .mgStats{margin:12px 0}.fiscalDailyBox table{min-width:850px}.fiscalDailyHint{font-size:11px;color:#52627a;margin:8px 0}
+</style>
+<script>
+/* TRANSLEK V37: diárias fiscais a partir de 27/10/2026, sem importar histórico anterior. */
+(function(){
+ const CUTOFF=new Date(2026,9,27,0,0,0).getTime(), PERIOD=15*3600000;
+ const $v=id=>document.getElementById(id);
+ const valid=d=>d instanceof Date&&!isNaN(d.getTime());
+ const html=v=>String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const fmt=d=>new Date(d).toLocaleString('pt-BR');
+ const key=d=>{d=new Date(d);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+(d.getDate()<=15?'1':'2')};
+ function eligible(x){const d=new Date(x.started_at);return valid(d)&&d.getTime()>=CUTOFF}
+ function events(x){if(!eligible(x))return [];const a=new Date(x.started_at).getTime(),end=x.ended_at?new Date(x.ended_at).getTime():Date.now();if(!Number.isFinite(end)||end<a)return [];const n=Math.min(10000,Math.floor((end-a)/PERIOD));return Array.from({length:n},(_,i)=>new Date(a+(i+1)*PERIOD))}
+ function rows(){return (typeof fiscalCache!=='undefined'&&Array.isArray(fiscalCache)?fiscalCache:[]).filter(eligible)}
+ function render(){const root=$v('fiscalDailyTable');if(!root)return;const records=rows(),all=records.flatMap(x=>events(x).map((date,i)=>({x,date,i:i+1})));const sel=$v('mgFortnight'),selected=sel?.value||key(new Date());const chosen=all.filter(e=>key(e.date)===selected);$v('fiscalDailyTotal').textContent=chosen.length;$v('fiscalDailyVehicles').textContent=new Set(chosen.map(e=>String(e.x.plate||'').toUpperCase())).size;$v('fiscalDailyClosed').textContent=chosen.filter(e=>!!e.x.ended_at).length;
+ const plate=($v('fiscalDailyPlate')?.value||'').trim().toLowerCase(),day=$v('fiscalDailyDate')?.value||'';
+ const shown=chosen.filter(e=>(!plate||String(e.x.plate||'').toLowerCase().includes(plate))&&(!day||[e.date.getFullYear(),String(e.date.getMonth()+1).padStart(2,'0'),String(e.date.getDate()).padStart(2,'0')].join('-')===day)).sort((a,b)=>b.date-a.date);
+ root.innerHTML=shown.length?shown.map(({x,date,i})=>'<tr><td><b>'+html(x.plate)+'</b></td><td>'+html(x.driver_name)+'</td><td>'+html(x.fiscal_name)+'</td><td>'+html(x.service_password)+'</td><td>'+fmt(x.started_at)+'</td><td>'+(x.ended_at?fmt(x.ended_at):'Em andamento')+'</td><td><b>'+fmt(date)+'</b></td><td>1 (nº '+i+')</td><td>'+(x.ended_at?'Finalizada':'Em andamento')+'</td></tr>').join(''):'<tr><td colspan="9" class="empty">Nenhuma diária fiscal nesta seleção.</td></tr>';
+ }
+ function setup(){const mg=$v('managementView');if(!mg||$v('fiscalDailyTable'))return;const block=document.createElement('div');block.className='card pad fiscalDailyBox';block.innerHTML='<h2>🛃 Diárias de Posto Fiscal — desde 27/10/2026</h2><p class="fiscalDailyHint">Uma diária a cada 15 horas completas, atribuída à data em que venceu. Registros anteriores a 27/10 não entram neste controle. Paradas em andamento aparecem como provisórias; após finalizar, ficam fechadas.</p><div class="mgStats"><div><b id="fiscalDailyTotal">0</b><span>Diárias fiscais na quinzena</span></div><div><b id="fiscalDailyVehicles">0</b><span>Placas com diárias</span></div><div><b id="fiscalDailyClosed">0</b><span>Diárias já finalizadas</span></div></div><div class="row2"><div><label>Filtrar placa</label><input id="fiscalDailyPlate" placeholder="Digite a placa" oninput="window.renderFiscalDailyV37()"></div><div><label>Data de vencimento</label><input type="date" id="fiscalDailyDate" onchange="window.renderFiscalDailyV37()"></div></div><div class="tableScroll" style="margin-top:12px"><table><thead><tr><th>Placa</th><th>Motorista</th><th>Posto fiscal</th><th>Senha</th><th>Entrada</th><th>Saída</th><th>Data da diária</th><th>Quantidade</th><th>Status</th></tr></thead><tbody id="fiscalDailyTable"></tbody></table></div>';
+ mg.querySelector('main').appendChild(block);
+ }
+ window.renderFiscalDailyV37=render;setup();
+ const oldFortnight=window.mgRenderFortnight;
+ if(typeof oldFortnight==='function')window.mgRenderFortnight=function(){oldFortnight.apply(this,arguments);render()};
+ const oldFiscal=window.renderFiscal;
+ if(typeof oldFiscal==='function')window.renderFiscal=function(){const r=oldFiscal.apply(this,arguments);const body=$v('fiscalActiveBody');if(body){body.querySelectorAll('tr').forEach(tr=>{const btn=tr.querySelector('button[onclick^="finishFiscalStop"]');if(!btn)return;const id=btn.getAttribute('onclick').match(/finishFiscalStop\((\d+)/)?.[1];const x=rows().find(x=>String(x.id)===id);if(x){const cell=tr.querySelector('.timerLive');if(cell)cell.innerHTML+=`<div style="color:#0b4fb7;font-size:11px;margin-top:5px">${events(x).length} diária(s) • 15h cada</div>`}})}render();return r};
+ const oldLoad=window.load;
+ if(typeof oldLoad==='function')window.load=async function(){const r=await oldLoad.apply(this,arguments);render();return r};
+ const oldFinish=window.finishFiscalStop;
+ if(typeof oldFinish==='function')window.finishFiscalStop=async function(id,start){await oldFinish.apply(this,arguments);render()};
+ const originalClick=$v('mgFortnight');if(originalClick)originalClick.addEventListener('change',render);
+ setInterval(()=>{if($v('managementView')?.classList.contains('active'))render()},60000);
+ render();
+})();
+</script>
 </body>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </html>
