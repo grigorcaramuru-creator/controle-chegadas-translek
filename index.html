@@ -2545,6 +2545,40 @@ setInterval(()=>{if(document.getElementById('managementView')?.classList.contain
 document.querySelector('[data-view="managementView"]').addEventListener('click',()=>mgRender());mgToggle();
 </script>
 
+<!-- PERF-V39: auditoria de IDs, sem alterar dados existentes -->
+<style>
+.mgAuditGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}.mgAuditGrid>div{background:#f0f6ff;border-left:4px solid #0a4eb6;border-radius:10px;padding:12px}.mgAuditGrid b{display:block;font-size:24px;color:#0b3b8e}.mgAuditGrid span{font-size:10px;color:#52627a}.mgAuditHint{font-size:11px;color:#52627a;line-height:1.6;margin:10px 0}.mgAuditWrap{max-height:380px;overflow:auto}.mgAuditWrap table{min-width:850px}@media(max-width:750px){.mgAuditGrid{grid-template-columns:1fr 1fr}}
+</style>
+<script>
+(function(){
+ function initAudit(){
+  const select=document.getElementById('mgFortnight');if(!select||document.getElementById('mgAudit'))return;
+  const parent=select.closest('.card');if(!parent)return;
+  const block=document.createElement('section');block.id='mgAudit';block.innerHTML=`<h2 style="margin-top:20px">🔎 Conferência de IDs por viagem</h2><div class="mgAuditGrid"><div><b id="mgAuditTotal">0</b><span>IDs previstos em todas as programações</span></div><div><b id="mgAuditFilled">0</b><span>IDs preenchidos em todas as programações</span></div><div><b id="mgAuditPending">0</b><span>IDs ainda não preenchidos</span></div><div><b id="mgAuditUnassigned">0</b><span>IDs de volta sem quinzena definida</span></div></div><p class="mgAuditHint">O fechamento quinzenal acima contabiliza a ida na quinzena da saída e a volta na quinzena da chegada final. Voltas ainda não finalizadas fazem parte do total geral previsto, mas ficam sem quinzena definida até a confirmação do destino final. Os totais gerais incluem todas as programações atuais com tipo Normal ou One Way, independentemente da quinzena.</p><div class="mgAuditWrap tableScroll"><table><thead><tr><th>Motorista / Empresa</th><th>Placa / Trecho</th><th>Tipo</th><th>IDs previstos</th><th>IDs preenchidos</th><th>ID ida / quinzena</th><th>ID volta / quinzena</th></tr></thead><tbody id="mgAuditRows"></tbody></table></div>`;
+  parent.appendChild(block);
+ }
+ function paintAudit(){
+  initAudit();if(!document.getElementById('mgAuditRows'))return;
+  const records=(typeof programmingCache!=='undefined'?programmingCache:[]).filter(p=>mgExtract(p).type!=='LEGADO');
+  let total=0,filled=0,unassigned=0;
+  const rows=records.map(p=>{
+   const m=mgExtract(p),normal=m.type==='NORMAL',needed=normal?2:1,have=Number(!!String(p.trip_id||'').trim())+(normal?Number(!!String(m.returnId||'').trim()):0);
+   total+=needed;filled+=have;if(normal&&!m.finalAt)unassigned++;
+   const ida=mgStartDate(p),idaQ=ida?mgQLabel(mgQKey(ida)):'Data não informada',voltaQ=m.finalAt?mgQLabel(mgQKey(m.finalAt)):'Aguardando destino final';
+   return '<tr><td><b>'+esc(p.driver||'—')+'</b><br>'+esc(p.company||'—')+'</td><td>'+esc(p.plate||'—')+'<br>'+esc(p.route||'—')+'</td><td>'+(normal?'Normal':'One Way')+'</td><td>'+needed+'</td><td>'+have+'</td><td>'+esc(p.trip_id||'PENDENTE')+'<br>'+esc(idaQ)+'</td><td>'+(normal?esc(m.returnId||'PENDENTE')+'<br>'+esc(voltaQ):'Não se aplica')+'</td></tr>';
+  });
+  document.getElementById('mgAuditTotal').textContent=total;
+  document.getElementById('mgAuditFilled').textContent=filled;
+  document.getElementById('mgAuditPending').textContent=total-filled;
+  document.getElementById('mgAuditUnassigned').textContent=unassigned;
+  document.getElementById('mgAuditRows').innerHTML=rows.join('')||'<tr><td colspan="7">Nenhuma programação cadastrada.</td></tr>';
+ }
+ const old=window.mgRenderFortnight;
+ window.mgRenderFortnight=function(){old.apply(this,arguments);paintAudit()};
+ document.addEventListener('DOMContentLoaded',paintAudit);
+})();
+</script>
+
 <!-- PERF-V36: Bloqueio visual do Gerenciamento (não substitui autenticação no servidor) -->
 <style>
 #mgAccessOverlay{position:fixed;inset:0;z-index:200;background:#06172acc;display:none;align-items:center;justify-content:center;padding:18px}
