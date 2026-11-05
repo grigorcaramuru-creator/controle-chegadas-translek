@@ -2554,7 +2554,7 @@ document.querySelector('[data-view="managementView"]').addEventListener('click',
  function initAudit(){
   const select=document.getElementById('mgFortnight');if(!select||document.getElementById('mgAudit'))return;
   const parent=select.closest('.card');if(!parent)return;
-  const block=document.createElement('section');block.id='mgAudit';block.innerHTML=`<h2 style="margin-top:20px">🔎 Conferência de IDs por viagem</h2><div class="mgAuditGrid"><div><b id="mgAuditTotal">0</b><span>IDs previstos em todas as programações</span></div><div><b id="mgAuditFilled">0</b><span>IDs preenchidos em todas as programações</span></div><div><b id="mgAuditPending">0</b><span>IDs ainda não preenchidos</span></div><div><b id="mgAuditUnassigned">0</b><span>IDs de volta sem quinzena definida</span></div></div><p class="mgAuditHint">O fechamento quinzenal acima contabiliza a ida na quinzena da saída e a volta na quinzena da chegada final. Voltas ainda não finalizadas fazem parte do total geral previsto, mas ficam sem quinzena definida até a confirmação do destino final. Os totais gerais incluem todas as programações atuais com tipo Normal ou One Way, independentemente da quinzena.</p><div class="mgAuditWrap tableScroll"><table><thead><tr><th>Motorista / Empresa</th><th>Placa / Trecho</th><th>Tipo</th><th>IDs previstos</th><th>IDs preenchidos</th><th>ID ida / quinzena</th><th>ID volta / quinzena</th></tr></thead><tbody id="mgAuditRows"></tbody></table></div>`;
+  const block=document.createElement('section');block.id='mgAudit';block.innerHTML=`<h2 style="margin-top:20px">🔎 Conferência de IDs por viagem</h2><div class="mgAuditGrid"><div><b id="mgAuditTotal">0</b><span>IDs previstos em todas as programações</span></div><div><b id="mgAuditFilled">0</b><span>IDs preenchidos em todas as programações</span></div><div><b id="mgAuditPending">0</b><span>IDs ainda não preenchidos (geral)</span></div><div><b id="mgAuditUnassigned">0</b><span>Voltas aguardando chegada final (geral)</span></div></div><p class="mgAuditHint">O fechamento quinzenal acima contabiliza a ida na quinzena da saída e a volta na quinzena da chegada final. Voltas ainda não finalizadas fazem parte do total geral previsto, mas ficam sem quinzena definida até a confirmação do destino final. Os totais gerais incluem todas as programações atuais com tipo Normal ou One Way, independentemente da quinzena.</p><div class="mgAuditWrap tableScroll"><table><thead><tr><th>Motorista / Empresa</th><th>Placa / Trecho</th><th>Tipo</th><th>IDs previstos</th><th>IDs preenchidos</th><th>ID ida / quinzena</th><th>ID volta / quinzena</th></tr></thead><tbody id="mgAuditRows"></tbody></table></div>`;
   parent.appendChild(block);
  }
  function paintAudit(){
@@ -2576,6 +2576,62 @@ document.querySelector('[data-view="managementView"]').addEventListener('click',
  const old=window.mgRenderFortnight;
  window.mgRenderFortnight=function(){old.apply(this,arguments);paintAudit()};
  document.addEventListener('DOMContentLoaded',paintAudit);
+})();
+</script>
+
+<!-- PERF-V40: conciliação detalhada de IDs por quinzena; somente leitura -->
+<style>
+#mgReconcile{margin-top:18px;border-top:1px solid #dfe7f2;padding-top:16px}
+#mgReconcile .mgAuditGrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+#mgReconcile .mgAuditWrap{max-height:430px}
+.mgReconcileStatus{font-weight:800;border-radius:7px;padding:5px 7px;display:inline-block;background:#edf4ff;color:#0b3b8e}
+.mgReconcileStatus.warn{background:#fff0d6;color:#995500}
+@media(max-width:750px){#mgReconcile .mgAuditGrid{grid-template-columns:1fr 1fr}}
+</style>
+<script>
+(function(){
+ function init(){
+  if(document.getElementById('mgReconcile'))return;
+  const audit=document.getElementById('mgAudit');if(!audit)return;
+  const el=document.createElement('section');el.id='mgReconcile';
+  el.innerHTML='<h2>📋 Conciliação detalhada da quinzena selecionada</h2>'+
+   '<p class="mgAuditHint">A ida entra pela saída; a volta somente pela chegada final registrada. IDs de volta sem chegada final são exibidos separadamente, sem atribuir uma quinzena fictícia. Os totais gerais consideram todas as quinzenas.</p>'+
+   '<div class="mgAuditGrid"><div><b id="mgRecExpected">0</b><span>IDs atribuídos à quinzena</span></div><div><b id="mgRecFilled">0</b><span>IDs preenchidos na quinzena</span></div><div><b id="mgRecMissing">0</b><span>IDs faltantes na quinzena</span></div><div><b id="mgRecUnassigned">0</b><span>Voltas aguardando chegada final (geral)</span></div></div>'+
+   '<div class="mgAuditWrap tableScroll"><table><thead><tr><th>Motorista / Empresa</th><th>Placa / Trecho</th><th>Sentido</th><th>Data de referência</th><th>ID</th><th>Situação</th></tr></thead><tbody id="mgRecRows"></tbody></table></div>'+
+   '<h3 style="margin:16px 0 8px;color:#0b3b8e">⏳ Voltas sem quinzena definida</h3><p class="mgAuditHint">Estas voltas não entram no fechamento da quinzena enquanto o destino final não for confirmado.</p>'+
+   '<div class="mgAuditWrap tableScroll"><table><thead><tr><th>Motorista / Empresa</th><th>Placa / Trecho</th><th>ID de volta</th><th>Situação</th></tr></thead><tbody id="mgRecPendingRows"></tbody></table></div>';
+  audit.parentNode.insertBefore(el,audit.nextSibling);
+ }
+ function paint(){
+  init();const root=document.getElementById('mgReconcile');if(!root)return;
+  const chosen=document.getElementById('mgFortnight')?.value||'';
+  const records=(typeof programmingCache!=='undefined'?programmingCache:[]).filter(p=>mgExtract(p).type!=='LEGADO');
+  const entries=[],pending=[];
+  for(const p of records){
+   const m=mgExtract(p),normal=m.type==='NORMAL',oneway=m.type==='ONE_WAY';
+   if(!normal&&!oneway)continue;
+   const base='<b>'+esc(p.driver||'—')+'</b><br>'+esc(p.company||'—');
+   const route=esc(p.plate||'—')+'<br>'+esc(p.route||'—');
+   const start=mgStartDate(p),id=String(p.trip_id||'').trim(),ret=String(m.returnId||'').trim();
+   if(start&&mgQKey(start)===chosen)entries.push({base,route,direction:'Ida',date:start,id});
+   if(normal){
+    const final=m.finalAt?mgDate(m.finalAt):null;
+    if(final&&mgQKey(final)===chosen)entries.push({base,route,direction:'Volta',date:final,id:ret});
+    if(!final)pending.push('<tr><td>'+base+'</td><td>'+route+'</td><td>'+esc(ret||'Não preenchido')+'</td><td><span class="mgReconcileStatus warn">'+(ret?'ID preenchido; aguardando destino final':'ID faltante; aguardando destino final')+'</span></td></tr>');
+   }
+  }
+  const filled=entries.filter(x=>x.id).length;
+  document.getElementById('mgRecExpected').textContent=entries.length;
+  document.getElementById('mgRecFilled').textContent=filled;
+  document.getElementById('mgRecMissing').textContent=entries.length-filled;
+  document.getElementById('mgRecUnassigned').textContent=pending.length;
+  entries.sort((a,b)=>a.date-b.date||a.base.localeCompare(b.base));
+  document.getElementById('mgRecRows').innerHTML=entries.map(x=>'<tr><td>'+x.base+'</td><td>'+x.route+'</td><td>'+x.direction+'</td><td>'+esc(mgStamp(x.date))+'</td><td>'+esc(x.id||'Não preenchido')+'</td><td><span class="mgReconcileStatus'+(x.id?'':' warn')+'">'+(x.id?'Registrado':'Faltante')+'</span></td></tr>').join('')||'<tr><td colspan="6">Nenhum ID atribuído a esta quinzena.</td></tr>';
+  document.getElementById('mgRecPendingRows').innerHTML=pending.join('')||'<tr><td colspan="4">Nenhuma volta aguardando destino final.</td></tr>';
+ }
+ const previous=window.mgRenderFortnight;
+ window.mgRenderFortnight=function(){previous.apply(this,arguments);paint()};
+ document.addEventListener('DOMContentLoaded',paint);
 })();
 </script>
 
