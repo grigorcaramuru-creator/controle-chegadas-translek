@@ -2747,5 +2747,76 @@ function mgExportExcel(){
  }catch(e){console.error('Exportação de IDs',e);alert('Erro ao exportar: '+e.message)}
 }
 </script>
+
+<!-- TRANSLEK V40 | CENTRAL INTELIGENTE DE IDs -->
+<style>
+#managementView .mgLegacySummary{display:none!important}#mgAudit{display:none!important}
+#mgCommand{margin:16px 0 20px;font-family:Arial,Helvetica,sans-serif;color:#182b48}
+#mgCommand *{box-sizing:border-box}#mgCommand .mcHero{background:linear-gradient(115deg,#071c43,#0b4fb7 72%,#d51b32);color:white;padding:24px;border-radius:20px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;box-shadow:0 12px 28px #0b397a28}
+#mgCommand .mcHero h2{color:white;font-size:24px;margin:0 0 6px}#mgCommand .mcHero p{margin:0;color:#dceaff;font-size:12px;line-height:1.6}#mgCommand .mcHero strong{font-size:13px}
+#mgCommand .mcToolbar{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:12px;margin:15px 0}#mgCommand .mcToolbar label{margin:0 0 6px;font-size:11px}#mgCommand select,#mgCommand input{width:100%;padding:12px;border:1px solid #d7e3f2;border-radius:11px;background:white}
+#mgCommand .mcCards{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}#mgCommand .mcCard{border:1px solid #e1e9f5;border-radius:16px;background:#fff;text-align:left;padding:17px;cursor:pointer;box-shadow:0 5px 15px #102a4b0a;transition:transform .15s,border .15s}#mgCommand .mcCard:hover{transform:translateY(-2px)}#mgCommand .mcCard.active{outline:2px solid #0b63d1;border-color:#0b63d1;background:#f1f7ff}#mgCommand .mcCard b{display:block;font-size:30px;color:#082e71;margin:9px 0}#mgCommand .mcCard span{font-size:11px;font-weight:800;color:#52617a}#mgCommand .mcCard small{font-size:10px;color:#687991}#mgCommand .mcDot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#0b63d1;margin-right:5px}#mgCommand .mcCard.warn .mcDot{background:#e6a11b}#mgCommand .mcCard.danger .mcDot{background:#d91f35}#mgCommand .mcCard.good .mcDot{background:#1d9b64}
+#mgCommand .mcExplainer{display:flex;gap:10px;align-items:flex-start;background:#edf5ff;border:1px solid #d5e5ff;border-radius:12px;padding:13px 15px;font-size:12px;line-height:1.55;margin:14px 0}#mgCommand .mcPanel{background:#fff;border:1px solid #e1e9f5;border-radius:16px;overflow:hidden}#mgCommand .mcPanelHead{padding:16px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}#mgCommand .mcPanelHead h3{margin:0;color:#0b3b8e;font-size:17px}#mgCommand .mcPanelHead p{margin:4px 0 0;font-size:11px;color:#64748b}#mgCommand .mcPanelHead button{border:0;border-radius:9px;background:#0b4fb7;color:#fff;padding:10px 13px;font-weight:800;cursor:pointer}
+#mgCommand .mcTableWrap{max-height:570px;overflow:auto}#mgCommand table{min-width:930px;width:100%;border-collapse:collapse}#mgCommand th{position:sticky;top:0;z-index:1;background:#f4f7fc;color:#43536c;font-size:10px}#mgCommand td{padding:13px 10px;font-size:11px;vertical-align:middle}#mgCommand td small{display:block;color:#718096;margin-top:4px;font-size:10px}#mgCommand .mcPill{display:inline-block;padding:6px 9px;border-radius:20px;background:#e9f8f0;color:#087443;font-size:10px;font-weight:800;white-space:nowrap}#mgCommand .mcPill.pending{background:#fff0e0;color:#a75c00}#mgCommand .mcPill.waiting{background:#edf0f7;color:#58657a}#mgCommand .mcPill.bad{background:#ffeaed;color:#bc263a}#mgCommand .mcFooter{padding:13px 16px;background:#f8fbff;color:#586a82;font-size:11px}
+@media(max-width:1000px){#mgCommand .mcCards{grid-template-columns:repeat(3,1fr)}#mgCommand .mcToolbar{grid-template-columns:1fr 1fr}}@media(max-width:600px){#mgCommand .mcCards{grid-template-columns:1fr 1fr}#mgCommand .mcToolbar{grid-template-columns:1fr}#mgCommand .mcHero h2{font-size:20px}}
+</style>
+<script>
+(function(){
+ let state={status:'all',scope:'fortnight'};
+ const $=id=>document.getElementById(id), safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ function setup(){
+  const mg=$('managementView'), old=$('mgFortnight');if(!mg||!old||$('mgCommand'))return;
+  const summary=old.closest('.card');if(summary)summary.classList.add('mgLegacySummary');
+  const block=document.createElement('section');block.id='mgCommand';
+  block.innerHTML=`<div class="mcHero"><div><h2>◈ Central de Controle de IDs</h2><p>Fechamento quinzenal inteligente • Auditoria por motorista • Pendências em tempo real</p></div><strong id="mcPeriod">—</strong></div>
+  <div class="mcToolbar"><div><label>📅 Período</label><select id="mcFortnight"></select></div><div><label>🏢 Empresa</label><select id="mcCompany"><option value="">Todas as empresas</option></select></div><div><label>🔎 Buscar motorista, placa ou ID</label><input id="mcSearch" placeholder="Digite para localizar..."></div><div><label>📊 Visualização</label><select id="mcScope"><option value="fortnight">Somente esta quinzena</option><option value="all">Todas as programações</option></select></div></div>
+  <div class="mcCards"><button type="button" class="mcCard" data-status="all"><span><i class="mcDot"></i>IDs previstos</span><b id="mcExpected">0</b><small>Dentro do filtro selecionado</small></button><button type="button" class="mcCard good" data-status="filled"><span><i class="mcDot"></i>IDs registrados</span><b id="mcFilled">0</b><small>Com código informado</small></button><button type="button" class="mcCard danger" data-status="missing"><span><i class="mcDot"></i>IDs faltantes</span><b id="mcMissing">0</b><small>Exigem preenchimento</small></button><button type="button" class="mcCard warn" data-status="waiting"><span><i class="mcDot"></i>Voltas sem quinzena</span><b id="mcWaiting">0</b><small>Sem chegada final confirmada</small></button><button type="button" class="mcCard" data-status="daily"><span><i class="mcDot"></i>Diárias fiscais</span><b id="mcDays">0</b><small>Eventos na quinzena selecionada</small></button></div>
+  <div class="mcExplainer" id="mcExplanation">ℹ️ Selecione um indicador para abrir a lista correspondente. O total de IDs é contado por sentido: ida e volta.</div>
+  <div class="mcPanel"><div class="mcPanelHead"><div><h3 id="mcTableTitle">Detalhamento de IDs</h3><p id="mcTableSubtitle">Clique nos indicadores para filtrar a conferência.</p></div><button type="button" id="mcClear">↺ Limpar filtros</button></div><div class="mcTableWrap"><table><thead><tr><th>Motorista / Empresa</th><th>Placa / Trecho</th><th>Sentido</th><th>Data de referência</th><th>ID</th><th>Quinzena</th><th>Situação</th></tr></thead><tbody id="mcRows"></tbody></table></div><div class="mcFooter" id="mcFooter"></div></div>`;
+  summary.parentNode.insertBefore(block,summary);
+  $('mcFortnight').addEventListener('change',()=>{old.value=$('mcFortnight').value;window.mgRenderFortnight();render()});
+  $('mcCompany').addEventListener('change',render);$('mcSearch').addEventListener('input',render);
+  $('mcScope').addEventListener('change',()=>{state.scope=$('mcScope').value;render()});
+  block.querySelectorAll('[data-status]').forEach(b=>b.addEventListener('click',()=>{state.status=b.dataset.status;render()}));
+  $('mcClear').addEventListener('click',()=>{state.status='all';state.scope='fortnight';$('mcScope').value='fortnight';$('mcCompany').value='';$('mcSearch').value='';render()});
+ }
+ function render(){setup();if(!$('mgCommand'))return;
+  const source=$('mgFortnight');if(!source)return;
+  const selected=source.value;const dropdown=$('mcFortnight');
+  if(dropdown.innerHTML!==source.innerHTML)dropdown.innerHTML=source.innerHTML;
+  dropdown.value=selected;$('mcPeriod').textContent='QUINZENA '+(selected?mgQLabel(selected):'—');
+  const programs=(typeof programmingCache!=='undefined'&&Array.isArray(programmingCache)?programmingCache:[]).filter(p=>mgExtract(p).type!=='LEGADO');
+  const companies=[...new Set(programs.map(p=>p.company||'Sem empresa'))].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+  const comp=$('mcCompany'),oldCompany=comp.value,options='<option value="">Todas as empresas</option>'+companies.map(c=>'<option value="'+safe(c)+'">'+safe(c)+'</option>').join('');if(comp.innerHTML!==options){comp.innerHTML=options;comp.value=oldCompany}
+  const selectedCompany=comp.value,term=$('mcSearch').value.trim().toLocaleLowerCase('pt-BR');
+  const matching=programs.filter(p=>(!selectedCompany||(p.company||'Sem empresa')===selectedCompany)&&(!term||[p.driver,p.company,p.plate,p.route,p.trip_id,mgExtract(p).returnId].some(v=>String(v||'').toLocaleLowerCase('pt-BR').includes(term))));
+  const all=[];let waiting=0;
+  for(const p of matching){const m=mgExtract(p),ida=mgStartDate(p),final=m.finalAt||null,normal=m.type==='NORMAL';
+   all.push({p,dir:'Ida',id:String(p.trip_id||'').trim(),date:ida,key:ida?mgQKey(ida):'',waiting:false});
+   if(normal){if(!final)waiting++;all.push({p,dir:'Volta',id:String(m.returnId||'').trim(),date:final,key:final?mgQKey(final):'',waiting:!final})}
+  }
+  const scope=state.scope==='all'?all:all.filter(x=>x.key===selected);
+  const expected=scope.length,filled=scope.filter(x=>x.id).length,missing=expected-filled;
+  const dayCount=matching.reduce((n,p)=>n+mgQAccrual(mgExtract(p)).filter(d=>mgQKey(d)===selected).length,0);
+  $('mcExpected').textContent=expected;$('mcFilled').textContent=filled;$('mcMissing').textContent=missing;$('mcWaiting').textContent=waiting;$('mcDays').textContent=dayCount;
+  const titles={all:'Todos os IDs do período',filled:'IDs registrados',missing:'IDs faltantes',waiting:'Voltas aguardando chegada final',daily:'Diárias fiscais — resumo'};
+  $('mcTableTitle').textContent=titles[state.status];
+  $('mcTableSubtitle').textContent=state.scope==='all'?'Visão geral de todas as programações cadastradas.':'Somente IDs atribuídos à quinzena selecionada.';
+  $('mcExplanation').textContent=state.scope==='all'?'ℹ️ Visão geral: inclui IDs de volta ainda sem quinzena definida. A data final precisa ser confirmada manualmente para atribuir a volta a uma quinzena.':'ℹ️ Fechamento: a ida entra na quinzena da saída e a volta na quinzena da chegada final confirmada. Voltas sem chegada final não são incluídas nos IDs previstos desta quinzena. Clique em “Voltas sem quinzena” para conferi-las separadamente.';
+  $('mgCommand').querySelectorAll('[data-status]').forEach(b=>b.classList.toggle('active',b.dataset.status===state.status));
+  let rows=state.status==='waiting'?all.filter(x=>x.waiting):state.status==='missing'?scope.filter(x=>!x.id):state.status==='filled'?scope.filter(x=>x.id):scope;
+  if(state.status==='daily')rows=[];
+  rows.sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')));
+  $('mcRows').innerHTML=state.status==='daily'?'<tr><td colspan="7">As diárias fiscais detalhadas estão no quadro “Diárias de Posto Fiscal”, abaixo. Este indicador considera os eventos completados na quinzena selecionada.</td></tr>':rows.map(x=>{const p=x.p,unknown=x.waiting,missing=!x.id;const status=unknown?'Aguardando chegada':missing?'ID faltante':'Registrado';const cls=unknown?'waiting':missing?'bad':'';return '<tr><td><b>'+safe(p.driver||'—')+'</b><small>'+safe(p.company||'—')+'</small></td><td><b>'+safe(p.plate||'—')+'</b><small>'+safe(p.route||'—')+'</small></td><td><b>'+x.dir+'</b></td><td>'+safe(x.date?mgStamp(x.date):'Não confirmada')+'</td><td><b>'+safe(x.id||'—')+'</b></td><td>'+safe(x.key?mgQLabel(x.key):'A definir')+'</td><td><span class="mcPill '+cls+'">'+status+'</span></td></tr>'}).join('')||'<tr><td colspan="7" style="padding:28px;text-align:center;color:#718096">Nenhum registro encontrado para este filtro.</td></tr>';
+  $('mcFooter').textContent=(state.status==='daily'?'Diárias fiscais: '+dayCount:rows.length+' ID(s) exibido(s)')+' • '+(state.scope==='all'?'Todas as programações':'Quinzena '+(selected?mgQLabel(selected):''))+' • Atualizado com os dados carregados do painel.';
+ }
+ const old=window.mgRenderFortnight;if(typeof old==='function')window.mgRenderFortnight=function(){const result=old.apply(this,arguments);render();return result};
+ document.addEventListener('DOMContentLoaded',()=>{setup();render()});
+ window.addEventListener('load',()=>setTimeout(render,200));
+ const oldLoad=window.loadProgramming;if(typeof oldLoad==='function')window.loadProgramming=async function(){const r=await oldLoad.apply(this,arguments);render();return r};
+ window.mgRenderCommandV40=render;
+})();
+</script>
+
 </body>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </html>
