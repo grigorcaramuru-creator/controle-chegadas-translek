@@ -2841,7 +2841,7 @@ function mgExportExcel(){
  <input id="tlVoiceText" type="text" placeholder="Ex.: quantas viagens em andamento?" aria-label="Digite seu comando"/>
  <button id="tlVoiceSend" class="tlPrimary" type="button">Enviar comando</button>
  <div id="tlVoiceAnswer" aria-live="polite">Como posso ajudar na operação?</div>
- <div id="tlVoiceExamples">Experimente: “programar viagem”, “programar viagem motorista Carlos”, “abrir programação”, “abrir gerenciamento”, “quantas viagens em andamento”, “quantos IDs nesta quinzena”, “buscar motorista Carlos”, “mostrar posto fiscal”, “ajuda”.</div>
+ <div id="tlVoiceExamples">Experimente: “confirmar saída do motorista Robson”, “programar viagem”, “programar viagem motorista Carlos”, “abrir programação”, “abrir gerenciamento”, “quantas viagens em andamento”, “quantos IDs nesta quinzena”, “buscar motorista Carlos”, “mostrar posto fiscal”, “ajuda”.</div>
 </section>
 <script>
 (function(){
@@ -2857,8 +2857,40 @@ function mgExportExcel(){
  const count=(name)=>{try{return evalCache(name).length}catch(e){return null}};
  // Access only known in-page caches; never call the database or write records.
  function evalCache(name){switch(name){case 'trips':return typeof tripsCache!=='undefined'&&Array.isArray(tripsCache)?tripsCache:[];case 'programming':return typeof programmingCache!=='undefined'&&Array.isArray(programmingCache)?programmingCache:[];case 'fiscal':return typeof fiscalCache!=='undefined'&&Array.isArray(fiscalCache)?fiscalCache:[];default:return []}}
- function run(raw){if(handleOperational(raw))return;const q=norm(raw);if(!q)return say('Não identifiquei um comando. Tente novamente.');
- if(/^(ajuda|comandos|o que voce faz)/.test(q))return say('Posso abrir abas, consultar viagens em andamento, contar programações, buscar motoristas e mostrar o gerenciamento. Para salvar, excluir ou alterar dados, utilize os controles do painel.');
+ let departureVoice=null;
+ function voiceDeparture(raw){
+  const q=norm(raw);
+  if(departureVoice){
+   if(/^(cancelar|nao|desistir|parar)/.test(q)){departureVoice=null;say('Saída cancelada. Nenhum dado foi alterado.');return true}
+   if(!/^(sim|confirmar|confirmo|pode confirmar|confirmar saida|sim confirmar)/.test(q)){say('Para registrar a saída, diga confirmar saída. Para desistir, diga cancelar.');return true}
+   const p=departureVoice;departureVoice=null;
+   const current=(typeof programmingCache!=='undefined'?programmingCache:[]).find(x=>String(x.id)===String(p.id));
+   if(!current||programRealDeparture(current)){say('Essa programação já tem saída registrada ou não está mais disponível. Nada foi alterado.');return true}
+   const real=new Date();const obs=parseProgramObservation(current.observation);
+   say('Confirmado. Registrando saída de '+current.driver+'.');
+   Promise.resolve(api('trip_programming?id=eq.'+encodeURIComponent(current.id),{
+    method:'PATCH',headers:{Prefer:'return=minimal'},
+    body:JSON.stringify({status:'INICIADA',observation:joinProgramObservation(obs.text,real.toISOString(),obs.cpf1,obs.cpf2,obs.extra),updated_at:real.toISOString()})
+   })).then(()=>{loadProgramming();say('Saída registrada para '+current.driver+' às '+real.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'.');
+    // Mantém o WhatsApp sob controle manual; não abre nem envia automaticamente.
+   }).catch(e=>say('Não foi possível registrar a saída. '+(e.message||'Confira a conexão.')));
+   return true;
+  }
+  const match=q.match(/(?:confirmar|registrar|dar|iniciar)\s+(?:a\s+)?saida(?:\s+(?:da\s+viagem|do\s+motorista|da\s+motorista|de|do|da))?\s*(.*)/);
+  if(!match)return false;
+  let name=match[1].replace(/^(?:motorista|viagem|de|do|da)\s+/,'').trim();
+  if(!name){say('Qual motorista? Diga, por exemplo: confirmar saída do motorista Robson.');return true}
+  const items=(typeof programmingCache!=='undefined'&&Array.isArray(programmingCache)?programmingCache:[])
+    .filter(p=>!programRealDeparture(p)&&norm(p.driver||'').includes(name));
+  if(items.length===0){say('Não encontrei saída pendente para '+name+'. Verifique a programação carregada.');return true}
+  if(items.length>1){say('Encontrei '+items.length+' programações pendentes para '+name+'. Informe o nome completo ou confirme a saída pelo botão da programação para evitar enganos.');return true}
+  const p=items[0];departureVoice={id:p.id};
+  const desc=(p.route||p.trecho||'trecho não informado')+'; placa '+(p.plate||'não informada')+'; data '+(p.program_date||'não informada');
+  say('Encontrei a viagem de '+p.driver+'. '+desc+'. Deseja registrar a saída agora, usando o horário atual? Diga confirmar saída ou cancelar.');
+  return true;
+ }
+ function run(raw){if(voiceDeparture(raw))return;if(handleOperational(raw))return;const q=norm(raw);if(!q)return say('Não identifiquei um comando. Tente novamente.');
+ if(/^(ajuda|comandos|o que voce faz)/.test(q))return say('Posso abrir abas, consultar viagens em andamento, contar programações, buscar motoristas e mostrar o gerenciamento. Também posso registrar a saída de uma viagem por voz, após sua confirmação. Outras alterações usam os controles do painel.');
  if(/(parar de falar|silencio|cale a boca)/.test(q)){if('speechSynthesis'in window)speechSynthesis.cancel();answer.textContent='Resposta de voz interrompida.';return}
  const destinations=[[/gerenciamento|ids|diarias|quinzena/, 'managementView','Gerenciamento'],[/programac|agenda|saidas/, 'programmingView','Programação de Viagens'],[/posto fiscal|paradas fiscais|fiscal/, 'fiscalView','Posto Fiscal'],[/painel executivo|executivo|indicadores/, 'executiveView','Painel Executivo'],[/justificativ|atrasos/, 'delaysView','Justificativas de Atrasos'],[/performance|desempenho/, 'performanceView','Performance'],[/cadastro de motoristas/, 'driverRegistryView','Cadastro de Motoristas'],[/cadastro de empresas/, 'companyRegistryView','Cadastro de Empresas'],[/cadastro de placas/, 'platesView','Cadastro de Placas'],[/rotas/, 'routesView','Cadastro de Rotas'],[/whatsapp|comunicac/, 'communicationView','Central de Comunicação'],[/operacao|fila de chegadas/, 'operationView','Operação']];
  const search=q.match(/(?:buscar|procurar|localizar|encontrar|mostrar) (?:o |a )?motorista (.+)/);
