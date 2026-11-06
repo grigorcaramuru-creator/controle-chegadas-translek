@@ -2841,7 +2841,7 @@ function mgExportExcel(){
  <input id="tlVoiceText" type="text" placeholder="Ex.: quantas viagens em andamento?" aria-label="Digite seu comando"/>
  <button id="tlVoiceSend" class="tlPrimary" type="button">Enviar comando</button>
  <div id="tlVoiceAnswer" aria-live="polite">Como posso ajudar na operação?</div>
- <div id="tlVoiceExamples">Experimente: “confirmar saída do motorista Robson”, “programar viagem”, “programar viagem motorista Carlos”, “abrir programação”, “abrir gerenciamento”, “quantas viagens em andamento”, “quantos IDs nesta quinzena”, “buscar motorista Carlos”, “mostrar posto fiscal”, “ajuda”.</div>
+ <div id="tlVoiceExamples">Experimente: “confirmar saída do motorista Robson” (depois informe data e hora), “programar viagem”, “programar viagem motorista Carlos”, “abrir programação”, “abrir gerenciamento”, “quantas viagens em andamento”, “quantos IDs nesta quinzena”, “buscar motorista Carlos”, “mostrar posto fiscal”, “ajuda”.</div>
 </section>
 <script>
 (function(){
@@ -2858,21 +2858,65 @@ function mgExportExcel(){
  // Access only known in-page caches; never call the database or write records.
  function evalCache(name){switch(name){case 'trips':return typeof tripsCache!=='undefined'&&Array.isArray(tripsCache)?tripsCache:[];case 'programming':return typeof programmingCache!=='undefined'&&Array.isArray(programmingCache)?programmingCache:[];case 'fiscal':return typeof fiscalCache!=='undefined'&&Array.isArray(fiscalCache)?fiscalCache:[];default:return []}}
  let departureVoice=null;
+ const departureMonths=['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+ function parseDepartureDate(raw){
+  const q=norm(raw),d=new Date();d.setHours(12,0,0,0);
+  if(/\banteontem\b/.test(q))d.setDate(d.getDate()-2);
+  else if(/\bontem\b/.test(q))d.setDate(d.getDate()-1);
+  else if(!/\bhoje\b/.test(q)){
+   const m=q.match(/(?:dia\s+)?(\d{1,2})\s*(?:de|\/|-)\s*(janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|\d{1,2})(?:\s*(?:de|\/|-)\s*(\d{4}))?/);
+   if(!m)return null;
+   const month=/^\d+$/.test(m[2])?Number(m[2]):departureMonths.indexOf(m[2])+1;
+   const year=m[3]?Number(m[3]):d.getFullYear();
+   if(month<1||month>12)return null;
+   d.setFullYear(year,month-1,Number(m[1]));
+   if(d.getFullYear()!==year||d.getMonth()!==month-1||d.getDate()!==Number(m[1]))return null;
+  }
+  return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
+ }
+ function parseDepartureTime(raw){
+  const q=norm(raw);
+  const m=q.match(/(?:\b(?:as|a)\s+)?\b(\d{1,2})(?:\s*(?:h|horas?|:|e)\s*(\d{1,2}))?(?:\s*(?:minutos?))?(?:\s*(?:da\s+)?(manha|tarde|noite|madrugada))?\b/);
+  if(!m)return null;
+  let h=Number(m[1]),minute=Number(m[2]||0);
+  if(h>23||minute>59)return null;
+  const period=m[3]||'';
+  if((period==='tarde'||period==='noite')&&h>=1&&h<=11)h+=12;
+  if(period==='madrugada'&&h===12)h=0;
+  return String(h).padStart(2,'0')+':'+String(minute).padStart(2,'0');
+ }
+ function departureDateTime(raw){
+  const date=parseDepartureDate(raw),q=norm(raw);
+  const part=q.replace(/(?:dia\s+)?\d{1,2}\s*(?:de|\/|-)\s*(?:janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|\d{1,2})(?:\s*(?:de|\/|-)\s*\d{4})?/,' ').replace(/\b(?:hoje|ontem|anteontem)\b/g,' ');
+  const time=parseDepartureTime(part);
+  if(!date||!time)return null;
+  const local=new Date(date+'T'+time+':00');
+  if(isNaN(local.getTime()))return null;
+  return {local,iso:local.toISOString(),date,time};
+ }
  function voiceDeparture(raw){
   const q=norm(raw);
   if(departureVoice){
    if(/^(cancelar|nao|desistir|parar)/.test(q)){departureVoice=null;say('Saída cancelada. Nenhum dado foi alterado.');return true}
-   if(!/^(sim|confirmar|confirmo|pode confirmar|confirmar saida|sim confirmar)/.test(q)){say('Para registrar a saída, diga confirmar saída. Para desistir, diga cancelar.');return true}
-   const p=departureVoice;departureVoice=null;
-   const current=(typeof programmingCache!=='undefined'?programmingCache:[]).find(x=>String(x.id)===String(p.id));
+   if(departureVoice.stage==='datetime'){
+    const parsed=departureDateTime(raw);
+    if(!parsed){say('Não consegui identificar a data e a hora. Diga por exemplo: hoje às oito e trinta, ou dia cinco de novembro às vinte e três e quarenta.');return true}
+    departureVoice.datetime=parsed;departureVoice.stage='confirm';
+    const p=(typeof programmingCache!=='undefined'?programmingCache:[]).find(x=>String(x.id)===String(departureVoice.id));
+    if(!p){departureVoice=null;say('Não encontrei mais essa programação. Nenhum dado foi alterado.');return true}
+    say('Confirma a saída de '+p.driver+' em '+parsed.local.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})+'? Diga confirmar saída ou cancelar.');return true;
+   }
+   if(!/^(sim|confirmar|confirmo|pode confirmar|confirmar saida|sim confirmar)/.test(q)){say('Para registrar no horário informado, diga confirmar saída. Para desistir, diga cancelar.');return true}
+   const pending=departureVoice;departureVoice=null;
+   const current=(typeof programmingCache!=='undefined'?programmingCache:[]).find(x=>String(x.id)===String(pending.id));
    if(!current||programRealDeparture(current)){say('Essa programação já tem saída registrada ou não está mais disponível. Nada foi alterado.');return true}
-   const real=new Date();const obs=parseProgramObservation(current.observation);
-   say('Confirmado. Registrando saída de '+current.driver+'.');
+   if(!pending.datetime){say('A data e a hora não foram informadas. Nenhum dado foi alterado.');return true}
+   const real=pending.datetime.local,obs=parseProgramObservation(current.observation);
+   say('Confirmado. Registrando saída de '+current.driver+' no horário informado.');
    Promise.resolve(api('trip_programming?id=eq.'+encodeURIComponent(current.id),{
     method:'PATCH',headers:{Prefer:'return=minimal'},
-    body:JSON.stringify({status:'INICIADA',observation:joinProgramObservation(obs.text,real.toISOString(),obs.cpf1,obs.cpf2,obs.extra),updated_at:real.toISOString()})
-   })).then(()=>{loadProgramming();say('Saída registrada para '+current.driver+' às '+real.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+'.');
-    // Mantém o WhatsApp sob controle manual; não abre nem envia automaticamente.
+    body:JSON.stringify({status:'INICIADA',observation:joinProgramObservation(obs.text,real.toISOString(),obs.cpf1,obs.cpf2,obs.extra),updated_at:new Date().toISOString()})
+   })).then(()=>{loadProgramming();say('Saída registrada para '+current.driver+' em '+real.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false})+'.');
    }).catch(e=>say('Não foi possível registrar a saída. '+(e.message||'Confira a conexão.')));
    return true;
   }
@@ -2884,9 +2928,9 @@ function mgExportExcel(){
     .filter(p=>!programRealDeparture(p)&&norm(p.driver||'').includes(name));
   if(items.length===0){say('Não encontrei saída pendente para '+name+'. Verifique a programação carregada.');return true}
   if(items.length>1){say('Encontrei '+items.length+' programações pendentes para '+name+'. Informe o nome completo ou confirme a saída pelo botão da programação para evitar enganos.');return true}
-  const p=items[0];departureVoice={id:p.id};
-  const desc=(p.route||p.trecho||'trecho não informado')+'; placa '+(p.plate||'não informada')+'; data '+(p.program_date||'não informada');
-  say('Encontrei a viagem de '+p.driver+'. '+desc+'. Deseja registrar a saída agora, usando o horário atual? Diga confirmar saída ou cancelar.');
+  const p=items[0];departureVoice={id:p.id,stage:'datetime',datetime:null};
+  const desc=(p.route||p.trecho||'trecho não informado')+'; placa '+(p.plate||'não informada');
+  say('Encontrei a viagem de '+p.driver+'. '+desc+'. Qual foi a data e o horário real da saída? Diga por exemplo: hoje às oito e trinta, ou ontem às vinte e três e quarenta.');
   return true;
  }
  function run(raw){if(voiceDeparture(raw))return;if(handleOperational(raw))return;const q=norm(raw);if(!q)return say('Não identifiquei um comando. Tente novamente.');
