@@ -2841,7 +2841,7 @@ function mgExportExcel(){
  <input id="tlVoiceText" type="text" placeholder="Ex.: quantas viagens em andamento?" aria-label="Digite seu comando"/>
  <button id="tlVoiceSend" class="tlPrimary" type="button">Enviar comando</button>
  <div id="tlVoiceAnswer" aria-live="polite">Como posso ajudar na operação?</div>
- <div id="tlVoiceExamples">Experimente: “abrir programação”, “abrir gerenciamento”, “quantas viagens em andamento”, “quantos IDs nesta quinzena”, “buscar motorista Carlos”, “mostrar posto fiscal”, “ajuda”.</div>
+ <div id="tlVoiceExamples">Experimente: “programar viagem”, “programar viagem motorista Carlos”, “abrir programação”, “abrir gerenciamento”, “quantas viagens em andamento”, “quantos IDs nesta quinzena”, “buscar motorista Carlos”, “mostrar posto fiscal”, “ajuda”.</div>
 </section>
 <script>
 (function(){
@@ -2857,7 +2857,7 @@ function mgExportExcel(){
  const count=(name)=>{try{return evalCache(name).length}catch(e){return null}};
  // Access only known in-page caches; never call the database or write records.
  function evalCache(name){switch(name){case 'trips':return typeof tripsCache!=='undefined'&&Array.isArray(tripsCache)?tripsCache:[];case 'programming':return typeof programmingCache!=='undefined'&&Array.isArray(programmingCache)?programmingCache:[];case 'fiscal':return typeof fiscalCache!=='undefined'&&Array.isArray(fiscalCache)?fiscalCache:[];default:return []}}
- function run(raw){const q=norm(raw);if(!q)return say('Não identifiquei um comando. Tente novamente.');
+ function run(raw){if(handleOperational(raw))return;const q=norm(raw);if(!q)return say('Não identifiquei um comando. Tente novamente.');
  if(/^(ajuda|comandos|o que voce faz)/.test(q))return say('Posso abrir abas, consultar viagens em andamento, contar programações, buscar motoristas e mostrar o gerenciamento. Para salvar, excluir ou alterar dados, utilize os controles do painel.');
  if(/(parar de falar|silencio|cale a boca)/.test(q)){if('speechSynthesis'in window)speechSynthesis.cancel();answer.textContent='Resposta de voz interrompida.';return}
  const destinations=[[/gerenciamento|ids|diarias|quinzena/, 'managementView','Gerenciamento'],[/programac|agenda|saidas/, 'programmingView','Programação de Viagens'],[/posto fiscal|paradas fiscais|fiscal/, 'fiscalView','Posto Fiscal'],[/painel executivo|executivo|indicadores/, 'executiveView','Painel Executivo'],[/justificativ|atrasos/, 'delaysView','Justificativas de Atrasos'],[/performance|desempenho/, 'performanceView','Performance'],[/cadastro de motoristas/, 'driverRegistryView','Cadastro de Motoristas'],[/cadastro de empresas/, 'companyRegistryView','Cadastro de Empresas'],[/cadastro de placas/, 'platesView','Cadastro de Placas'],[/rotas/, 'routesView','Cadastro de Rotas'],[/whatsapp|comunicac/, 'communicationView','Central de Comunicação'],[/operacao|fila de chegadas/, 'operationView','Operação']];
@@ -2871,6 +2871,33 @@ function mgExportExcel(){
  if(/(excluir|apagar|deletar|salvar|alterar|editar|iniciar viagem|finalizar viagem|registrar)/.test(q))return say('Por segurança, ações que alteram dados exigem confirmação manual nos formulários do painel.');
  say('Não reconheci esse comando. Diga ajuda para conhecer os comandos disponíveis.');
  }
+ let flow=null;
+ const steps=[['driver','Qual é o nome do motorista cadastrado?'],['route','Qual é o trecho da viagem?'],['date','Qual é a data da saída? Diga hoje, amanhã ou dia e mês.'],['time','Qual é o horário de saída?'],['plate','Qual é a placa do cavalo?'],['company','Qual é a empresa?'],['type','A viagem é normal ou one way?'],['extra','É uma viagem extra?']];
+ function dateValue(v){const n=norm(v),d=new Date();if(/amanha/.test(n))d.setDate(d.getDate()+1);else if(!/hoje/.test(n)){const m=n.match(/(?:dia\s*)?(\d{1,2})\s*(?:de\s*)?(janeiro|fevereiro|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro|\d{1,2})/);if(!m)return '';let month=isNaN(+m[2])?['janeiro','fevereiro','marco','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'].indexOf(m[2])+1:+m[2];d.setMonth(month-1,+m[1]);if(d.getTime()<Date.now()-86400000)d.setFullYear(d.getFullYear()+1)}return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+ function timeValue(v){let n=norm(v),m=n.match(/(\d{1,2})(?:\s*(?:horas?|h|:|e)\s*(\d{1,2}))?/);if(!m)return '';let h=+m[1],mi=+(m[2]||0);if(/tarde|noite/.test(n)&&h<12)h+=12;if(h>23||mi>59)return '';return String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0')}
+ function choose(select,text){const n=norm(text);return [...select.options].find(o=>norm(o.value)===n||norm(o.textContent)===n)||[...select.options].find(o=>n.length>2&&(norm(o.textContent).includes(n)||n.includes(norm(o.value))))}
+ function fill(k,v){const id={driver:'programDriver',route:'programRoute',date:'programDate',time:'programTime',plate:'programPlate',company:'programCompany',type:'mgType',extra:'programExtra'}[k],el=byId(id);if(!el)return false;let value=v;
+ if(k==='driver'){const matches=(typeof driversCache!=='undefined'?driversCache:[]).filter(d=>norm(d.name).includes(norm(v)));if(matches.length!==1){say(matches.length?'Encontrei mais de um motorista. Diga o nome completo.':'Motorista não localizado no cadastro. Diga o nome cadastrado.');return false}value=matches[0].name;byId('programCpf').value=matches[0].cpf||'';if(!byId('programCompany').value&&matches[0].company){const co=choose(byId('programCompany'),matches[0].company);if(co)byId('programCompany').value=co.value}}
+ if(k==='date')value=dateValue(v);if(k==='time')value=timeValue(v);
+ if(k==='type')value=/one\s*way|somente ida|apenas ida/.test(norm(v))?'ONE_WAY':'NORMAL';
+ if(k==='extra')value=/^(sim|extra)|viagem extra/.test(norm(v))?'SIM':'NAO';
+ if(el.tagName==='SELECT'&&k!=='type'&&k!=='extra'){const o=choose(el,value);if(!o){say('Não encontrei essa opção cadastrada. Repita o trecho ou empresa.');return false}value=o.value}
+ if(!value){say('Não consegui entender esse dado. Pode repetir?');return false}el.value=value;el.dispatchEvent(new Event('change',{bubbles:true}));el.dispatchEvent(new Event('input',{bubbles:true}));return true}
+ function nextStep(){if(!flow)return;while(flow.index<steps.length&&byId({driver:'programDriver',route:'programRoute',date:'programDate',time:'programTime',plate:'programPlate',company:'programCompany',type:'mgType',extra:'programExtra'}[steps[flow.index][0]]).value&&flow.index<6)flow.index++;if(flow.index>=steps.length){flow.stage='confirm';document.querySelector('[data-view="programmingView"]')?.click();say('Programação preenchida. Confira motorista, trecho, data, horário e placas. Diga confirmar programação para salvar ou cancelar para desistir.');return}say(steps[flow.index][1]+' Toque em Falar para responder.')}
+ function handleOperational(raw){let q=norm(raw);if(!q)return false;
+ if(flow){if(/^(cancelar|desistir|parar operacao)/.test(q)){flow=null;say('Operação por voz cancelada. Nada foi salvo.');return true}
+ if(flow.stage==='confirm'){if(/confirmar|salvar programacao/.test(q)){const required=['programDate','programTime','programRoute','programDriver','programCpf'];if(required.some(id=>!byId(id).value)){say('Ainda há campos obrigatórios sem preencher. Confira o formulário.');return true}flow=null;say('Confirmação recebida. Salvando programação.');Promise.resolve(saveProgramming()).catch(e=>say('Erro ao salvar: '+e.message));return true}say('Diga confirmar programação ou cancelar.');return true}
+ const key=steps[flow.index][0];if(fill(key,raw)){flow.index++;nextStep()}return true}
+ if(/(?:programar|cadastrar|criar|agendar|nova)\s+(?:uma\s+)?viagem|nova programacao/.test(q)){
+ document.querySelector('[data-view="programmingView"]')?.click();['programDriver','programCpf','programPlate','programTime'].forEach(id=>{if(byId(id))byId(id).value=''});flow={index:0,stage:'collect'};
+ const dm=q.match(/motorista\s+(.+?)(?=\s+placa|\s+trecho|\s+de\s+\w+\s+para|\s+saida|$)/);if(dm)fill('driver',dm[1]);
+ const route=q.match(/(?:de\s+)?([a-z]+)\s+(?:para|ate)\s+([a-z]+)/);if(route)fill('route',route[1]+' '+route[2]);
+ const plate=q.match(/placa\s+([a-z0-9\s-]{7,9})/);if(plate)fill('plate',plate[1].replace(/\s/g,'').toUpperCase());
+ const tm=q.match(/(?:as|saida)\s+(\d{1,2}(?:\s*(?:horas?|h|:)\s*\d{1,2})?)/);if(tm)fill('time',tm[1]);
+ if(/amanha|hoje/.test(q))fill('date',/amanha/.test(q)?'amanhã':'hoje');
+ if(/one way/.test(q))fill('type','one way');if(/viagem extra/.test(q))fill('extra','sim');
+ nextStep();return true}
+ return false}
  byId('tlVoiceLaunch').addEventListener('click',()=>{open();start()});byId('tlVoiceClose').addEventListener('click',()=>{stop();panel.classList.remove('open');launch.setAttribute('aria-expanded','false')});
  byId('tlVoiceStop').addEventListener('click',()=>{stop();status.textContent='Microfone parado.'});
  byId('tlVoiceSound').addEventListener('click',()=>{sound=!sound;byId('tlVoiceSound').textContent=sound?'🔊 Respostas: ligadas':'🔇 Respostas: desligadas';byId('tlVoiceSound').setAttribute('aria-pressed',String(sound));if(!sound&&'speechSynthesis'in window)speechSynthesis.cancel()});
