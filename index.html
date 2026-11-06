@@ -986,8 +986,8 @@ function renderProgramming(){
 
     return `<tr class="${isExtra?'scheduleExtraRow':''}">
       <td>${new Date(p.program_date+'T12:00').toLocaleDateString('pt-BR')}</td>
-      <td><b>${String(p.departure_time||'').slice(0,5)}</b>${isExtra?'<br><span class="extraBadge">⚡ VIAGEM EXTRA</span>':''}</td>
-      <td>${real?`<b style="color:#18a75b">${fmtDT(real)}</b>`:'—'}</td>
+      <td><span style="font-size:10px;color:#64748b">Prevista</span><br><b>${String(p.departure_time||'').slice(0,5)}</b>${isExtra?'<br><span class="extraBadge">⚡ VIAGEM EXTRA</span>':''}</td>
+      <td>${real?`<span style="font-size:10px;color:#087a3d">Saída real</span><br><b style="color:#18a75b">${fmtDT(real)}</b>`:'—'}</td>
       <td>${esc(p.route||'—')}</td>
       <td>${formatProgramDrivers(p.driver)}</td>
       <td>${formatProgramCpfs(p)}</td>
@@ -2516,7 +2516,9 @@ function mgQKey(value){const d=new Date(value);if(!Number.isFinite(d.getTime()))
 function mgQLabel(key){const [y,m,n]=key.split('-');return (n==='1'?'01–15':'16–'+new Date(+y,+m,0).getDate())+'/'+m+'/'+y}
 function mgQAccrual(m){const events=[];for(const st of m.stops||[]){const start=mgDate(st.start),end=mgDate(st.end||m.finalAt)||new Date();if(!start||end<start)continue;for(let h=24;start.getTime()+h*3600000<=end.getTime();h+=10){events.push(new Date(start.getTime()+h*3600000))}}return events}
 function mgStartDate(p){
- const raw=String(p.program_date||'').slice(0,10),time=String(p.real_departure||p.departure_time||'00:00').slice(0,5);
+ const real=typeof programRealDeparture==='function'?programRealDeparture(p):null;
+ if(real)return real;
+ const raw=String(p.program_date||'').slice(0,10),time=String(p.departure_time||'00:00').slice(0,5);
  return raw?raw+'T'+time+':00':null;
 }
 function mgRenderFortnight(){
@@ -2875,7 +2877,7 @@ function mgExportExcel(){
   return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-');
  }
  function parseDepartureTime(raw){
-  const q=norm(raw);
+  const q=norm(String(raw).replace(/(\d{1,2})\s*:\s*(\d{2})/g,'$1 h $2'));
   const m=q.match(/(?:\b(?:as|a)\s+)?\b(\d{1,2})(?:\s*(?:h|horas?|:|e)\s*(\d{1,2}))?(?:\s*(?:minutos?))?(?:\s*(?:da\s+)?(manha|tarde|noite|madrugada))?\b/);
   if(!m)return null;
   let h=Number(m[1]),minute=Number(m[2]||0);
@@ -2912,7 +2914,7 @@ function mgExportExcel(){
    if(!current||programRealDeparture(current)){say('Essa programação já tem saída registrada ou não está mais disponível. Nada foi alterado.');return true}
    if(!pending.datetime){say('A data e a hora não foram informadas. Nenhum dado foi alterado.');return true}
    const real=pending.datetime.local,obs=parseProgramObservation(current.observation);
-   say('Confirmado. Registrando saída de '+current.driver+' no horário informado.');
+   say('Registrando a saída de '+current.driver+' no horário informado.');
    Promise.resolve(api('trip_programming?id=eq.'+encodeURIComponent(current.id),{
     method:'PATCH',headers:{Prefer:'return=minimal'},
     body:JSON.stringify({status:'INICIADA',observation:joinProgramObservation(obs.text,real.toISOString(),obs.cpf1,obs.cpf2,obs.extra),updated_at:new Date().toISOString()})
