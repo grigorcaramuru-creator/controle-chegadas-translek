@@ -2818,5 +2818,73 @@ function mgExportExcel(){
 })();
 </script>
 
+
+<!-- TRANSLEK • ASSISTENTE DE VOZ V1 (consultas e navegação, sem alterações de dados) -->
+<style>
+#tlVoiceLaunch{position:fixed;right:19px;bottom:20px;z-index:85;border:0;border-radius:999px;background:linear-gradient(135deg,#063b92,#0b68e8);color:white;padding:15px 19px;box-shadow:0 8px 28px #001d5c66;font-weight:900;cursor:pointer;font-size:14px}
+#tlVoiceLaunch.listening{background:#d7192d;animation:tlVoicePulse 1.1s infinite}
+@keyframes tlVoicePulse{50%{box-shadow:0 0 0 12px #e01c2b33}}
+#tlVoicePanel{display:none;position:fixed;bottom:82px;right:16px;z-index:86;width:min(390px,calc(100vw - 32px));max-height:75vh;overflow:auto;background:#fff;border:1px solid #cbd9ed;border-radius:19px;box-shadow:0 16px 50px #041a4960;padding:17px;color:#142640}
+#tlVoicePanel.open{display:block}#tlVoicePanel h3{margin:0 0 5px;color:#083b90;font-size:17px}#tlVoicePanel p{font-size:12px;line-height:1.5;color:#586a81}
+#tlVoicePanel button{cursor:pointer;border-radius:9px;padding:9px 11px;font-weight:700;border:1px solid #c9d8ef;background:#f5f9ff;color:#063b92}
+#tlVoicePanel .tlPrimary{background:#0a56bf;color:#fff;border:0}#tlVoiceStatus{padding:10px;border-radius:9px;background:#edf4ff;font-size:12px;margin:10px 0}
+#tlVoiceAnswer{white-space:pre-wrap;line-height:1.5;font-size:13px;background:#f7f9fd;border-radius:10px;padding:12px;min-height:48px}
+#tlVoicePanel input{margin:9px 0;width:100%;font-size:13px}#tlVoiceExamples{font-size:11px;color:#64748b;margin-top:10px;line-height:1.6}
+@media(max-width:750px){#tlVoiceLaunch{bottom:12px;right:12px}#tlVoicePanel{bottom:73px;right:10px;width:calc(100vw - 20px)}}
+</style>
+<button type="button" id="tlVoiceLaunch" aria-label="Abrir Assistente de Voz Translek">🎙️ Assistente</button>
+<section id="tlVoicePanel" role="dialog" aria-label="Assistente de Voz Translek">
+ <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><h3>🎙️ Assistente Translek</h3><button id="tlVoiceClose" type="button" aria-label="Fechar">✕</button></div>
+ <p>Fale ou digite um comando. Consultas utilizam os dados carregados nesta sessão.</p>
+ <div id="tlVoiceStatus" role="status">Pronto para receber comandos.</div>
+ <div style="display:flex;gap:7px;flex-wrap:wrap"><button id="tlVoiceListen" class="tlPrimary" type="button">🎤 Falar</button><button id="tlVoiceStop" type="button">■ Parar</button><button id="tlVoiceSound" type="button" aria-pressed="true">🔊 Respostas: ligadas</button></div>
+ <input id="tlVoiceText" type="text" placeholder="Ex.: quantas viagens em andamento?" aria-label="Digite seu comando"/>
+ <button id="tlVoiceSend" class="tlPrimary" type="button">Enviar comando</button>
+ <div id="tlVoiceAnswer" aria-live="polite">Como posso ajudar na operação?</div>
+ <div id="tlVoiceExamples">Experimente: “abrir programação”, “abrir gerenciamento”, “quantas viagens em andamento”, “quantos IDs nesta quinzena”, “buscar motorista Carlos”, “mostrar posto fiscal”, “ajuda”.</div>
+</section>
+<script>
+(function(){
+ 'use strict';
+ const byId=id=>document.getElementById(id),launch=byId('tlVoiceLaunch'),panel=byId('tlVoicePanel'),status=byId('tlVoiceStatus'),answer=byId('tlVoiceAnswer');
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ let recognition=null,listening=false,sound=true;
+ const norm=t=>String(t||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9\s-]/g,' ').replace(/\s+/g,' ').trim();
+ const say=t=>{answer.textContent=t;if(sound&&'speechSynthesis' in window){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='pt-BR';u.rate=1.03;speechSynthesis.speak(u)}catch(e){}}};
+ const open=()=>{panel.classList.add('open');launch.setAttribute('aria-expanded','true')};
+ const stop=()=>{if(recognition&&listening)try{recognition.stop()}catch(e){};listening=false;launch.classList.remove('listening')};
+ const tab=(id)=>{const btn=document.querySelector('.tabBtn[data-view="'+id+'"]');if(!btn)return false;btn.click();return true};
+ const count=(name)=>{try{return evalCache(name).length}catch(e){return null}};
+ // Access only known in-page caches; never call the database or write records.
+ function evalCache(name){switch(name){case 'trips':return typeof tripsCache!=='undefined'&&Array.isArray(tripsCache)?tripsCache:[];case 'programming':return typeof programmingCache!=='undefined'&&Array.isArray(programmingCache)?programmingCache:[];case 'fiscal':return typeof fiscalCache!=='undefined'&&Array.isArray(fiscalCache)?fiscalCache:[];default:return []}}
+ function run(raw){const q=norm(raw);if(!q)return say('Não identifiquei um comando. Tente novamente.');
+ if(/^(ajuda|comandos|o que voce faz)/.test(q))return say('Posso abrir abas, consultar viagens em andamento, contar programações, buscar motoristas e mostrar o gerenciamento. Para salvar, excluir ou alterar dados, utilize os controles do painel.');
+ if(/(parar de falar|silencio|cale a boca)/.test(q)){if('speechSynthesis'in window)speechSynthesis.cancel();answer.textContent='Resposta de voz interrompida.';return}
+ const destinations=[[/gerenciamento|ids|diarias|quinzena/, 'managementView','Gerenciamento'],[/programac|agenda|saidas/, 'programmingView','Programação de Viagens'],[/posto fiscal|paradas fiscais|fiscal/, 'fiscalView','Posto Fiscal'],[/painel executivo|executivo|indicadores/, 'executiveView','Painel Executivo'],[/justificativ|atrasos/, 'delaysView','Justificativas de Atrasos'],[/performance|desempenho/, 'performanceView','Performance'],[/cadastro de motoristas/, 'driverRegistryView','Cadastro de Motoristas'],[/cadastro de empresas/, 'companyRegistryView','Cadastro de Empresas'],[/cadastro de placas/, 'platesView','Cadastro de Placas'],[/rotas/, 'routesView','Cadastro de Rotas'],[/whatsapp|comunicac/, 'communicationView','Central de Comunicação'],[/operacao|fila de chegadas/, 'operationView','Operação']];
+ const search=q.match(/(?:buscar|procurar|localizar|encontrar|mostrar) (?:o |a )?motorista (.+)/);
+ if(search){const name=raw.replace(/^.*?motorista\s+/i,'').trim();if(tab('programmingView')){const input=byId('programFilterDriver');if(input){input.value=name;input.dispatchEvent(new Event('input',{bubbles:true}));if(typeof renderProgramming==='function')renderProgramming();return say('Abri a programação e filtrei pelo motorista '+name+'.')}}return say('Não consegui abrir a busca de motoristas.');}
+ if(/(quantas|quantos|total|numero)/.test(q)&&/viagens? em andamento|viagens? ativas?/.test(q)){const trips=evalCache('trips');const active=trips.filter(t=>!t.actual_arrival&&!t.arrived_at&&!t.completed_at&&!t.arrival_real&&!t.real_arrival);return say('Encontrei '+active.length+' viagem ou viagens aparentemente em andamento entre '+trips.length+' registros carregados. Confira a fila para validar o status.');}
+ if(/(quantas|quantos|total|numero)/.test(q)&&/programac|viagens? programadas/.test(q)){return say('Existem '+count('programming')+' registros de programação carregados no painel.');}
+ if(/(quantas|quantos|total|numero)/.test(q)&&/paradas|posto fiscal/.test(q)){return say('Existem '+count('fiscal')+' registros de posto fiscal carregados no painel.');}
+ if(/(quantas|quantos|total|numero)/.test(q)&&/ids|id |diarias|quinzena/.test(q)){tab('managementView');return say('Abri o Gerenciamento para consultar os indicadores oficiais de IDs e diárias por quinzena. Se estiver protegido por senha, faça a autenticação. Não vou estimar esses números usando critérios diferentes dos do painel.');}
+ for(const [re,id,label] of destinations){if(re.test(q)){if(tab(id))return say('Abrindo '+label+'.');if(id==='fiscalView'){const b=[...document.querySelectorAll('.tabBtn')].find(b=>norm(b.textContent).includes('posto fiscal'));if(b){b.click();return say('Abrindo Posto Fiscal.')}}if(id==='performanceView'){const b=[...document.querySelectorAll('.tabBtn')].find(b=>norm(b.textContent).includes('performance'));if(b){b.click();return say('Abrindo Performance.')}}return say('Não encontrei a aba '+label+' nesta versão do painel.')}}
+ if(/(excluir|apagar|deletar|salvar|alterar|editar|iniciar viagem|finalizar viagem|registrar)/.test(q))return say('Por segurança, ações que alteram dados exigem confirmação manual nos formulários do painel.');
+ say('Não reconheci esse comando. Diga ajuda para conhecer os comandos disponíveis.');
+ }
+ byId('tlVoiceLaunch').addEventListener('click',()=>{open();start()});byId('tlVoiceClose').addEventListener('click',()=>{stop();panel.classList.remove('open');launch.setAttribute('aria-expanded','false')});
+ byId('tlVoiceStop').addEventListener('click',()=>{stop();status.textContent='Microfone parado.'});
+ byId('tlVoiceSound').addEventListener('click',()=>{sound=!sound;byId('tlVoiceSound').textContent=sound?'🔊 Respostas: ligadas':'🔇 Respostas: desligadas';byId('tlVoiceSound').setAttribute('aria-pressed',String(sound));if(!sound&&'speechSynthesis'in window)speechSynthesis.cancel()});
+ byId('tlVoiceSend').addEventListener('click',()=>run(byId('tlVoiceText').value));byId('tlVoiceText').addEventListener('keydown',e=>{if(e.key==='Enter')run(e.target.value)});
+ byId('tlVoiceListen').addEventListener('click',start);
+ function start(){open();if(!SR){status.textContent='Reconhecimento de voz indisponível neste navegador. Use o campo de texto ou tente Chrome atualizado com HTTPS.';return}if(listening)return;
+ try{recognition=new SR();recognition.lang='pt-BR';recognition.interimResults=false;recognition.maxAlternatives=1;recognition.continuous=false;
+ recognition.onstart=()=>{listening=true;launch.classList.add('listening');status.textContent='🎙️ Ouvindo seu comando...'};
+ recognition.onresult=e=>{const text=e.results[0][0].transcript;byId('tlVoiceText').value=text;status.textContent='Comando identificado: '+text;run(text)};
+ recognition.onerror=e=>{status.textContent='Microfone: '+({not_allowed:'permissão negada', 'not-allowed':'permissão negada','no-speech':'nenhuma fala detectada','network':'serviço de voz indisponível'}[e.error]||e.error)+'. Você pode digitar o comando.'};
+ recognition.onend=()=>{listening=false;launch.classList.remove('listening')};recognition.start()
+ }catch(e){status.textContent='Não foi possível iniciar o microfone: '+e.message}}
+})();
+</script>
+
 </body>
                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </html>
