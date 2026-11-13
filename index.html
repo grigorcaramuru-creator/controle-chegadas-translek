@@ -2366,7 +2366,42 @@ setTimeout(()=>{
 <section id="communicationView" class="view"><div class="commPage">
 <div class="commHero"><h2>🚛 Central de Comunicação Translek</h2><p>Orientações operacionais, destino, previsão de chegada e prevenção de atrasos • Envio manual via WhatsApp</p></div>
 <div class="commGrid"><div class="card commBox"><h2>📋 Selecionar viagem</h2><label>Buscar motorista cadastrado</label><input id="commDriverSearch" placeholder="Digite o nome do motorista" oninput="commRenderDrivers()"><label>Motorista</label><select id="commDriver" onchange="commRenderTrips()"><option value="">Selecione o motorista</option></select><label>Viagem programada ou ativa</label><select id="commTrip" onchange="commPrepare()"><option value="">Selecione a viagem</option></select><div id="commDetails" class="info">Selecione um motorista e uma viagem para preencher a mensagem.</div><label>Telefone WhatsApp (DDD + número)</label><input id="commPhone" type="tel" placeholder="(11) 99999-9999" oninput="commUpdateButton()"><div id="commStatus" class="commStatus">Aguardando seleção</div><p class="commHint">A mensagem será aberta no WhatsApp. Confira o conteúdo e toque em enviar no próprio aplicativo.</p></div>
-<div class="card commBox"><h2>💬 Mensagem para o motorista</h2><label>Você pode editar antes de enviar</label><textarea id="commMessage" class="commPreview" oninput="commUpdateButton()" placeholder="Selecione uma viagem para gerar a mensagem..."></textarea><button id="commSend" class="commSend" onclick="commSendWhatsApp()" disabled>🟢 Abrir no WhatsApp</button><button class="secondaryBtn" style="margin-top:10px" onclick="commCopyMessage()">📋 Copiar mensagem</button><p class="commHint">Por segurança, a abertura do WhatsApp não comprova que a mensagem foi enviada ou recebida.</p></div></div></div></section>
+<div class="card commBox"><h2>💬 Mensagem para o motorista</h2><label>Você pode editar antes de enviar</label><textarea id="commMessage" class="commPreview" oninput="commUpdateButton()" placeholder="Selecione uma viagem para gerar a mensagem..."></textarea><button id="commSend" class="commSend" onclick="commSendWhatsApp()" disabled>🟢 Abrir no WhatsApp</button><button class="secondaryBtn" style="margin-top:10px" onclick="commCopyMessage()">📋 Copiar mensagem</button><p class="commHint">Por segurança, a abertura do WhatsApp não comprova que a mensagem foi enviada ou recebida.</p></div></div>
+<div class="card commBox tlAssistant" style="margin-top:16px">
+<h2>✍️ Assistente de Comunicação com o Cliente</h2>
+<p class="commHint">Descreva a ocorrência e gere uma mensagem objetiva. A ferramenta funciona sem conexão com IA e não inventa informações.</p>
+<div class="commRow"><div><label>Placa / identificação (opcional)</label><input id="tlClientPlate" placeholder="Ex.: ABC1D23"></div><div><label>Tom da mensagem</label><select id="tlClientTone"><option value="objetivo">Objetivo</option><option value="diplomatico">Diplomático</option><option value="firme">Firme</option></select></div></div>
+<label>O que aconteceu?</label><textarea id="tlClientIncident" placeholder="Ex.: Veículo disponível na base desde 07h, saída prevista às 08h, ainda sem liberação do cliente."></textarea>
+<div class="commRow"><div><label>Horário de chegada / disponibilidade (opcional)</label><input id="tlClientSince" type="time"></div><div><label>Saída prevista (opcional)</label><input id="tlClientExpected" type="time"></div></div>
+<label><input id="tlClientConfirmed" type="checkbox" style="width:auto;margin-right:6px"> Confirmo que o veículo está disponível e a liberação ainda está pendente</label>
+<button class="primary" type="button" onclick="tlGenerateClientMessage()">✨ Gerar mensagem</button>
+<label>Mensagem editável</label><textarea id="tlClientOutput" style="min-height:160px" placeholder="A mensagem aparecerá aqui."></textarea>
+<div class="commRow"><button class="secondaryBtn" type="button" onclick="tlCopyClientMessage()">📋 Copiar mensagem</button><button class="commSend" style="margin-top:0" type="button" onclick="tlOpenClientWhatsApp()">🟢 Abrir WhatsApp</button></div>
+<p id="tlClientFeedback" class="commHint" aria-live="polite"></p>
+</div></div></section>
+<script>
+/* PERF-V27 • Assistente local de mensagens ao cliente */
+function tlGenerateClientMessage(){
+ const get=id=>document.getElementById(id), incident=get('tlClientIncident').value.trim(), confirmed=get('tlClientConfirmed').checked;
+ const feedback=get('tlClientFeedback');
+ if(!incident){feedback.textContent='Descreva a ocorrência antes de gerar a mensagem.';return}
+ const tone=get('tlClientTone').value,plate=get('tlClientPlate').value.trim().toUpperCase(),since=get('tlClientSince').value,expected=get('tlClientExpected').value;
+ const subject=plate?'O veículo '+plate:'O veículo';
+ const times=[since?'disponível na base desde '+since:'',expected?'com saída prevista para '+expected:''].filter(Boolean).join(', ');
+ let msg='';
+ if(confirmed){
+  if(tone==='firme')msg='Prezados, registramos que '+subject.toLowerCase()+' permanece na base, disponível para operação, aguardando a liberação de saída.'+(times?' Está '+times+'.':'')+' Eventuais impactos no horário previsto devem considerar esse período de espera pela autorização.';
+  else if(tone==='diplomatico')msg='Bom dia! Informamos que '+subject.toLowerCase()+' permanece na base, à disposição para iniciar a viagem, aguardando liberação.'+(times?' O veículo está '+times+'.':'')+' Seguimos acompanhando e solicitamos apoio para a liberação.';
+  else msg='Bom dia! '+subject+' permanece na base, disponível para iniciar a viagem, porém ainda sem liberação de saída.'+(times?' Disponibilidade: '+times+'.':'')+' Aguardamos autorização para prosseguir.';
+ }else{
+  msg='Bom dia! Sobre '+(plate?'o veículo '+plate:'o veículo')+', informamos a seguinte ocorrência: '+incident.replace(/[.!?]+$/,'')+'. Solicitamos confirmação da situação e orientação para prosseguimento.';
+ }
+ if(confirmed && incident && !/^(carro|veículo|veiculo) (parado|disponível|disponivel)/i.test(incident))msg+=' Registro operacional: '+incident.replace(/[.!?]+$/,'')+'.';
+ get('tlClientOutput').value=msg;feedback.textContent='Mensagem gerada. Revise os fatos antes de encaminhar.';
+}
+async function tlCopyClientMessage(){const el=document.getElementById('tlClientOutput'),v=el.value.trim();if(!v){document.getElementById('tlClientFeedback').textContent='Gere uma mensagem primeiro.';return}try{await navigator.clipboard.writeText(v);document.getElementById('tlClientFeedback').textContent='Mensagem copiada.'}catch(e){el.select();document.execCommand('copy');document.getElementById('tlClientFeedback').textContent='Mensagem selecionada para copiar.'}}
+function tlOpenClientWhatsApp(){const v=document.getElementById('tlClientOutput').value.trim();if(!v){document.getElementById('tlClientFeedback').textContent='Gere uma mensagem primeiro.';return}window.open('https://api.whatsapp.com/send?text='+encodeURIComponent(v),'_blank','noopener,noreferrer')}
+</script>
 <script>
 /* PERF-V26 • envio manual, sem alterar os dados da operação */
 (function(){
